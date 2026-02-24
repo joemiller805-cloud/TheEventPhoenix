@@ -4,123 +4,65 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Appointments — The Event Phoenix</title>
-  <meta name="description" content="Book an appointment with The Event Phoenix." />
+  <meta name="description" content="Book an appointment with The Event Phoenix. We'll review your registration workflow, scheduling, onsite needs, and reporting." />
   <meta name="theme-color" content="#0B1220" />
-  <link rel="canonical" href="https://theeventphoenix.com/appointments.html" />
 
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Appointments — The Event Phoenix" />
-  <meta property="og:description" content="Book a time to talk about your event and see how Phoenix fits." />
-  <meta property="og:url" content="https://theeventphoenix.com/appointments.html" />
-  <meta property="og:image" content="https://theeventphoenix.com/android-chrome-512x512.png" />
-
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-  <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
-
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-XXXXXXXXXX');
-  </script>
 </head>
 <body>
-
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="index.html">
-      <img class="brand-wordmark" src="phoenix-wordmark-a.png" alt="The Event Phoenix" />
+    <a class="brand" href="index.html" aria-label="The Event Phoenix home">
+      <img class="brand-icon" src="phoenix-logo.png" alt="The Event Phoenix" />
+      <span class="brand-word">
+        <span class="brand-title">The Event Phoenix</span>
+        <span class="brand-tagline">Event Management, Reborn.</span>
+      </span>
     </a>
-
-    <nav class="nav-actions">
+    <nav class="nav-actions" aria-label="Primary navigation">
       <a class="btn btn-ghost" href="features.html">Features</a>
       <a class="btn btn-ghost" href="pricing.html">Pricing</a>
       <a class="btn btn-ghost" href="founders.html">Founders Circle</a>
       <a class="btn btn-ghost" href="appointments.html">Appointments</a>
       <a class="btn btn-secondary" href="contact.html">Request a Demo</a>
-      <a class="btn btn-primary" href="https://firsteventfree.com" target="_blank" rel="noopener">Get Your First Event Free</a>
     </nav>
   </div>
 </header>
 
-<section class="section">
+<main class="page-hero">
   <div class="container">
-    <div class="section-head">
-      <h2>Book an appointment</h2>
-      <p class="muted">
-        Pick a time that works for you. We’ll talk through your event, your workflow, and how Phoenix fits.
-      </p>
-    </div>
+    <div class="eyebrow">Choose a time that works</div>
+    <h1>Book an appointment</h1>
+    <p class="lead">
+      We’ll talk through your event, your workflow, and how The Event Phoenix fits.
+    </p>
 
-    <div class="panel">
-      <div class="panel-title">Choose your booking method</div>
-      <div class="panel-sub">
-        <strong>Fastest path:</strong> use a Google booking page if your Google Calendar has “Appointment schedule.”
-        If not, use Calendly Free.
-      </div>
-    </div>
-
-    <!-- =======================
-         OPTION A: GOOGLE CALENDAR
-         =======================
-         If you have a Google booking page, paste the iframe embed code Google provides
-         BELOW and delete the Calendly section.
-    -->
     <div class="ribbon">
-      <b>Option A — Google Calendar booking page</b>
+      <b>Quick setup option</b>
       <ul>
-        <li>Google Calendar → Create → Appointment schedule → Share → Website embed.</li>
-        <li>Paste the iframe embed code here (replace this placeholder).</li>
+        <li>Use your Google Calendar “Appointment schedule” page (fast + free), or</li>
+        <li>Use Microsoft Bookings if you prefer Microsoft.</li>
       </ul>
     </div>
 
-    <div class="booking-embed">
-      <!-- PASTE YOUR GOOGLE BOOKING IFRAME HERE (example placeholder) -->
-      <!--
-      <iframe src="https://calendar.google.com/calendar/appointments/schedules/..."
-              style="border:0"
-              width="100%"
-              height="820"
-              frameborder="0"></iframe>
-      -->
-      <div style="padding:18px;">
-        <strong>Placeholder:</strong> Paste your Google Calendar booking iframe here (see instructions above).
-      </div>
-    </div>
-
-    <!-- =======================
-         OPTION B: CALENDLY (FREE)
-         =======================
-         If you use Calendly, replace YOUR-CALENDLY-URL-HERE and keep this section.
-         If you use Google, delete this whole Calendly block.
-    -->
-    <div class="ribbon" style="margin-top:18px;">
-      <b>Option B — Calendly Free</b>
+    <!-- Replace this with your actual booking link/embed -->
+    <div class="ribbon">
+      <b>Add your booking link here</b>
       <ul>
-        <li>Create a free Calendly account and copy your scheduling link.</li>
-        <li>Replace the URL in the embed below.</li>
+        <li>Paste your Google Appointment Schedule link OR Microsoft Bookings link.</li>
       </ul>
-    </div>
-
-    <div class="booking-embed">
-      <!-- Calendly inline widget begin -->
-      <div class="calendly-inline-widget"
-           data-url="https://calendly.com/YOUR-CALENDLY-URL-HERE"
-           style="min-width:320px;height:820px;"></div>
-      <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
-      <!-- Calendly inline widget end -->
     </div>
   </div>
-</section>
+</main>
 
 <footer>
   <div class="container footer-inner">
@@ -128,7 +70,6 @@
     <div class="footer-muted">Formerly Easy Reg Pro</div>
   </div>
 </footer>
-
 <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>
