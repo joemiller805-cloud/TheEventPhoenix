@@ -30,7 +30,9 @@ body{
 a{ color:inherit; text-decoration:none; }
 .container{ width:min(1200px, 92%); margin:0 auto; }
 
-/* ===== Header ===== */
+/* =======================
+   HEADER (CONSISTENT)
+   ======================= */
 .site-header{
   position: sticky;
   top: 0;
@@ -44,67 +46,65 @@ a{ color:inherit; text-decoration:none; }
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding: 14px 0;
-  gap: 16px;
+  padding: 12px 0;
+  gap: 14px;
 }
 
-/* ===== LOGO (FIXED) =====
-   Real text = readable. Tagline matches title width.
-*/
+/* Brand */
 .brand{
   display:flex;
   align-items:center;
-  gap: 12px;
-  min-width: 320px;
+  gap: 10px;
+  min-width: 240px;
 }
 
 .brand-icon{
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   display:block;
   border-radius: 8px;
   filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
 }
 
-/* Wrapper uses title width so tagline is the SAME width */
+/* shrink-wrap so tagline matches title width */
 .brand-word{
-  display:inline-block; /* shrink-wrap to title width */
+  display:inline-block;
   line-height: 1.05;
 }
 
 .brand-title{
-  font-size: 22px;
+  display:block;
+  font-size: 18px;
   font-weight: 900;
   letter-spacing: .2px;
-  margin: 0;
-  display:block;
 }
 
 .brand-tagline{
   display:block;
-  width: 100%;               /* matches .brand-word width */
-  font-size: 16px;           /* LARGE + readable */
+  width: 100%;               /* same width as title */
+  font-size: 14px;           /* BIGGER + readable */
   font-weight: 900;
-  color: var(--teal2);        /* teal */
+  color: var(--teal2);
   margin-top: 2px;
-  letter-spacing: .5px;
+  letter-spacing: .45px;
   white-space: nowrap;
 }
 
-/* ===== Nav ===== */
+/* Nav */
 .nav-actions{
   display:flex;
   gap: 10px;
   align-items:center;
   flex-wrap: wrap;
+  justify-content:flex-end;
 }
 
-/* ===== Buttons ===== */
+/* Buttons */
 .btn{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding: 11px 18px;
+  padding: 10px 16px;
   border-radius: 12px;
   font-weight: 900;
   letter-spacing: .1px;
@@ -128,8 +128,7 @@ a{ color:inherit; text-decoration:none; }
 }
 .btn-secondary:hover{ opacity:.95; }
 
-/* FIX: Founders button border no longer “shows” two background colors because
-   it now has its own consistent background fill. */
+/* Founders / outline style with a consistent fill so it never “crosses” backgrounds */
 .btn-ghost{
   background: rgba(0,0,0,.18);
   border-color: rgba(255,122,24,.55);
@@ -139,14 +138,16 @@ a{ color:inherit; text-decoration:none; }
 
 .large{ padding: 14px 22px; font-size: 18px; border-radius: 14px; }
 
-/* ===== Hero ===== */
+/* =======================
+   HERO (HOME)
+   ======================= */
 .hero{
-  padding: 58px 0 120px; /* extra bottom padding prevents any boundary weirdness */
+  padding: 52px 0 108px;
 }
 .hero-grid{
   display:grid;
   grid-template-columns: 1.2fr .8fr;
-  gap: 34px;
+  gap: 30px;
   align-items:start;
 }
 
@@ -179,12 +180,6 @@ h1{
   line-height: 1.62;
 }
 
-.value-line{
-  margin-top: 14px;
-  font-weight: 800;
-  color: rgba(255,255,255,.88);
-}
-
 .hero-buttons{
   display:flex;
   gap: 12px;
@@ -202,7 +197,7 @@ h1{
   font-size: 13px;
 }
 
-/* ===== Panel ===== */
+/* Panel */
 .panel{
   background:
     radial-gradient(600px 260px at 10% 10%, rgba(24,224,196,.14) 0%, transparent 55%),
@@ -239,8 +234,22 @@ h1{
   color: rgba(255,255,255,.68);
 }
 
-/* ===== Sections ===== */
-.section{ padding: 74px 0; }
+/* =======================
+   PAGE HERO (INNER PAGES)
+   ======================= */
+.page-hero{
+  padding: 44px 0 48px;
+}
+.page-hero h1{
+  font-size: clamp(28px, 3.4vw, 44px);
+  margin-bottom: 10px;
+}
+.page-hero .lead{
+  font-size: 16px;
+}
+
+/* Sections */
+.section{ padding: 68px 0; }
 .section-dark{
   background: rgba(17,24,39,.55);
   border-top: 1px solid rgba(255,255,255,.06);
@@ -252,7 +261,7 @@ h1{
   max-width: 920px;
   margin: 0 auto 20px;
 }
-h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
+h2{ margin:0 0 10px; font-size: clamp(24px, 3vw, 34px); }
 .muted{ color: var(--muted); margin:0 auto; max-width: 78ch; line-height:1.6; }
 
 .grid-3{
@@ -271,7 +280,7 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
 .card h3{ margin:0 0 8px; font-size: 18px; }
 .card p{ margin:0; color: rgba(255,255,255,.78); line-height:1.55; }
 
-/* bullets */
+/* bullet list blocks */
 .bullet-grid{
   display:grid;
   grid-template-columns: repeat(2, 1fr);
@@ -297,24 +306,6 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
 .bullet b{ display:block; }
 .bullet small{ display:block; color: rgba(255,255,255,.72); margin-top: 4px; line-height:1.45; }
 
-/* comparison */
-.compare{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 18px;
-}
-.compare-col{
-  padding: 18px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(11,18,32,.55);
-  box-shadow: 0 10px 30px rgba(0,0,0,.22);
-}
-.compare-col h3{ margin:0 0 10px; font-size: 18px; }
-.compare-col ul{ margin:0; padding-left: 18px; color: rgba(255,255,255,.82); }
-.compare-col li{ margin: 8px 0; line-height: 1.45; }
-
 /* testimonials */
 .testimonials{
   display:grid;
@@ -331,44 +322,6 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
 }
 .quote p{ margin:0; color: rgba(255,255,255,.86); line-height: 1.6; }
 .quote .who{ margin-top: 12px; color: rgba(255,255,255,.70); font-size: 13px; }
-
-/* CTA band */
-.cta-band{
-  margin-top: 28px;
-  padding: 22px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,.12);
-  background:
-    radial-gradient(700px 260px at 20% 10%, rgba(24,224,196,.18) 0%, transparent 60%),
-    radial-gradient(700px 260px at 80% 20%, rgba(255,122,24,.14) 0%, transparent 60%),
-    rgba(0,0,0,.12);
-  box-shadow: var(--shadow);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.cta-band b{ font-size: 18px; }
-.cta-band span{ color: rgba(255,255,255,.78); }
-.cta-actions{ display:flex; gap:10px; flex-wrap:wrap; }
-
-/* stats strip */
-.stats-strip{
-  margin-top: 20px;
-  display:grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-.stat{
-  background: rgba(0,0,0,.14);
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.20);
-}
-.stat b{ display:block; font-size: 16px; }
-.stat span{ display:block; margin-top: 4px; color: rgba(255,255,255,.72); font-size: 12px; }
 
 /* ribbon */
 .ribbon{
@@ -396,24 +349,23 @@ footer{
 }
 .footer-muted{ color: rgba(255,255,255,.65); }
 
-/* ===== Responsive ===== */
+/* Responsive */
 @media (max-width: 980px){
   .hero-grid{ grid-template-columns: 1fr; }
   .grid-3{ grid-template-columns: 1fr; }
-  .compare{ grid-template-columns: 1fr; }
   .testimonials{ grid-template-columns: 1fr; }
   .bullet-grid{ grid-template-columns: 1fr; }
-  .stats-strip{ grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 640px){
   .header-inner{ flex-direction:column; align-items:flex-start; }
-  .brand{ min-width: 0; }
-  .brand-title{ font-size: 20px; }
-  .brand-tagline{ font-size: 15px; } /* still readable on mobile */
-  .nav-actions{ width:100%; }
+  .nav-actions{ width:100%; justify-content:flex-start; }
 
-  .hero{ padding: 44px 0 110px; } /* keep founders away from boundary */
+  .brand-title{ font-size: 18px; }
+  .brand-tagline{ font-size: 14px; }
+
+  .hero{ padding: 42px 0 96px; }
+
   .hero-buttons{
     flex-direction: column;
     gap: 10px;
@@ -423,18 +375,11 @@ footer{
     justify-content: center;
   }
 
-  .eyebrow{
-    width: 100%;
-    border-radius: 16px;
-    line-height: 1.4;
-  }
-
   .trust-row{
     gap: 8px;
     margin-top: 12px;
     font-size: 12px;
   }
 
-  .stats-strip{ grid-template-columns: 1fr; }
   .footer-inner{ flex-direction:column; align-items:flex-start; }
 }
