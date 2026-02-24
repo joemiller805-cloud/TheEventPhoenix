@@ -11,6 +11,7 @@
   --orange:#FF7A18;
 
   --shadow: 0 16px 48px rgba(0,0,0,.40);
+  --border: rgba(255,255,255,.10);
 }
 
 *{ box-sizing:border-box; }
@@ -47,40 +48,50 @@ a{ color:inherit; text-decoration:none; }
   gap: 16px;
 }
 
-/* Brand / logo */
+/* ===== LOGO (FIXED) =====
+   Real text = readable. Tagline matches title width.
+*/
 .brand{
   display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  gap: 6px;
-  width: 360px;        /* tagline spans this width */
-  max-width: 42vw;
-  min-width: 260px;
+  align-items:center;
+  gap: 12px;
+  min-width: 320px;
 }
 
-.brand-wordmark{
-  height: 74px;
-  width: auto;
+.brand-icon{
+  width: 34px;
+  height: 34px;
   display:block;
-  filter: drop-shadow(0 10px 28px rgba(0,0,0,.35));
+  border-radius: 8px;
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
 }
 
-/* BIG teal tagline */
-.brand-tagline{
-  width: 100%;
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--teal2);
+/* Wrapper uses title width so tagline is the SAME width */
+.brand-word{
+  display:inline-block; /* shrink-wrap to title width */
   line-height: 1.05;
-  letter-spacing: .6px;
+}
+
+.brand-title{
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  margin: 0;
+  display:block;
+}
+
+.brand-tagline{
+  display:block;
+  width: 100%;               /* matches .brand-word width */
+  font-size: 16px;           /* LARGE + readable */
+  font-weight: 900;
+  color: var(--teal2);        /* teal */
+  margin-top: 2px;
+  letter-spacing: .5px;
   white-space: nowrap;
 }
 
-@media (min-width: 1100px){
-  .brand-tagline{ letter-spacing: .9px; }
-}
-
-/* Nav */
+/* ===== Nav ===== */
 .nav-actions{
   display:flex;
   gap: 10px;
@@ -88,7 +99,7 @@ a{ color:inherit; text-decoration:none; }
   flex-wrap: wrap;
 }
 
-/* Buttons */
+/* ===== Buttons ===== */
 .btn{
   display:inline-flex;
   align-items:center;
@@ -111,14 +122,16 @@ a{ color:inherit; text-decoration:none; }
 .btn-primary:hover{ opacity:.95; }
 
 .btn-secondary{
-  background: rgba(0,0,0,.12);
+  background: rgba(0,0,0,.14);
   border-color: rgba(0,191,166,.70);
   color: var(--teal2);
 }
 .btn-secondary:hover{ opacity:.95; }
 
+/* FIX: Founders button border no longer “shows” two background colors because
+   it now has its own consistent background fill. */
 .btn-ghost{
-  background: transparent;
+  background: rgba(0,0,0,.18);
   border-color: rgba(255,122,24,.55);
   color: rgba(255,255,255,.92);
 }
@@ -127,7 +140,9 @@ a{ color:inherit; text-decoration:none; }
 .large{ padding: 14px 22px; font-size: 18px; border-radius: 14px; }
 
 /* ===== Hero ===== */
-.hero{ padding: 58px 0 96px; }
+.hero{
+  padding: 58px 0 120px; /* extra bottom padding prevents any boundary weirdness */
+}
 .hero-grid{
   display:grid;
   grid-template-columns: 1.2fr .8fr;
@@ -175,7 +190,7 @@ h1{
   gap: 12px;
   margin-top: 22px;
   flex-wrap: wrap;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .trust-row{
@@ -187,7 +202,7 @@ h1{
   font-size: 13px;
 }
 
-/* Panel */
+/* ===== Panel ===== */
 .panel{
   background:
     radial-gradient(600px 260px at 10% 10%, rgba(24,224,196,.14) 0%, transparent 55%),
@@ -224,7 +239,7 @@ h1{
   color: rgba(255,255,255,.68);
 }
 
-/* Sections */
+/* ===== Sections ===== */
 .section{ padding: 74px 0; }
 .section-dark{
   background: rgba(17,24,39,.55);
@@ -256,7 +271,7 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
 .card h3{ margin:0 0 8px; font-size: 18px; }
 .card p{ margin:0; color: rgba(255,255,255,.78); line-height:1.55; }
 
-/* Why Phoenix bullets */
+/* bullets */
 .bullet-grid{
   display:grid;
   grid-template-columns: repeat(2, 1fr);
@@ -280,14 +295,9 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
   flex:0 0 auto;
 }
 .bullet b{ display:block; }
-.bullet small{
-  display:block;
-  color: rgba(255,255,255,.72);
-  margin-top: 4px;
-  line-height:1.45;
-}
+.bullet small{ display:block; color: rgba(255,255,255,.72); margin-top: 4px; line-height:1.45; }
 
-/* Comparison */
+/* comparison */
 .compare{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -305,7 +315,7 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
 .compare-col ul{ margin:0; padding-left: 18px; color: rgba(255,255,255,.82); }
 .compare-col li{ margin: 8px 0; line-height: 1.45; }
 
-/* Testimonials */
+/* testimonials */
 .testimonials{
   display:grid;
   grid-template-columns: repeat(3, 1fr);
@@ -343,7 +353,7 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
 .cta-band span{ color: rgba(255,255,255,.78); }
 .cta-actions{ display:flex; gap:10px; flex-wrap:wrap; }
 
-/* Stats strip */
+/* stats strip */
 .stats-strip{
   margin-top: 20px;
   display:grid;
@@ -360,7 +370,7 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
 .stat b{ display:block; font-size: 16px; }
 .stat span{ display:block; margin-top: 4px; color: rgba(255,255,255,.72); font-size: 12px; }
 
-/* Ribbon */
+/* ribbon */
 .ribbon{
   margin-top: 14px;
   background: rgba(0,0,0,.18);
@@ -372,7 +382,7 @@ h2{ margin:0 0 10px; font-size: clamp(26px, 3vw, 36px); }
 .ribbon ul{ margin:0; padding-left: 18px; color: rgba(255,255,255,.84); }
 .ribbon li{ margin: 6px 0; }
 
-/* Footer */
+/* footer */
 footer{
   padding: 26px 0;
   background: rgba(11,18,32,.85);
@@ -386,7 +396,7 @@ footer{
 }
 .footer-muted{ color: rgba(255,255,255,.65); }
 
-/* Responsive */
+/* ===== Responsive ===== */
 @media (max-width: 980px){
   .hero-grid{ grid-template-columns: 1fr; }
   .grid-3{ grid-template-columns: 1fr; }
@@ -398,14 +408,12 @@ footer{
 
 @media (max-width: 640px){
   .header-inner{ flex-direction:column; align-items:flex-start; }
-  .brand{ width: 100%; max-width: 100%; min-width: 0; }
-  .brand-wordmark{ height: 66px; }
-  .brand-tagline{ font-size: 16px; letter-spacing: .4px; }
-
+  .brand{ min-width: 0; }
+  .brand-title{ font-size: 20px; }
+  .brand-tagline{ font-size: 15px; } /* still readable on mobile */
   .nav-actions{ width:100%; }
 
-  .hero{ padding: 44px 0 88px; }
-
+  .hero{ padding: 44px 0 110px; } /* keep founders away from boundary */
   .hero-buttons{
     flex-direction: column;
     gap: 10px;
@@ -427,6 +435,6 @@ footer{
     font-size: 12px;
   }
 
-  .footer-inner{ flex-direction:column; align-items:flex-start; }
   .stats-strip{ grid-template-columns: 1fr; }
+  .footer-inner{ flex-direction:column; align-items:flex-start; }
 }
