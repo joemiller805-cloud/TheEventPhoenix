@@ -723,8 +723,81 @@ em { font-style: italic; color: var(--teal); }
 }
 .footer__formerly strong { color: var(--text-muted); }
 
-/* Hero eyebrow tagline */
-.hero__eyebrow {
+/* FIX #12 — hero badge mobile fix */
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 100px;
+  padding: 6px 16px;
+  margin-bottom: 28px;
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+.hero__badge-text {
+  white-space: normal;
+  line-height: 1.4;
+}
+
+/* Session alert row */
+.mock-session--alert {
+  font-size: 0.75rem !important;
+  color: var(--ember) !important;
+  background: rgba(255,107,53,0.06) !important;
+}
+
+/* Power features mock */
+.feature-mock--power { gap: 0; padding: 16px; }
+.mock-power-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.mock-power-row:last-child { border-bottom: none; }
+.mock-power-icon { font-size: 1.1rem; text-align: center; }
+.mock-power-row > div { min-width: 0; }
+.mock-power-row > div strong { display: block; font-size: 0.8rem; color: var(--white); }
+.mock-power-row > div span  { font-size: 0.72rem; color: var(--text-dim); }
+.mock-copy-btn {
+  font-size: 0.7rem; font-weight: 700;
+  background: var(--teal); color: var(--navy);
+  border-radius: 6px; padding: 4px 8px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.mock-status {
+  font-size: 0.7rem; font-weight: 700;
+  border-radius: 6px; padding: 4px 8px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.mock-status--ok      { background: rgba(0,212,180,0.12); color: var(--teal); }
+.mock-status--pending { background: rgba(255,107,53,0.12); color: var(--ember); }
+
+/* Pricing engage note */
+.pricing__engage-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(0,212,180,0.05);
+  border: 1px solid rgba(0,212,180,0.15);
+  border-radius: var(--r);
+  font-size: 0.78rem;
+}
+.pricing__engage-note p { color: var(--text-muted); font-size: 0.78rem; margin: 0; }
+.pricing__engage-note p strong { color: var(--teal); }
+.pricing__engage-note--fire {
+  background: rgba(255,107,53,0.06);
+  border-color: rgba(255,107,53,0.2);
+}
+.pricing__engage-note--fire p strong { color: var(--ember); }
   font-family: var(--font-mono);
   font-size: 0.78rem;
   letter-spacing: 0.18em;
