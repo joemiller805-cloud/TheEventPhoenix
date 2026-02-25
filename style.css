@@ -810,12 +810,12 @@ em { font-style: italic; color: var(--teal); }
 /* ===== PRICING TOGGLE ===== */
 
 /* Hero eyebrow — ember orange tagline */
-.hero__eyebrow {
+.hero__content .hero__eyebrow {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--ember);
+  color: var(--ember) !important;
   margin-bottom: 12px;
   animation: slideUp 0.7s ease both;
 }
