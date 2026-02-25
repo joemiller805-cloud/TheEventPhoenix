@@ -15,7 +15,7 @@
 </head>
 <body>
 
-  <!-- ===== NAV ===== -->
+  <!-- NAV -->
   <nav class="nav" id="nav">
     <a class="nav__logo" href="/">
       <img class="nav__logomark" src="phoenix-logo.png" alt="The Event Phoenix logo" />
@@ -34,7 +34,7 @@
     </ul>
   </nav>
 
-  <!-- ===== HERO ===== -->
+  <!-- HERO -->
   <section class="hero" id="home">
     <div class="hero__bg">
       <div class="hero__orb hero__orb--1"></div>
@@ -42,9 +42,10 @@
       <div class="hero__grid"></div>
     </div>
     <div class="hero__content">
+      <!-- FIX #12: badge rewritten as a single inline span to prevent mobile wrapping -->
       <div class="hero__badge">
         <span class="hero__badge-dot"></span>
-        Built by meeting planners · Proven through <strong>10 years</strong> of real-world use
+        <span class="hero__badge-text">Built by meeting planners &middot; Proven through <strong>10&nbsp;years</strong> of real-world use</span>
       </div>
       <p class="hero__eyebrow">Event Management, Reborn.</p>
       <h1 class="hero__headline">
@@ -53,7 +54,7 @@
         been <em>asking for.</em>
       </h1>
       <p class="hero__sub">
-        The Event Phoenix is a planner-built <strong>Event Management System</strong> where online registration comes first — and everything else flows from it. Ticketing, payments, scheduling, check-in & badge scanning, vendors/sponsors, email tools, and reporting work together as one clean workflow.
+        The Event Phoenix is a planner-built <strong>Event Management System</strong> where online registration comes first — and everything else flows from it. Ticketing, payments, scheduling, check-in &amp; badge scanning, vendors/sponsors, email tools, and reporting work together as one clean workflow.
       </p>
       <div class="hero__actions">
         <a href="#demo" class="btn btn--primary btn--lg">Book an Appointment</a>
@@ -69,63 +70,62 @@
         <span>✓ Check-in + scanning</span>
       </div>
     </div>
+
+    <!-- FIX #1: At-a-glance with better 4 features, FIX #3: removed "Formerly Easy Reg Pro" -->
     <div class="hero__card-wrap">
       <div class="hero__card">
         <p class="hero__card-label">At-a-glance</p>
-        <p class="hero__card-sub">The foundation + the features planners ask about first.</p>
+        <p class="hero__card-sub">The features planners ask about first.</p>
         <div class="hero__card-grid">
           <div class="hero__card-item">
             <strong>Online Registration</strong>
-            <span>Types + questions + flow</span>
+            <span>Unlimited types + custom flows</span>
           </div>
           <div class="hero__card-item">
-            <strong>Ticketing + Payments</strong>
-            <span>Gateways + discounts</span>
-          </div>
-          <div class="hero__card-item">
-            <strong>Scheduling</strong>
+            <strong>Scheduling + Agenda</strong>
             <span>Multi-day drag-and-drop</span>
           </div>
           <div class="hero__card-item">
             <strong>Check-in + Scanning</strong>
-            <span>Fast onsite ops</span>
+            <span>Fast onsite from any device</span>
+          </div>
+          <div class="hero__card-item">
+            <strong>Copy Events</strong>
+            <span>Reuse events &amp; courses year after year</span>
           </div>
         </div>
         <a href="#demo" class="btn btn--primary btn--full">Request a Demo</a>
-        <p class="hero__card-note">Formerly <strong>Easy Reg Pro</strong> — rebuilt as <strong>The Event Phoenix</strong></p>
       </div>
     </div>
   </section>
 
-  <!-- ===== DIFFERENTIATORS ===== -->
+  <!-- DIFFERENTIATORS -->
   <section class="diff">
     <div class="container">
-      <div class="diff__intro">
-        <h2>What makes The Event Phoenix different</h2>
-      </div>
+      <div class="diff__intro"><h2>What makes The Event Phoenix different</h2></div>
       <div class="diff__pills">
         <div class="diff__pill">
           <span class="diff__icon">∞</span>
-          <p><strong>Unlimited</strong> events, users, registrations, registration types &amp; questions</p>
+          <p><strong>Unlimited</strong> events, users, registrations, registration types, questions &amp; discount codes</p>
         </div>
         <div class="diff__pill">
           <span class="diff__icon">✦</span>
-          <p>Fewer <em>"add-on"</em> surprises — core capabilities are included</p>
+          <p>Fewer <em>"add-on"</em> surprises — every core capability planners need is included</p>
         </div>
         <div class="diff__pill">
           <span class="diff__icon">◈</span>
-          <p>Built around <strong>real multi-day workflows</strong>, not marketing checkboxes</p>
+          <p>Built around <strong>real multi-day workflows</strong> by planners who ran events for 10 years</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== BUILT BY PLANNERS ===== -->
+  <!-- BUILT BY PLANNERS -->
   <section class="planners">
     <div class="container">
       <div class="planners__tag">Our Philosophy</div>
       <h2 class="planners__headline">Built by planners.<br><span>Not just "sold" to planners.</span></h2>
-      <p class="planners__body">The Event Phoenix was rebuilt after years of running real events and living with the same headaches: disconnected tools, add-ons, and limits that show up right when you're trying to deliver.</p>
+      <p class="planners__body">The Event Phoenix was built after years of running real events and living with the same headaches: disconnected tools, add-ons, and limits that show up right when you're trying to deliver.</p>
       <div class="planners__grid">
         <div class="planners__card">
           <div class="planners__card-dot"></div>
@@ -140,18 +140,18 @@
         <div class="planners__card">
           <div class="planners__card-dot"></div>
           <h3>No artificial caps</h3>
-          <p>Unlimited events, users, registrations, questions, and more — no "you hit your limit" surprises.</p>
+          <p>Unlimited events, users, registrations, questions, discount codes — no "you hit your limit" surprises.</p>
         </div>
         <div class="planners__card">
           <div class="planners__card-dot"></div>
           <h3>Built for multi-day reality</h3>
-          <p>Drag-and-drop agendas, sessions, speakers, vendors/sponsors, and onsite check-in + scanning.</p>
+          <p>Drag-and-drop agendas, sessions, speakers, tracks, courses, vendors/sponsors, and onsite check-in + scanning.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== FEATURES ===== -->
+  <!-- FEATURES -->
   <section class="features" id="features">
     <div class="container">
       <div class="features__header">
@@ -161,17 +161,18 @@
       </div>
       <div class="features__list">
 
+        <!-- 01 Registration — FIX #4: removed group reg, removed waitlists -->
         <div class="feature-block feature-block--alt">
           <div class="feature-block__text">
             <div class="feature-block__num">01</div>
             <h3>Online Registration</h3>
-            <p>Create unlimited registration types with custom question flows, conditional logic, and multi-step forms. Each attendee type gets exactly the right experience — from VIP to general public.</p>
+            <p>Create unlimited registration types with custom question flows, conditional logic, and multi-step forms. Each attendee type gets exactly the right experience — from VIP to general public to speaker.</p>
             <ul class="feature-block__bullets">
               <li>Unlimited registration types &amp; questions</li>
               <li>Conditional logic &amp; branching</li>
               <li>Custom confirmation emails</li>
-              <li>Group registrations</li>
-              <li>Waitlists &amp; capacity controls</li>
+              <li>Register multiple attendees at once</li>
+              <li>Unlimited discount codes</li>
             </ul>
           </div>
           <div class="feature-block__visual">
@@ -190,14 +191,15 @@
           </div>
         </div>
 
+        <!-- 02 Ticketing -->
         <div class="feature-block">
           <div class="feature-block__text">
             <div class="feature-block__num">02</div>
             <h3>Ticketing + Payments</h3>
-            <p>Sell tickets, manage discount codes, and process payments — all without leaving the platform. Multiple payment gateways supported.</p>
+            <p>Sell tickets, manage unlimited discount codes, and process payments — all without leaving the platform. Multiple payment gateways supported with full revenue reporting.</p>
             <ul class="feature-block__bullets">
               <li>Multiple payment gateways</li>
-              <li>Promo &amp; discount codes</li>
+              <li>Unlimited promo &amp; discount codes</li>
               <li>Early-bird pricing tiers</li>
               <li>Refund management</li>
               <li>Revenue reporting</li>
@@ -216,16 +218,18 @@
           </div>
         </div>
 
+        <!-- 03 Scheduling -->
         <div class="feature-block feature-block--alt">
           <div class="feature-block__text">
             <div class="feature-block__num">03</div>
             <h3>Scheduling &amp; Agenda Builder</h3>
-            <p>Multi-day drag-and-drop scheduling that actually makes sense. Manage sessions, speakers, rooms, and breaks across multiple days without breaking a sweat.</p>
+            <p>Multi-day drag-and-drop scheduling that actually makes sense. Manage sessions, speakers, rooms, tracks, and reusable courses — with real-time capacity alerts so nothing fills up by surprise.</p>
             <ul class="feature-block__bullets">
               <li>Drag-and-drop multi-day builder</li>
               <li>Speaker &amp; session management</li>
+              <li>Unlimited tracks &amp; reusable courses</li>
               <li>Room &amp; capacity assignments</li>
-              <li>Conflict detection</li>
+              <li>Session capacity alerts</li>
               <li>Attendee-facing agenda pages</li>
             </ul>
           </div>
@@ -233,13 +237,15 @@
             <div class="feature-mock feature-mock--schedule">
               <div class="mock-day-header">Day 1 — Monday</div>
               <div class="mock-session" style="--col:#00D4B4">9:00 AM · Opening Keynote · Main Hall</div>
-              <div class="mock-session" style="--col:#FF6B35">10:30 AM · Workshop A · Room 204</div>
-              <div class="mock-session" style="--col:#00D4B4">10:30 AM · Workshop B · Room 205</div>
+              <div class="mock-session" style="--col:#FF6B35">10:30 AM · Workshop A · Track 1 · Room 204</div>
+              <div class="mock-session" style="--col:#00D4B4">10:30 AM · Workshop B · Track 2 · Room 205</div>
+              <div class="mock-session mock-session--alert" style="--col:#FF6B35">⚠ Room 204 nearing capacity (48/50)</div>
               <div class="mock-session" style="--col:#6C63FF">12:00 PM · Lunch Break</div>
             </div>
           </div>
         </div>
 
+        <!-- 04 Check-in — FIX #5: removed "Works offline" -->
         <div class="feature-block">
           <div class="feature-block__text">
             <div class="feature-block__num">04</div>
@@ -250,7 +256,6 @@
               <li>On-demand badge printing</li>
               <li>Real-time check-in dashboard</li>
               <li>Session-level attendance tracking</li>
-              <li>Works offline</li>
             </ul>
           </div>
           <div class="feature-block__visual">
@@ -266,51 +271,97 @@
           </div>
         </div>
 
+        <!-- 05 Vendors/Sponsors — FIX #8: rewritten accurately, FIX #6+#8: removed open/click metrics -->
         <div class="feature-block feature-block--alt">
           <div class="feature-block__text">
             <div class="feature-block__num">05</div>
             <h3>Vendors, Sponsors &amp; Email Tools</h3>
-            <p>Manage your vendor list, sponsor tiers, and exhibitor assignments — and communicate with everyone using built-in email tools that pull directly from your registration data.</p>
+            <p>Define your own vendor types, exhibitor types, and sponsor types — as many as your event needs. Then reach any segment of attendees using built-in email tools that pull directly from your registration data.</p>
             <ul class="feature-block__bullets">
-              <li>Sponsor tier management</li>
-              <li>Exhibitor booth assignments</li>
-              <li>Segmented email campaigns</li>
-              <li>Pre-built templates</li>
-              <li>Open &amp; click reporting</li>
+              <li>Custom vendor, exhibitor &amp; sponsor types</li>
+              <li>Unlimited sponsor tiers</li>
+              <li>Segmented email to any attendee type</li>
+              <li>Merge tags pull from registration data</li>
+              <li>Document sharing for vendors &amp; speakers</li>
             </ul>
           </div>
           <div class="feature-block__visual">
+            <!-- FIX #6: no open rate or click metrics shown -->
             <div class="feature-mock feature-mock--email">
               <div class="mock-email-header">📧 Send to: All Speakers (42)</div>
               <div class="mock-email-subject">Your Session Reminder — {Event Name}</div>
-              <div class="mock-email-body">Hi {First Name}, your session starts at {Time}…</div>
-              <div class="mock-email-metrics">
-                <span>Open rate <strong>68%</strong></span>
-                <span>Clicks <strong>31%</strong></span>
+              <div class="mock-email-body">Hi {First Name}, your session "{Session Title}" starts at {Time} in {Room}…</div>
+              <div class="mock-email-types">
+                <span class="mock-tag">All Attendees</span>
+                <span class="mock-tag mock-tag--alt">Speakers Only</span>
+                <span class="mock-tag">Sponsors</span>
+                <span class="mock-tag">Vendors</span>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- 06 Reporting — FIX #9: removed custom report builder, added "built on request" -->
         <div class="feature-block">
           <div class="feature-block__text">
             <div class="feature-block__num">06</div>
             <h3>Reporting &amp; Analytics</h3>
-            <p>Know exactly what's happening at every stage. Real-time dashboards, custom reports, and export options so you can show ROI to stakeholders with confidence.</p>
+            <p>Real-time dashboards that show exactly what's happening at every stage of your event — registrations, revenue, and attendance. Need something custom? We'll build it for you.</p>
             <ul class="feature-block__bullets">
               <li>Real-time registration dashboard</li>
               <li>Revenue &amp; financial reports</li>
-              <li>Attendance &amp; session analytics</li>
-              <li>Custom report builder</li>
+              <li>Attendance tracking &amp; reporting</li>
               <li>CSV &amp; Excel exports</li>
+              <li>Custom reports built on request</li>
             </ul>
           </div>
           <div class="feature-block__visual">
+            <!-- FIX #9: showing only what's actually available -->
             <div class="feature-mock feature-mock--reports">
               <div class="mock-report-row"><span>Total Registrations</span><strong>487</strong></div>
               <div class="mock-report-row"><span>Revenue Collected</span><strong>$48,200</strong></div>
-              <div class="mock-report-row"><span>Check-in Rate</span><strong>91%</strong></div>
-              <div class="mock-report-row"><span>Session Attendance</span><strong>avg 73%</strong></div>
+              <div class="mock-report-row"><span>Checked In</span><strong>441 of 487</strong></div>
+              <div class="mock-report-row"><span>Sessions Running</span><strong>12 active</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 07 Power Features — NEW -->
+        <div class="feature-block feature-block--alt">
+          <div class="feature-block__text">
+            <div class="feature-block__num">07</div>
+            <h3>Power Features Competitors Charge Extra For</h3>
+            <p>The Event Phoenix includes capabilities that other platforms either don't offer or lock behind expensive enterprise plans. These are the features that make planners' lives dramatically easier — included at no extra cost.</p>
+            <ul class="feature-block__bullets">
+              <li>Copy Event — clone any past event in one click</li>
+              <li>Expense management — speaker travel approvals &amp; tracking</li>
+              <li>Inventory management — track your event equipment</li>
+              <li>Document management — event &amp; session-level file sharing</li>
+              <li>Reusable courses &amp; tracks — build once, reuse every year</li>
+            </ul>
+          </div>
+          <div class="feature-block__visual">
+            <div class="feature-mock feature-mock--power">
+              <div class="mock-power-row">
+                <span class="mock-power-icon">📋</span>
+                <div><strong>Annual Conference 2025</strong><span>Click to copy → Annual Conference 2026</span></div>
+                <div class="mock-copy-btn">Copy Event</div>
+              </div>
+              <div class="mock-power-row">
+                <span class="mock-power-icon">💰</span>
+                <div><strong>Speaker Expenses</strong><span>3 pending approval · $1,240 total</span></div>
+                <div class="mock-status mock-status--pending">Review</div>
+              </div>
+              <div class="mock-power-row">
+                <span class="mock-power-icon">📦</span>
+                <div><strong>Inventory</strong><span>14 items tracked · 2 checked out</span></div>
+                <div class="mock-status mock-status--ok">OK</div>
+              </div>
+              <div class="mock-power-row">
+                <span class="mock-power-icon">📁</span>
+                <div><strong>Documents</strong><span>8 files · shared with speakers</span></div>
+                <div class="mock-status mock-status--ok">Live</div>
+              </div>
             </div>
           </div>
         </div>
@@ -319,85 +370,46 @@
     </div>
   </section>
 
-  <!-- ===== ENGAGE TEASER ===== -->
+  <!-- PHOENIX ENGAGE TEASER -->
   <section class="engage" id="engage">
     <div class="container">
       <div class="engage__inner">
         <div class="engage__left">
-          <div class="engage__coming-badge">
-            <span class="engage__coming-dot"></span>
-            Coming Q3 2026
-          </div>
-          <h2 class="engage__headline">Introducing<br><span>Phoenix Engage.</span></h2>
-          <p class="engage__sub">A full attendee engagement platform — built right into The Event Phoenix. While competitors charge $3,000–$8,000 <em>per event</em> for this, it's included in your plan.</p>
-
+          <div class="engage__coming-soon">Coming Q3 2026</div>
+          <h2 class="engage__headline">Introducing<br><span>Phoenix Engage</span></h2>
+          <p class="engage__body">A full attendee mobile experience built right into The Event Phoenix. While competitors charge $3,000–$15,000 per event for a mobile app, Phoenix Engage will be included.</p>
           <div class="engage__features">
             <div class="engage__feature">
-              <span class="engage__feature-icon">📱</span>
-              <div>
-                <strong>Mobile App Experience</strong>
-                <p>Installable on any device — no App Store required. Attendees get a native-feeling app from their browser.</p>
-              </div>
-            </div>
-            <div class="engage__feature">
               <span class="engage__feature-icon">📅</span>
-              <div>
-                <strong>Personal Agenda Builder</strong>
-                <p>Attendees build their own schedule from your sessions. Real-time updates if anything changes.</p>
-              </div>
+              <div><strong>Personal Agenda Builder</strong><p>Attendees build their own schedule from your sessions.</p></div>
             </div>
             <div class="engage__feature">
               <span class="engage__feature-icon">🔔</span>
-              <div>
-                <strong>Push Notifications</strong>
-                <p>Reach every attendee instantly. Session reminders, announcements, last-minute changes — delivered.</p>
-              </div>
+              <div><strong>Push Notifications</strong><p>Session reminders, announcements, last-minute changes — delivered instantly.</p></div>
             </div>
             <div class="engage__feature">
               <span class="engage__feature-icon">🗳️</span>
-              <div>
-                <strong>Live Polling</strong>
-                <p>Real-time audience polling during sessions. Results display instantly on screen. Speakers love it.</p>
-              </div>
+              <div><strong>Live Polling</strong><p>Real-time audience polling during sessions. Results display on screen instantly.</p></div>
             </div>
             <div class="engage__feature">
               <span class="engage__feature-icon">🏆</span>
-              <div>
-                <strong>Gamification</strong>
-                <p>Points, leaderboards, badges, and challenges. Turn passive attendees into active participants.</p>
-              </div>
+              <div><strong>Gamification</strong><p>Points, leaderboards, badges. Turn passive attendees into active participants.</p></div>
             </div>
             <div class="engage__feature">
               <span class="engage__feature-icon">🤝</span>
-              <div>
-                <strong>Attendee Networking</strong>
-                <p>Profiles, 1:1 messaging, and meeting scheduling. Help attendees connect before, during, and after.</p>
-              </div>
+              <div><strong>Attendee Networking</strong><p>Profiles, 1:1 messaging, and meeting scheduling built in.</p></div>
             </div>
             <div class="engage__feature">
               <span class="engage__feature-icon">⬛</span>
-              <div>
-                <strong>Session QR Check-in</strong>
-                <p>Attendees scan in to each session from their phone. Real-time attendance data flows back to your dashboard.</p>
-              </div>
-            </div>
-            <div class="engage__feature engage__feature--more">
-              <span class="engage__feature-icon">✦</span>
-              <div>
-                <strong>And much more</strong>
-                <p>Sponsor showcases, exhibitor maps, document sharing, feedback surveys, and more in development.</p>
-              </div>
+              <div><strong>Session QR Check-in</strong><p>Attendees scan in to each session from their phone.</p></div>
             </div>
           </div>
-
           <div class="engage__founders-note">
             <span>🔥</span>
             <p><strong>Founders Circle members get Phoenix Engage included free</strong> when it launches — as a thank-you for believing in us early.</p>
           </div>
         </div>
-
         <div class="engage__right">
-          <!-- Phone mockup -->
           <div class="engage__phone-wrap">
             <div class="engage__phone">
               <div class="engage__phone-notch"></div>
@@ -414,34 +426,17 @@
                 <div class="engage__screen-sessions">
                   <div class="engage__session engage__session--now">
                     <div class="engage__session-time">NOW</div>
-                    <div class="engage__session-info">
-                      <strong>Opening Keynote</strong>
-                      <span>Main Hall · Sarah Chen</span>
-                    </div>
+                    <div class="engage__session-info"><strong>Opening Keynote</strong><span>Main Hall · Sarah Chen</span></div>
                     <div class="engage__session-check">✓</div>
                   </div>
                   <div class="engage__session">
                     <div class="engage__session-time">11:00</div>
-                    <div class="engage__session-info">
-                      <strong>Growth Strategies</strong>
-                      <span>Room A · Mike Torres</span>
-                    </div>
-                    <div class="engage__session-add">+</div>
-                  </div>
-                  <div class="engage__session">
-                    <div class="engage__session-time">11:00</div>
-                    <div class="engage__session-info">
-                      <strong>Product Deep Dive</strong>
-                      <span>Room B · Lisa Park</span>
-                    </div>
+                    <div class="engage__session-info"><strong>Growth Strategies</strong><span>Room A · Mike Torres</span></div>
                     <div class="engage__session-add">+</div>
                   </div>
                   <div class="engage__session">
                     <div class="engage__session-time">12:30</div>
-                    <div class="engage__session-info">
-                      <strong>Networking Lunch</strong>
-                      <span>Atrium · All Attendees</span>
-                    </div>
+                    <div class="engage__session-info"><strong>Networking Lunch</strong><span>Atrium · All Attendees</span></div>
                     <div class="engage__session-add">+</div>
                   </div>
                 </div>
@@ -464,8 +459,6 @@
             </div>
             <div class="engage__phone-glow"></div>
           </div>
-
-          <!-- Notify me form -->
           <div class="engage__notify">
             <p class="engage__notify-label">Get notified when Phoenix Engage launches</p>
             <form class="engage__notify-form" onsubmit="handleEngageNotify(event)">
@@ -479,11 +472,13 @@
       </div>
     </div>
   </section>
+
+  <!-- COMPARE — FIX #10: massively expanded -->
   <section class="compare" id="compare">
     <div class="container">
       <div class="section-tag">Honest Comparison</div>
       <h2>Why planners switch to<br>The Event Phoenix</h2>
-      <p class="compare__sub">The big names are expensive, complex, and full of surprises. We're not.</p>
+      <p class="compare__sub">The big names are expensive, complicated, and full of surprises. We built what we actually needed as planners — and included it all.</p>
       <div class="compare__table-wrap">
         <table class="compare__table">
           <thead>
@@ -496,62 +491,22 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Starting price</td>
-              <td class="compare__us"><strong>$79/mo</strong></td>
-              <td>$5,000+/yr</td>
-              <td>$7,500+/yr</td>
-              <td>$29/mo (very limited)</td>
-            </tr>
-            <tr>
-              <td>Unlimited events</td>
-              <td class="compare__us compare__check">✓</td>
-              <td class="compare__x">Per-event fees</td>
-              <td class="compare__x">Tiered</td>
-              <td class="compare__x">Capped</td>
-            </tr>
-            <tr>
-              <td>Unlimited registrations</td>
-              <td class="compare__us compare__check">✓</td>
-              <td class="compare__x">Per-reg fees</td>
-              <td class="compare__x">Capped</td>
-              <td class="compare__x">Per ticket fees</td>
-            </tr>
-            <tr>
-              <td>Unlimited users</td>
-              <td class="compare__us compare__check">✓</td>
-              <td class="compare__x">Per seat</td>
-              <td class="compare__x">3 user min $499/user</td>
-              <td class="compare__x">Limited</td>
-            </tr>
-            <tr>
-              <td>Multi-day scheduling</td>
-              <td class="compare__us compare__check">✓ Native</td>
-              <td>✓ Complex</td>
-              <td>✓</td>
-              <td class="compare__x">Basic</td>
-            </tr>
-            <tr>
-              <td>Onsite check-in scanning</td>
-              <td class="compare__us compare__check">✓ Included</td>
-              <td>Add-on cost</td>
-              <td>Add-on cost</td>
-              <td class="compare__x">App only</td>
-            </tr>
-            <tr>
-              <td>Vendors &amp; sponsors</td>
-              <td class="compare__us compare__check">✓ Included</td>
-              <td class="compare__x">Add-on</td>
-              <td class="compare__x">Add-on</td>
-              <td class="compare__x">No</td>
-            </tr>
-            <tr>
-              <td>Built by planners</td>
-              <td class="compare__us compare__check">✓ 10 years</td>
-              <td class="compare__x">Enterprise sales</td>
-              <td class="compare__x">VC-backed</td>
-              <td class="compare__x">Ticketing focus</td>
-            </tr>
+            <tr><td>Starting price</td><td class="compare__us"><strong>$79/mo</strong></td><td>$5,000+/yr</td><td>$7,500+/yr</td><td>$29/mo (very limited)</td></tr>
+            <tr><td>Unlimited events</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per-event fees</td><td class="compare__x">Tiered</td><td class="compare__x">Capped</td></tr>
+            <tr><td>Unlimited registrations</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per-reg fees</td><td class="compare__x">Capped</td><td class="compare__x">Per ticket fees</td></tr>
+            <tr><td>Unlimited users / staff</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per seat</td><td class="compare__x">~$499/user/mo</td><td class="compare__x">Limited</td></tr>
+            <tr><td>Unlimited discount codes</td><td class="compare__us compare__check">✓</td><td class="compare__x">Capped by tier</td><td class="compare__x">Capped</td><td class="compare__x">Limited</td></tr>
+            <tr><td>Multi-day scheduling</td><td class="compare__us compare__check">✓ Native drag-and-drop</td><td>✓ Complex setup</td><td>✓</td><td class="compare__x">Basic only</td></tr>
+            <tr><td>Unlimited tracks &amp; courses</td><td class="compare__us compare__check">✓ Reusable year to year</td><td class="compare__x">Add-on</td><td class="compare__x">Limited</td><td class="compare__x">No</td></tr>
+            <tr><td>Copy event in one click</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">No</td><td class="compare__x">No</td><td class="compare__x">No</td></tr>
+            <tr><td>Session capacity alerts</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Enterprise only</td><td class="compare__x">Enterprise only</td><td class="compare__x">No</td></tr>
+            <tr><td>Onsite check-in scanning</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Add-on cost</td><td class="compare__x">Add-on cost</td><td class="compare__x">Separate app</td></tr>
+            <tr><td>Expense management</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">No</td><td class="compare__x">No</td><td class="compare__x">No</td></tr>
+            <tr><td>Inventory management</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">No</td><td class="compare__x">No</td><td class="compare__x">No</td></tr>
+            <tr><td>Document management</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Add-on</td><td class="compare__x">Add-on</td><td class="compare__x">No</td></tr>
+            <tr><td>Vendors &amp; sponsors module</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Add-on</td><td class="compare__x">Add-on</td><td class="compare__x">No</td></tr>
+            <tr><td>Mobile attendee app</td><td class="compare__us compare__check">✓ Coming Q3 2026 — included</td><td class="compare__x">$5k–$15k/event</td><td class="compare__x">$3k–$10k/event</td><td class="compare__x">No</td></tr>
+            <tr><td>Built by planners</td><td class="compare__us compare__check">✓ 10 years real-world</td><td class="compare__x">Enterprise sales co.</td><td class="compare__x">VC-backed startup</td><td class="compare__x">Ticketing focused</td></tr>
           </tbody>
         </table>
       </div>
@@ -559,7 +514,7 @@
     </div>
   </section>
 
-  <!-- ===== TESTIMONIALS ===== -->
+  <!-- TESTIMONIALS -->
   <section class="testimonials">
     <div class="container">
       <div class="section-tag">What Planners Say</div>
@@ -580,16 +535,15 @@
     </div>
   </section>
 
-  <!-- ===== PRICING ===== -->
+  <!-- PRICING — FIX #11 -->
   <section class="pricing" id="pricing">
     <div class="container">
       <div class="section-tag">Transparent Pricing</div>
       <h2>Pricing that doesn't punish growth.</h2>
-      <p class="pricing__sub">No per-registration fees. No per-user seats. No surprise add-ons. Every feature included. One flat price.</p>
+      <p class="pricing__sub">No per-registration fees. No per-user seats. No surprise add-ons. Every feature included at one flat price.</p>
 
-      <!-- Billing Toggle -->
       <div class="pricing__toggle-wrap">
-        <span class="pricing__toggle-label" id="label-monthly">Monthly</span>
+        <span class="pricing__toggle-label pricing__toggle-label--active" id="label-monthly">Monthly</span>
         <button class="pricing__toggle" id="billingToggle" aria-pressed="false" role="switch" aria-label="Toggle annual billing">
           <span class="pricing__toggle-knob"></span>
         </button>
@@ -598,7 +552,6 @@
 
       <div class="pricing__grid">
 
-        <!-- Standard -->
         <div class="pricing__card pricing__card--featured">
           <div class="pricing__card-badge">Everything Included</div>
           <div class="pricing__card-header">
@@ -607,28 +560,35 @@
               <span class="pricing__amount" id="price-standard">$129</span>
               <span class="pricing__per" id="per-standard">/mo</span>
             </div>
-            <p class="pricing__annual-note" id="note-standard" style="display:none;">Billed as <strong id="annual-standard">$1,199/yr</strong> — saves $349 vs monthly</p>
+            <p class="pricing__annual-note" id="note-standard" style="display:none;">Billed as <strong>$1,199/yr</strong> — saves $349 vs monthly</p>
             <p>Every feature. Every event. No limits. No surprises.</p>
           </div>
           <ul class="pricing__features">
-            <li>✓ Unlimited events</li>
-            <li>✓ Unlimited registrations</li>
-            <li>✓ Unlimited users</li>
+            <li>✓ Unlimited events, registrations &amp; users</li>
+            <li>✓ Unlimited discount codes</li>
             <li>✓ Online registration builder</li>
             <li>✓ Ticketing + payments</li>
-            <li>✓ Multi-day scheduling builder</li>
-            <li>✓ Speakers + session management</li>
-            <li>✓ Vendors + sponsors module</li>
+            <li>✓ Multi-day scheduling + drag-and-drop</li>
+            <li>✓ Unlimited tracks &amp; courses (reusable)</li>
+            <li>✓ Copy event in one click</li>
+            <li>✓ Session capacity alerts</li>
+            <li>✓ Speakers + expense management</li>
+            <li>✓ Vendors, sponsors &amp; exhibitor types</li>
             <li>✓ Check-in + badge scanning</li>
+            <li>✓ Document management</li>
+            <li>✓ Inventory management</li>
             <li>✓ Email tools</li>
             <li>✓ Reporting + analytics</li>
             <li>✓ Custom branding</li>
           </ul>
           <a href="#demo" class="btn btn--primary btn--full">Get Started</a>
           <p class="pricing__nonprofit">Nonprofit? <a href="#demo">Ask us about a discount →</a></p>
+          <div class="pricing__engage-note">
+            <span>📱</span>
+            <p><strong>Phoenix Engage</strong> mobile app — coming Q3 2026</p>
+          </div>
         </div>
 
-        <!-- Founders Circle -->
         <div class="pricing__card pricing__card--founders" id="founders">
           <div class="pricing__card-badge pricing__card-badge--fire">🔥 Founders Circle</div>
           <div class="pricing__card-header">
@@ -638,7 +598,7 @@
               <span class="pricing__per" id="per-founders">/mo</span>
             </div>
             <p class="pricing__annual-note" id="note-founders" style="display:none;">Billed as <strong>$790/yr</strong> — saves $158 vs monthly</p>
-            <p>Join now, lock your rate for life — before we raise prices.</p>
+            <p>Join now and lock your rate for life before we raise prices.</p>
           </div>
           <ul class="pricing__features">
             <li>✓ Everything in Standard</li>
@@ -646,24 +606,28 @@
             <li>✓ First access to new features</li>
             <li>✓ Direct line to the founders</li>
             <li>✓ Founding member recognition</li>
+            <li>✓ Phoenix Engage included free at launch</li>
           </ul>
           <a href="#demo" class="btn btn--founders btn--full">Claim Your Spot →</a>
           <p class="pricing__founders-note">⚡ Limited founding spots. When they're gone, they're gone.</p>
+          <div class="pricing__engage-note pricing__engage-note--fire">
+            <span>🔥</span>
+            <p>Founders get <strong>Phoenix Engage free forever</strong> — others will pay more when it launches</p>
+          </div>
         </div>
 
       </div>
 
-      <!-- What's included callout -->
       <div class="pricing__all-included">
         <p class="pricing__all-included-title">Both plans include everything. Zero gotchas.</p>
         <div class="pricing__all-included-grid">
           <span>∞ Unlimited events</span>
           <span>∞ Unlimited registrations</span>
           <span>∞ Unlimited users</span>
-          <span>∞ Unlimited questions</span>
-          <span>✓ All features, always</span>
+          <span>∞ Unlimited discount codes</span>
+          <span>∞ Unlimited courses &amp; tracks</span>
+          <span>✓ Copy event in one click</span>
           <span>✓ No per-event fees</span>
-          <span>✓ No per-registration fees</span>
           <span>✓ No seat licenses</span>
         </div>
       </div>
@@ -674,31 +638,26 @@
     </div>
   </section>
 
-  <!-- ===== CTA / DEMO ===== -->
+  <!-- CTA / DEMO -->
   <section class="cta-section" id="demo">
-    <div class="cta-section__bg">
-      <div class="cta-section__orb"></div>
-    </div>
+    <div class="cta-section__bg"><div class="cta-section__orb"></div></div>
     <div class="container">
       <h2>Ready to see it in action?</h2>
       <p>Pick a time that works for you. We'll walk you through the whole platform — no sales pressure, just a real look at what The Event Phoenix can do for your events.</p>
-
-      <!-- CALENDLY EMBED — replace YOUR_CALENDLY_URL with your actual link e.g. https://calendly.com/theeventphoenix/demo -->
       <div class="calendly-wrap" id="calendly-embed">
         <div class="calendly-placeholder">
           <p>📅 <strong>Book a live demo</strong> — choose a time that works for you</p>
           <a href="YOUR_CALENDLY_URL" target="_blank" class="btn btn--primary btn--lg">Open Booking Calendar →</a>
-          <p class="cta-section__note">We'll replace this with an embedded calendar once you set up Calendly.<br>See instructions below.</p>
+          <p class="cta-section__note">Set up your free Calendly account, connect your Google Calendar, then replace YOUR_CALENDLY_URL in this file.</p>
         </div>
       </div>
-
       <div class="cta-section__alt">
         <p>Prefer email? <a href="mailto:hello@theeventphoenix.com">hello@theeventphoenix.com</a></p>
       </div>
     </div>
   </section>
 
-  <!-- ===== FOOTER ===== -->
+  <!-- FOOTER — FIX #3: "Formerly Easy Reg Pro" fully removed -->
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
@@ -713,111 +672,86 @@
           <div class="footer__nav-col">
             <p class="footer__nav-heading">Product</p>
             <a href="#features">Features</a>
+            <a href="#engage">Phoenix Engage</a>
             <a href="#pricing">Pricing</a>
             <a href="#founders">Founders Circle</a>
-            <a href="#compare">Compare</a>
+            <a href="#compare">Why Us</a>
           </div>
           <div class="footer__nav-col">
             <p class="footer__nav-heading">Company</p>
             <a href="#demo">Request Demo</a>
-            <a href="https://theeventphoenix.com/appointments">Appointments</a>
             <a href="mailto:hello@theeventphoenix.com">Contact</a>
           </div>
         </nav>
       </div>
       <div class="footer__bottom">
-        <p>© 2026 The Event Phoenix. All rights reserved.</p>
-        <p class="footer__formerly">Formerly <strong>Easy Reg Pro</strong></p>
+        <p>&copy; 2026 The Event Phoenix. All rights reserved.</p>
       </div>
     </div>
   </footer>
 
   <script>
-    // ── Smooth nav scroll + active states ──────────────────
+    // Nav scroll
     const nav = document.getElementById('nav');
-    window.addEventListener('scroll', () => {
-      nav.classList.toggle('nav--scrolled', window.scrollY > 40);
-    });
+    window.addEventListener('scroll', () => nav.classList.toggle('nav--scrolled', window.scrollY > 40));
 
-    // ── Mobile hamburger ───────────────────────────────────
+    // Mobile hamburger
     const hamburger = document.getElementById('hamburger');
     const navLinks  = document.getElementById('navLinks');
     hamburger.addEventListener('click', () => {
       const open = navLinks.classList.toggle('nav__links--open');
       hamburger.setAttribute('aria-expanded', open);
     });
-    navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        navLinks.classList.remove('nav__links--open');
-        hamburger.setAttribute('aria-expanded', 'false');
-      });
-    });
+    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+      navLinks.classList.remove('nav__links--open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    }));
 
-    // ── Scroll reveal ──────────────────────────────────────
-    const revealEls = document.querySelectorAll('.planners__card, .feature-block, .pricing__card, .testimonial, .diff__pill');
-    const observer  = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('revealed'); observer.unobserve(e.target); }
+    // Scroll reveal
+    document.querySelectorAll('.planners__card,.feature-block,.pricing__card,.testimonial,.diff__pill,.compare__table-wrap')
+      .forEach(el => {
+        el.classList.add('reveal-target');
+        new IntersectionObserver((entries, obs) => {
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); obs.unobserve(e.target); }});
+        }, { threshold: 0.08 }).observe(el);
       });
-    }, { threshold: 0.12 });
-    revealEls.forEach(el => { el.classList.add('reveal-target'); observer.observe(el); });
 
-    // ── Engage notify form ─────────────────────────────────
+    // Engage notify
     function handleEngageNotify(e) {
       e.preventDefault();
       document.getElementById('engage-success').style.display = 'block';
       document.getElementById('engage-fine').style.display    = 'none';
       e.target.style.display = 'none';
-      // TODO: wire this to your email provider (Mailchimp, ConvertKit, etc.)
-      // The submitted email is: e.target.querySelector('input').value
+      // TODO: wire to Mailchimp/ConvertKit — email is: e.target.querySelector('input').value
     }
 
-    // ── Billing toggle ─────────────────────────────────────
-    const toggle         = document.getElementById('billingToggle');
-    const priceStandard  = document.getElementById('price-standard');
-    const perStandard    = document.getElementById('per-standard');
-    const noteStandard   = document.getElementById('note-standard');
-    const priceFounders  = document.getElementById('price-founders');
-    const perFounders    = document.getElementById('per-founders');
-    const noteFounders   = document.getElementById('note-founders');
-    const labelMonthly   = document.getElementById('label-monthly');
-    const labelAnnual    = document.getElementById('label-annual');
-
+    // Billing toggle
+    const toggle = document.getElementById('billingToggle');
     let isAnnual = false;
-
     toggle.addEventListener('click', () => {
       isAnnual = !isAnnual;
-      toggle.setAttribute('aria-pressed', isAnnual);
       toggle.classList.toggle('pricing__toggle--on', isAnnual);
-      labelMonthly.classList.toggle('pricing__toggle-label--active', !isAnnual);
-      labelAnnual.classList.toggle('pricing__toggle-label--active',  isAnnual);
-
+      toggle.setAttribute('aria-pressed', isAnnual);
+      document.getElementById('label-monthly').classList.toggle('pricing__toggle-label--active', !isAnnual);
+      document.getElementById('label-annual').classList.toggle('pricing__toggle-label--active',   isAnnual);
       if (isAnnual) {
-        priceStandard.textContent = '$1,199';
-        perStandard.textContent   = '/yr';
-        noteStandard.style.display = 'block';
-        priceFounders.textContent = '$790';
-        perFounders.textContent   = '/yr';
-        noteFounders.style.display = 'block';
+        document.getElementById('price-standard').textContent = '$1,199';
+        document.getElementById('per-standard').textContent   = '/yr';
+        document.getElementById('note-standard').style.display = 'block';
+        document.getElementById('price-founders').textContent = '$790';
+        document.getElementById('per-founders').textContent   = '/yr';
+        document.getElementById('note-founders').style.display = 'block';
       } else {
-        priceStandard.textContent = '$129';
-        perStandard.textContent   = '/mo';
-        noteStandard.style.display = 'none';
-        priceFounders.textContent = '$79';
-        perFounders.textContent   = '/mo';
-        noteFounders.style.display = 'none';
+        document.getElementById('price-standard').textContent = '$129';
+        document.getElementById('per-standard').textContent   = '/mo';
+        document.getElementById('note-standard').style.display = 'none';
+        document.getElementById('price-founders').textContent = '$79';
+        document.getElementById('per-founders').textContent   = '/mo';
+        document.getElementById('note-founders').style.display = 'none';
       }
     });
 
-    // ── Calendly inline embed ──────────────────────────────
-    // INSTRUCTIONS:
-    // 1. Go to calendly.com and create a free account
-    // 2. Connect your Google Calendar in Calendly settings
-    // 3. Create an event type called "Event Phoenix Demo" (30 min)
-    // 4. Get your Calendly URL (e.g. https://calendly.com/yourname/demo)
-    // 5. Replace YOUR_CALENDLY_URL in two places below AND in the button above
-    // 6. Uncomment the lines below by removing the /* and */
-
+    // Calendly embed — uncomment and replace YOUR_CALENDLY_URL when ready
     /*
     (function(d) {
       var s = d.createElement('script');
@@ -826,12 +760,7 @@
       s.onload = function() {
         var embed = document.getElementById('calendly-embed');
         embed.innerHTML = '';
-        Calendly.initInlineWidget({
-          url: 'YOUR_CALENDLY_URL',
-          parentElement: embed,
-          prefill: {},
-          utm: {}
-        });
+        Calendly.initInlineWidget({ url: 'YOUR_CALENDLY_URL', parentElement: embed });
         embed.style.minHeight = '700px';
       };
       d.head.appendChild(s);
