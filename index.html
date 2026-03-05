@@ -59,7 +59,7 @@
         <a href="#features" class="btn btn--outline btn--lg">Explore Features</a>
       </div>
       <a href="#pricing" class="hero__founders-pill">
-        🔥 Founders Circle: <strong>$79/mo for life</strong> — Limited spots remaining
+        🔥 Founders Circle: <strong>$149/mo for life</strong> — First 100 planners only
       </a>
       <div class="hero__checks">
         <span>✓ Unlimited registrations</span>
@@ -589,9 +589,9 @@
 
         <!-- SPARK -->
         <div class="pricing__card">
-          <div class="pricing__card-badge pricing__card-badge--spark">Spark</div>
+          <div class="pricing__tier-name pricing__tier-name--spark">Spark</div>
+          <div class="pricing__card-badge pricing__card-badge--spark">2 – 5 events / year</div>
           <div class="pricing__card-header">
-            <p class="pricing__events-range">2 – 5 events / year</p>
             <div class="pricing__price">
               <span class="pricing__amount" id="price-spark">$199</span>
               <span class="pricing__per" id="per-spark">/mo</span>
@@ -599,7 +599,6 @@
             <p class="pricing__annual-note" id="note-spark" style="display:none;">Billed as <strong>$2,030/yr</strong> — saves $358 vs monthly</p>
             <p class="pricing__per-event" id="perevent-spark">As low as <strong>$478/event</strong></p>
           </div>
-          <ul class="pricing__features">
             <li>✓ All platform features</li>
             <li>✓ Unlimited registrations</li>
             <li>✓ Unlimited staff &amp; admin users</li>
@@ -614,9 +613,9 @@
 
         <!-- BLAZE -->
         <div class="pricing__card">
-          <div class="pricing__card-badge pricing__card-badge--blaze">Blaze</div>
+          <div class="pricing__tier-name pricing__tier-name--blaze">Blaze</div>
+          <div class="pricing__card-badge pricing__card-badge--blaze">6 – 10 events / year</div>
           <div class="pricing__card-header">
-            <p class="pricing__events-range">6 – 10 events / year</p>
             <div class="pricing__price">
               <span class="pricing__amount" id="price-blaze">$299</span>
               <span class="pricing__per" id="per-blaze">/mo</span>
@@ -640,9 +639,9 @@
         <!-- INFERNO — featured / best value -->
         <div class="pricing__card pricing__card--featured">
           <div class="pricing__card-badge">🔥 Most Popular</div>
+          <div class="pricing__tier-name pricing__tier-name--inferno">Inferno</div>
+          <div class="pricing__card-badge pricing__card-badge--inferno">11 – 19 events / year</div>
           <div class="pricing__card-header">
-            <p class="pricing__tier-name">Inferno</p>
-            <p class="pricing__events-range">11 – 19 events / year</p>
             <div class="pricing__price">
               <span class="pricing__amount" id="price-inferno">$399</span>
               <span class="pricing__per" id="per-inferno">/mo</span>
@@ -666,9 +665,9 @@
 
         <!-- PHOENIX -->
         <div class="pricing__card">
-          <div class="pricing__card-badge pricing__card-badge--phoenix">Phoenix</div>
+          <div class="pricing__tier-name pricing__tier-name--phoenix">Phoenix</div>
+          <div class="pricing__card-badge pricing__card-badge--phoenix">20+ events / year</div>
           <div class="pricing__card-header">
-            <p class="pricing__events-range">20+ events / year</p>
             <div class="pricing__price">
               <span class="pricing__amount" id="price-phoenix">$599</span>
               <span class="pricing__per" id="per-phoenix">/mo</span>
@@ -693,24 +692,68 @@
         <div class="pricing__card pricing__card--founders" id="founders">
           <div class="pricing__card-badge pricing__card-badge--fire">🔥 Founders Circle</div>
           <div class="pricing__card-header">
-            <h3>Lock In $79/mo. Forever.</h3>
+            <h3>Lock In $149/mo. Forever.</h3>
             <div class="pricing__price">
-              <span class="pricing__amount pricing__amount--founders" id="price-founders">$79</span>
+              <span class="pricing__amount pricing__amount--founders" id="price-founders">$149</span>
               <span class="pricing__per" id="per-founders">/mo</span>
             </div>
-            <p class="pricing__annual-note" id="note-founders" style="display:none;">Billed as <strong>$790/yr</strong> — saves $158 vs monthly</p>
-            <p>Join now and lock your rate for life — before we raise prices.</p>
+            <p class="pricing__annual-note" id="note-founders" style="display:none;">Billed as <strong>$1,520/yr</strong> — saves $268 vs monthly</p>
+            <p>No matter how much your event volume grows, your rate never does.</p>
           </div>
+
+          <!-- Countdown timer -->
+          <div class="founders__countdown">
+            <div class="founders__countdown-label">Offer closes August 31st — or when 100 spots are filled</div>
+            <div class="founders__countdown-timer">
+              <div class="founders__countdown-unit">
+                <span class="founders__countdown-num" id="fc-days">--</span>
+                <span class="founders__countdown-unit-label">days</span>
+              </div>
+              <span class="founders__countdown-sep">:</span>
+              <div class="founders__countdown-unit">
+                <span class="founders__countdown-num" id="fc-hours">--</span>
+                <span class="founders__countdown-unit-label">hrs</span>
+              </div>
+              <span class="founders__countdown-sep">:</span>
+              <div class="founders__countdown-unit">
+                <span class="founders__countdown-num" id="fc-mins">--</span>
+                <span class="founders__countdown-unit-label">min</span>
+              </div>
+              <span class="founders__countdown-sep">:</span>
+              <div class="founders__countdown-unit">
+                <span class="founders__countdown-num" id="fc-secs">--</span>
+                <span class="founders__countdown-unit-label">sec</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Savings table -->
+          <div class="founders__savings">
+            <p class="founders__savings-title">What you save vs. regular pricing — every year, forever:</p>
+            <table class="founders__savings-table">
+              <thead>
+                <tr><th>If you'd normally be on…</th><th>Save/mo</th><th>Save/yr</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Spark ($199/mo)</td><td>$50</td><td>$600</td></tr>
+                <tr><td>Blaze ($299/mo)</td><td>$150</td><td>$1,800</td></tr>
+                <tr><td>Inferno ($399/mo)</td><td>$250</td><td>$3,000</td></tr>
+                <tr class="founders__savings-highlight"><td>Phoenix ($599/mo)</td><td>$450</td><td><strong>$5,400</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
           <ul class="pricing__features">
-            <li>✓ Everything in Phoenix</li>
-            <li>✓ Rate locked for life</li>
-            <li>✓ First access to new features</li>
+            <li>✓ Everything in Phoenix — all features, unlimited everything</li>
+            <li>✓ Rate locked for life, never increases</li>
+            <li>✓ Founding Advisory Access — your feedback moves to the front of the line</li>
+            <li>✓ First access to new features before general release</li>
             <li>✓ Direct line to the founders</li>
             <li>✓ Founding member recognition</li>
-            <li>✓ Phoenix Engage included free at launch</li>
+            <li>✓ Phoenix Engage mobile app included free at launch</li>
           </ul>
           <a href="#demo" class="btn btn--founders btn--full">Claim Your Spot →</a>
-          <p class="pricing__founders-note">⚡ Limited founding spots. When they're gone, they're gone.</p>
+          <p class="pricing__founders-note">⚡ First 100 planners or August 31st — whichever comes first.</p>
           <div class="pricing__engage-note pricing__engage-note--fire">
             <span>🔥</span>
             <p>Founders get <strong>Phoenix Engage free forever</strong> — others will pay more when it launches</p>
@@ -834,14 +877,32 @@
     // Mobile hamburger
     const hamburger = document.getElementById('hamburger');
     const navLinks  = document.getElementById('navLinks');
-    hamburger.addEventListener('click', () => {
-      const open = navLinks.classList.toggle('nav__links--open');
-      hamburger.setAttribute('aria-expanded', open);
-    });
-    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+
+    // Create backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'nav__backdrop';
+    backdrop.id = 'navBackdrop';
+    document.body.appendChild(backdrop);
+
+    function openMenu() {
+      navLinks.classList.add('nav__links--open');
+      backdrop.classList.add('nav__backdrop--open');
+      hamburger.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMenu() {
       navLinks.classList.remove('nav__links--open');
+      backdrop.classList.remove('nav__backdrop--open');
       hamburger.setAttribute('aria-expanded', 'false');
-    }));
+      document.body.style.overflow = '';
+    }
+
+    hamburger.addEventListener('click', () => {
+      const isOpen = navLinks.classList.contains('nav__links--open');
+      isOpen ? closeMenu() : openMenu();
+    });
+    backdrop.addEventListener('click', closeMenu);
+    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
 
     // Scroll reveal
     document.querySelectorAll('.planners__card,.feature-block,.pricing__card,.testimonial,.diff__pill,.compare__table-wrap')
@@ -870,7 +931,7 @@
       { id: 'blaze',   monthly: '$299', annual: '$3,050', perEventMonthly: 'As low as <strong>$305/event</strong>', perEventAnnual: 'As low as <strong>$259/event</strong>' },
       { id: 'inferno', monthly: '$399', annual: '$4,070', perEventMonthly: 'As low as <strong>$214/event</strong>', perEventAnnual: 'As low as <strong>$183/event</strong>' },
       { id: 'phoenix', monthly: '$599', annual: '$6,110', perEventMonthly: 'As low as <strong>$25/event</strong>',  perEventAnnual: 'As low as <strong>$21/event</strong>'  },
-      { id: 'founders',monthly: '$79',  annual: '$790',   perEventMonthly: null, perEventAnnual: null }
+      { id: 'founders',monthly: '$149',  annual: '$1,520',   perEventMonthly: null, perEventAnnual: null }
     ];
 
     toggle.addEventListener('click', () => {
@@ -907,4 +968,48 @@
       s.src = 'https://assets.calendly.com/assets/external/widget.js';
       s.async = true;
       s.onload = function() {
-        v
+        Calendly.initInlineWidget({
+          url: 'YOUR_CALENDLY_URL',
+          parentElement: document.getElementById('calendly-embed')
+        });
+      };
+      d.head.appendChild(s);
+    })(document);
+    */
+
+    // Founders Circle countdown — target: August 31, 2025 11:59 PM
+    (function() {
+      const deadline = new Date('2025-09-01T00:00:00').getTime();
+      function pad(n) { return String(n).padStart(2, '0'); }
+      function tick() {
+        const now  = Date.now();
+        const diff = deadline - now;
+        if (diff <= 0) {
+          ['fc-days','fc-hours','fc-mins','fc-secs'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '00';
+          });
+          const label = document.querySelector('.founders__countdown-label');
+          if (label) label.textContent = 'Founders Circle is now closed.';
+          return;
+        }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000)  / 60000);
+        const s = Math.floor((diff % 60000)    / 1000);
+        const days  = document.getElementById('fc-days');
+        const hours = document.getElementById('fc-hours');
+        const mins  = document.getElementById('fc-mins');
+        const secs  = document.getElementById('fc-secs');
+        if (days)  days.textContent  = pad(d);
+        if (hours) hours.textContent = pad(h);
+        if (mins)  mins.textContent  = pad(m);
+        if (secs)  secs.textContent  = pad(s);
+      }
+      tick();
+      setInterval(tick, 1000);
+    })();
+
+  </script>
+</body>
+</html>
