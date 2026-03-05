@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Event Phoenix — Event Management, Reborn.</title>
-  <meta name="description" content="The Event Phoenix is a planner-built Event Management System. Unlimited registrations, ticketing, scheduling, check-in & scanning — all in one clean workflow. From $79/mo for life." />
+  <meta name="description" content="The Event Phoenix is a planner-built Event Management System. Unlimited registrations, ticketing, scheduling, check-in & scanning — all in one clean workflow. Plans from $199/mo. Single events from $499." />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="manifest" href="site.webmanifest" />
@@ -58,8 +58,8 @@
         <a href="#demo" class="btn btn--primary btn--lg">Book an Appointment</a>
         <a href="#features" class="btn btn--outline btn--lg">Explore Features</a>
       </div>
-      <a href="#founders" class="hero__founders-pill">
-        🔥 Founders Circle: <strong>$79/mo for life</strong> — Limited spots
+      <a href="#pricing" class="hero__founders-pill">
+        🔥 Founders Circle: <strong>$79/mo for life</strong> — Limited spots remaining
       </a>
       <div class="hero__checks">
         <span>✓ Unlimited registrations</span>
@@ -489,7 +489,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>Starting price</td><td class="compare__us"><strong>$79/mo</strong></td><td>$5,000+/yr</td><td>$7,500+/yr</td><td>$29/mo (very limited)</td></tr>
+            <tr><td>Starting price</td><td class="compare__us"><strong>$199/mo — or $499 single event</strong></td><td>$5,000+/yr</td><td>$7,500+/yr</td><td>$29/mo (very limited)</td></tr>
             <tr><td>Unlimited events</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per-event fees</td><td class="compare__x">Tiered</td><td class="compare__x">Capped</td></tr>
             <tr><td>Unlimited registrations</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per-reg fees</td><td class="compare__x">Capped</td><td class="compare__x">Per ticket fees</td></tr>
             <tr><td>Unlimited users / staff</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per seat</td><td class="compare__x">~$499/user/mo</td><td class="compare__x">Limited</td></tr>
@@ -533,73 +533,176 @@
     </div>
   </section>
 
-  <!-- PRICING — FIX #11 -->
+  <!-- PRICING -->
   <section class="pricing" id="pricing">
     <div class="container">
       <div class="section-tag">Transparent Pricing</div>
       <h2>Pricing that doesn't punish growth.</h2>
-      <p class="pricing__sub">No per-registration fees. No per-user seats. No surprise add-ons. Every feature included at one flat price.</p>
+      <p class="pricing__sub">No per-registration fees. No per-user seats. No surprise add-ons. Every feature included — one flat price that scales with how many events you run.</p>
 
+      <!-- Monthly / Annual toggle -->
       <div class="pricing__toggle-wrap">
         <span class="pricing__toggle-label pricing__toggle-label--active" id="label-monthly">Monthly</span>
         <button class="pricing__toggle" id="billingToggle" aria-pressed="false" role="switch" aria-label="Toggle annual billing">
           <span class="pricing__toggle-knob"></span>
         </button>
-        <span class="pricing__toggle-label" id="label-annual">Annual <span class="pricing__save-badge">Save up to $350</span></span>
+        <span class="pricing__toggle-label" id="label-annual">Annual <span class="pricing__save-badge">Save 15%</span></span>
       </div>
 
-      <div class="pricing__grid">
-
-        <div class="pricing__card pricing__card--featured">
-          <div class="pricing__card-badge">Everything Included</div>
-          <div class="pricing__card-header">
-            <h3>Standard</h3>
-            <div class="pricing__price">
-              <span class="pricing__amount" id="price-standard">$129</span>
-              <span class="pricing__per" id="per-standard">/mo</span>
-            </div>
-            <p class="pricing__annual-note" id="note-standard" style="display:none;">Billed as <strong>$1,199/yr</strong> — saves $349 vs monthly</p>
-            <p>Every feature. Every event. No limits. No surprises.</p>
+      <!-- Single Event card -->
+      <div class="pricing__single-wrap">
+        <div class="pricing__single-card">
+          <div class="pricing__single-left">
+            <div class="pricing__card-badge pricing__card-badge--single">Single Event</div>
+            <h3>One event. Full platform.</h3>
+            <p class="pricing__single-desc">Every feature — no subscription required. Perfect for organizations hosting one event per year.</p>
+            <ul class="pricing__single-features">
+              <li>✓ Full platform access for one event</li>
+              <li>✓ Unlimited registrations &amp; attendees</li>
+              <li>✓ All registration types, payments &amp; check-in tools</li>
+              <li>✓ Up to 3 staff / admin users</li>
+              <li>✓ Up to 3 registration types</li>
+              <li>✓ Email support (48-hr response)</li>
+              <li>✓ Event data retained for 90 days post-event</li>
+            </ul>
+            <p class="pricing__single-note">* The Single Event option is designed for organizations hosting one event per year. Planners hosting multiple events annually are kindly directed to our subscription plans, which offer better value and full platform access.</p>
           </div>
-          <ul class="pricing__features">
-            <li>✓ Unlimited events, registrations &amp; users</li>
-            <li>✓ Unlimited discount codes</li>
-            <li>✓ Online registration builder</li>
-            <li>✓ Ticketing + payments</li>
-            <li>✓ Multi-day scheduling + drag-and-drop</li>
-            <li>✓ Unlimited tracks &amp; courses (reusable)</li>
-            <li>✓ Copy event in one click</li>
-            <li>✓ Session capacity alerts</li>
-            <li>✓ Speakers + expense management</li>
-            <li>✓ Vendors, sponsors &amp; exhibitor types</li>
-            <li>✓ Check-in + badge scanning</li>
-            <li>✓ Document management</li>
-            <li>✓ Inventory management</li>
-            <li>✓ Email tools</li>
-            <li>✓ Reporting + analytics</li>
-            <li>✓ Custom branding</li>
-          </ul>
-          <a href="#demo" class="btn btn--primary btn--full">Get Started</a>
-          <p class="pricing__nonprofit">Nonprofit? <a href="#demo">Ask us about a discount →</a></p>
-          <div class="pricing__engage-note">
-            <span>📱</span>
-            <p><strong>Phoenix Engage</strong> mobile app — coming Q3 2026</p>
+          <div class="pricing__single-right">
+            <div class="pricing__price">
+              <span class="pricing__amount pricing__amount--single">$499</span>
+              <span class="pricing__per">flat fee</span>
+            </div>
+            <p class="pricing__single-value">Less than most platforms charge per attendee.</p>
+            <a href="#demo" class="btn btn--primary btn--full">Get Started</a>
+            <p class="pricing__nonprofit" style="text-align:center;margin-top:12px;">Nonprofit? <a href="#demo">Ask us about a discount →</a></p>
           </div>
         </div>
+      </div>
 
+      <!-- Subscription tiers -->
+      <div class="pricing__tiers-label">
+        <span>Subscription Plans</span>
+        <span class="pricing__tiers-sub">For planners who run multiple events each year</span>
+      </div>
+
+      <div class="pricing__grid pricing__grid--5">
+
+        <!-- SPARK -->
+        <div class="pricing__card">
+          <div class="pricing__card-badge pricing__card-badge--spark">Spark</div>
+          <div class="pricing__card-header">
+            <p class="pricing__events-range">2 – 5 events / year</p>
+            <div class="pricing__price">
+              <span class="pricing__amount" id="price-spark">$199</span>
+              <span class="pricing__per" id="per-spark">/mo</span>
+            </div>
+            <p class="pricing__annual-note" id="note-spark" style="display:none;">Billed as <strong>$2,030/yr</strong> — saves $358 vs monthly</p>
+            <p class="pricing__per-event" id="perevent-spark">As low as <strong>$478/event</strong></p>
+          </div>
+          <ul class="pricing__features">
+            <li>✓ All platform features</li>
+            <li>✓ Unlimited registrations</li>
+            <li>✓ Unlimited staff &amp; admin users</li>
+            <li>✓ Unlimited registration types</li>
+            <li>✓ Unlimited discount codes</li>
+            <li>✓ Priority support</li>
+            <li>✓ Unlimited data retention</li>
+            <li>✓ Phoenix Engage app — Q3 2026</li>
+          </ul>
+          <a href="#demo" class="btn btn--outline btn--full">Get Started</a>
+        </div>
+
+        <!-- BLAZE -->
+        <div class="pricing__card">
+          <div class="pricing__card-badge pricing__card-badge--blaze">Blaze</div>
+          <div class="pricing__card-header">
+            <p class="pricing__events-range">6 – 10 events / year</p>
+            <div class="pricing__price">
+              <span class="pricing__amount" id="price-blaze">$299</span>
+              <span class="pricing__per" id="per-blaze">/mo</span>
+            </div>
+            <p class="pricing__annual-note" id="note-blaze" style="display:none;">Billed as <strong>$3,050/yr</strong> — saves $538 vs monthly</p>
+            <p class="pricing__per-event" id="perevent-blaze">As low as <strong>$305/event</strong></p>
+          </div>
+          <ul class="pricing__features">
+            <li>✓ Everything in Spark</li>
+            <li>✓ All platform features</li>
+            <li>✓ Unlimited registrations</li>
+            <li>✓ Unlimited staff &amp; admin users</li>
+            <li>✓ Unlimited registration types</li>
+            <li>✓ Unlimited discount codes</li>
+            <li>✓ Priority support</li>
+            <li>✓ Phoenix Engage app — Q3 2026</li>
+          </ul>
+          <a href="#demo" class="btn btn--outline btn--full">Get Started</a>
+        </div>
+
+        <!-- INFERNO — featured / best value -->
+        <div class="pricing__card pricing__card--featured">
+          <div class="pricing__card-badge">🔥 Most Popular</div>
+          <div class="pricing__card-header">
+            <p class="pricing__tier-name">Inferno</p>
+            <p class="pricing__events-range">11 – 19 events / year</p>
+            <div class="pricing__price">
+              <span class="pricing__amount" id="price-inferno">$399</span>
+              <span class="pricing__per" id="per-inferno">/mo</span>
+            </div>
+            <p class="pricing__annual-note" id="note-inferno" style="display:none;">Billed as <strong>$4,070/yr</strong> — saves $718 vs monthly</p>
+            <p class="pricing__per-event" id="perevent-inferno">As low as <strong>$214/event</strong></p>
+          </div>
+          <ul class="pricing__features">
+            <li>✓ Everything in Blaze</li>
+            <li>✓ All platform features</li>
+            <li>✓ Unlimited registrations</li>
+            <li>✓ Unlimited staff &amp; admin users</li>
+            <li>✓ Unlimited registration types</li>
+            <li>✓ Unlimited discount codes</li>
+            <li>✓ Priority support</li>
+            <li>✓ Phoenix Engage app — Q3 2026</li>
+          </ul>
+          <a href="#demo" class="btn btn--primary btn--full">Get Started</a>
+          <p class="pricing__nonprofit">Nonprofit? <a href="#demo">Ask about a discount →</a></p>
+        </div>
+
+        <!-- PHOENIX -->
+        <div class="pricing__card">
+          <div class="pricing__card-badge pricing__card-badge--phoenix">Phoenix</div>
+          <div class="pricing__card-header">
+            <p class="pricing__events-range">20+ events / year</p>
+            <div class="pricing__price">
+              <span class="pricing__amount" id="price-phoenix">$599</span>
+              <span class="pricing__per" id="per-phoenix">/mo</span>
+            </div>
+            <p class="pricing__annual-note" id="note-phoenix" style="display:none;">Billed as <strong>$6,110/yr</strong> — saves $1,078 vs monthly</p>
+            <p class="pricing__per-event" id="perevent-phoenix">As low as <strong>$25/event</strong></p>
+          </div>
+          <ul class="pricing__features">
+            <li>✓ Everything in Inferno</li>
+            <li>✓ All platform features</li>
+            <li>✓ Unlimited registrations</li>
+            <li>✓ Unlimited staff &amp; admin users</li>
+            <li>✓ Unlimited registration types</li>
+            <li>✓ Unlimited discount codes</li>
+            <li>✓ White-glove support</li>
+            <li>✓ Phoenix Engage app — Q3 2026</li>
+          </ul>
+          <a href="#demo" class="btn btn--outline btn--full">Get Started</a>
+        </div>
+
+        <!-- FOUNDERS CIRCLE -->
         <div class="pricing__card pricing__card--founders" id="founders">
           <div class="pricing__card-badge pricing__card-badge--fire">🔥 Founders Circle</div>
           <div class="pricing__card-header">
             <h3>Lock In $79/mo. Forever.</h3>
             <div class="pricing__price">
-              <span class="pricing__amount" id="price-founders">$79</span>
+              <span class="pricing__amount pricing__amount--founders" id="price-founders">$79</span>
               <span class="pricing__per" id="per-founders">/mo</span>
             </div>
             <p class="pricing__annual-note" id="note-founders" style="display:none;">Billed as <strong>$790/yr</strong> — saves $158 vs monthly</p>
-            <p>Join now and lock your rate for life before we raise prices.</p>
+            <p>Join now and lock your rate for life — before we raise prices.</p>
           </div>
           <ul class="pricing__features">
-            <li>✓ Everything in Standard</li>
+            <li>✓ Everything in Phoenix</li>
             <li>✓ Rate locked for life</li>
             <li>✓ First access to new features</li>
             <li>✓ Direct line to the founders</li>
@@ -614,25 +717,60 @@
           </div>
         </div>
 
-      </div>
+      </div><!-- end pricing__grid -->
 
+      <!-- All plans include -->
       <div class="pricing__all-included">
-        <p class="pricing__all-included-title">Both plans include everything. Zero gotchas.</p>
+        <p class="pricing__all-included-title">All subscription plans include everything. Zero gotchas.</p>
         <div class="pricing__all-included-grid">
           <span>∞ Unlimited events</span>
           <span>∞ Unlimited registrations</span>
-          <span>∞ Unlimited users</span>
+          <span>∞ Unlimited staff users</span>
+          <span>∞ Unlimited registration types</span>
           <span>∞ Unlimited discount codes</span>
           <span>∞ Unlimited courses &amp; tracks</span>
           <span>✓ Copy event in one click</span>
           <span>✓ No per-event fees</span>
           <span>✓ No seat licenses</span>
+          <span>✓ No surprise add-ons</span>
+        </div>
+      </div>
+
+      <!-- Add-ons section -->
+      <div class="pricing__addons">
+        <div class="pricing__addons-label">Available on All Plans</div>
+        <div class="pricing__addons-grid">
+          <div class="pricing__addon-card">
+            <div class="pricing__addon-icon">🎟️</div>
+            <div class="pricing__addon-body">
+              <h4>Online Ticketing &amp; Redemption</h4>
+              <p>Issue and manage tickets for any function, session, or event at no additional cost.</p>
+              <span class="pricing__addon-price pricing__addon-price--free">Included free on all plans</span>
+            </div>
+          </div>
+          <div class="pricing__addon-card">
+            <div class="pricing__addon-icon">💳</div>
+            <div class="pricing__addon-body">
+              <h4>Paid Ticket Sales</h4>
+              <p>Sell tickets to any function or event and collect payment online. Flat fee per function — never a percentage of your revenue.</p>
+              <span class="pricing__addon-price">$99 flat fee per function</span>
+            </div>
+          </div>
+          <div class="pricing__addon-card">
+            <div class="pricing__addon-icon">🚀</div>
+            <div class="pricing__addon-body">
+              <h4>Phoenix Launch</h4>
+              <p>Hit the ground running with live onboarding: 2 training sessions, event setup guidance, workflow review, and priority support for your first 30 days.</p>
+              <span class="pricing__addon-price">$749 one-time</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="pricing__enterprise">
         <p>Need a custom enterprise plan for large corporate accounts? <a href="#demo">Let's talk →</a></p>
       </div>
+
     </div>
   </section>
 
@@ -650,7 +788,7 @@
         </div>
       </div>
       <div class="cta-section__alt">
-        <p>Prefer email? <a href="mailto:hello@theeventphoenix.com">hello@theeventphoenix.com</a></p>
+        <p>Prefer email? <a href="/cdn-cgi/l/email-protection#c8a0ada4a4a788bca0adadbeada6bcb8a0a7ada6a1b0e6aba7a5"><span class="__cf_email__" data-cfemail="ef878a838380af9b878a8a998a819b9f87808a818697c18c8082">[email&#160;protected]</span></a></p>
       </div>
     </div>
   </section>
@@ -678,7 +816,7 @@
           <div class="footer__nav-col">
             <p class="footer__nav-heading">Company</p>
             <a href="#demo">Request Demo</a>
-            <a href="mailto:hello@theeventphoenix.com">Contact</a>
+            <a href="/cdn-cgi/l/email-protection#5c34393030331c283439392a3932282c343339323524723f3331">Contact</a>
           </div>
         </nav>
       </div>
@@ -688,7 +826,7 @@
     </div>
   </footer>
 
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // Nav scroll
     const nav = document.getElementById('nav');
     window.addEventListener('scroll', () => nav.classList.toggle('nav--scrolled', window.scrollY > 40));
@@ -726,27 +864,40 @@
     // Billing toggle
     const toggle = document.getElementById('billingToggle');
     let isAnnual = false;
+
+    const tiers = [
+      { id: 'spark',   monthly: '$199', annual: '$2,030', perEventMonthly: 'As low as <strong>$478/event</strong>', perEventAnnual: 'As low as <strong>$406/event</strong>' },
+      { id: 'blaze',   monthly: '$299', annual: '$3,050', perEventMonthly: 'As low as <strong>$305/event</strong>', perEventAnnual: 'As low as <strong>$259/event</strong>' },
+      { id: 'inferno', monthly: '$399', annual: '$4,070', perEventMonthly: 'As low as <strong>$214/event</strong>', perEventAnnual: 'As low as <strong>$183/event</strong>' },
+      { id: 'phoenix', monthly: '$599', annual: '$6,110', perEventMonthly: 'As low as <strong>$25/event</strong>',  perEventAnnual: 'As low as <strong>$21/event</strong>'  },
+      { id: 'founders',monthly: '$79',  annual: '$790',   perEventMonthly: null, perEventAnnual: null }
+    ];
+
     toggle.addEventListener('click', () => {
       isAnnual = !isAnnual;
       toggle.classList.toggle('pricing__toggle--on', isAnnual);
       toggle.setAttribute('aria-pressed', isAnnual);
       document.getElementById('label-monthly').classList.toggle('pricing__toggle-label--active', !isAnnual);
-      document.getElementById('label-annual').classList.toggle('pricing__toggle-label--active',   isAnnual);
-      if (isAnnual) {
-        document.getElementById('price-standard').textContent = '$1,199';
-        document.getElementById('per-standard').textContent   = '/yr';
-        document.getElementById('note-standard').style.display = 'block';
-        document.getElementById('price-founders').textContent = '$790';
-        document.getElementById('per-founders').textContent   = '/yr';
-        document.getElementById('note-founders').style.display = 'block';
-      } else {
-        document.getElementById('price-standard').textContent = '$129';
-        document.getElementById('per-standard').textContent   = '/mo';
-        document.getElementById('note-standard').style.display = 'none';
-        document.getElementById('price-founders').textContent = '$79';
-        document.getElementById('per-founders').textContent   = '/mo';
-        document.getElementById('note-founders').style.display = 'none';
-      }
+      document.getElementById('label-annual').classList.toggle('pricing__toggle-label--active', isAnnual);
+
+      tiers.forEach(t => {
+        const priceEl    = document.getElementById('price-' + t.id);
+        const perEl      = document.getElementById('per-' + t.id);
+        const noteEl     = document.getElementById('note-' + t.id);
+        const peEl       = document.getElementById('perevent-' + t.id);
+        if (!priceEl) return;
+        if (isAnnual) {
+          priceEl.textContent = t.annual;
+          perEl.textContent   = '/yr';
+          if (noteEl) noteEl.style.display = 'block';
+          if (peEl && t.perEventAnnual) peEl.innerHTML = t.perEventAnnual;
+        } else {
+          priceEl.textContent = t.monthly;
+          perEl.textContent   = '/mo';
+          if (noteEl) noteEl.style.display = 'none';
+          if (peEl && t.perEventMonthly) peEl.innerHTML = t.perEventMonthly;
+        }
+      });
     });
 
     // Calendly embed — uncomment and replace YOUR_CALENDLY_URL when ready
@@ -756,14 +907,4 @@
       s.src = 'https://assets.calendly.com/assets/external/widget.js';
       s.async = true;
       s.onload = function() {
-        var embed = document.getElementById('calendly-embed');
-        embed.innerHTML = '';
-        Calendly.initInlineWidget({ url: 'YOUR_CALENDLY_URL', parentElement: embed });
-        embed.style.minHeight = '700px';
-      };
-      d.head.appendChild(s);
-    }(document));
-    */
-  </script>
-</body>
-</html>
+        v
