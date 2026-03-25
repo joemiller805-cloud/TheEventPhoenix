@@ -687,7 +687,7 @@ em { font-style: italic; color: var(--teal); }
 }
 .pricing__features li { font-size: 0.88rem; color: var(--text-muted); }
 .pricing__features li:first-child { font-style: italic; color: var(--text-dim); }
-.pricing__card--featured .pricing__features li { color: var(--text); }
+.pricing__card--featured .pricing__features li { color: var(--text-muted); }
 .pricing__founders-note { font-size: 0.78rem; color: var(--ember); text-align: center; margin-top: 14px; font-weight: 500; }
 .pricing__enterprise { text-align: center; margin-top: 40px; font-size: 0.9rem; color: var(--text-muted); }
 .pricing__enterprise a { color: var(--teal); text-decoration: underline; }
@@ -1950,4 +1950,46 @@ em { font-style: italic; color: var(--teal); }
 }
 @media (max-width: 600px) {
   .tech-cred__right { grid-template-columns: 1fr; }
+}
+
+/* Founders FREE FOREVER caps */
+.founders__free-forever {
+  color: var(--ember);
+  font-style: normal;
+  letter-spacing: 0.04em;
+}
+
+/* Founders annual note — always visible in card */
+.founders__annual-note-static {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin: 4px 0 0;
+}
+
+/* Pricing all-included grid — allow 4 columns for extra items */
+.pricing__all-included-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Engage feature secondary note (App Store availability) */
+.engage__feature-note {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  margin: 4px 0 0;
+  font-style: italic;
+}
+
+/* Engage standalone pricing note */
+.engage__standalone-note {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  font-style: italic;
+  max-width: 680px;
+  margin: 16px auto 0;
+  text-align: center;
+  line-height: 1.6;
+}
+.engage__standalone-note strong {
+  color: var(--ember);
+  font-style: normal;
 }
