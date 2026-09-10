@@ -1,5 +1,5 @@
 /* TEP Sprint 1: root service worker — bump CACHE_VERSION to kill stale caches */
-const CACHE_VERSION = 'v1.2.0'; // TEP kill-switch: bump so activate drops v1.1.0 and picks up the offline shell
+const CACHE_VERSION = 'v1.3.0'; // TEP kill-switch: bump so activate drops v1.2.0 and picks up manifest shortcuts
 const STATIC_CACHE = 'tep-static-' + CACHE_VERSION; // Versioned bucket for CSS/JS/fonts/images (Cache-First)
 const API_CACHE = 'tep-api-' + CACHE_VERSION; // Versioned bucket for /data_access/ GET JSON (Network-First)
 const OFFLINE_URL = '/offline.html'; // Static shell for document navigations when Apache is unreachable

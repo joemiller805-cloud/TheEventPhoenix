@@ -7,7 +7,16 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>PSUGevents.com</title>
 	<style>
-		.navbar{display:none;}
+		.navbar{display:none;} /* Existing: hide until accountRetrieved then jQuery .show() */
+		html, body { overscroll-behavior-y: contain; } /* Dashboard PTR owns the top-edge gesture; avoid a double native reload */
+		.tep-dashboard .btn-primary,
+		.tep-dashboard a.btn-primary,
+		.tep-dashboard button.btn-primary { min-height: 48px; padding-top: 12px; padding-bottom: 12px; display: inline-flex; align-items: center; justify-content: center; } /* WCAG 2.5.5-style 48px primary tap targets */
+		.tep-dashboard input,
+		.tep-dashboard select,
+		.tep-dashboard textarea { min-height: 48px; } /* Same floor for form controls if this view adds them */
+		.navbar-toggler { min-height: 48px; min-width: 48px; } /* Mobile nav hamburger on this page */
+		.tep-ptr-indicator { min-height: 48px; line-height: 48px; text-align: center; color: #E65100; font-weight: bold; } /* Pull-to-refresh status row */
 	</style>
 	<?php
 		include("common_functions.php");
@@ -26,10 +35,11 @@
 
 	<script type="text/javascript">
 		var app = angular.module('regApp', ['easyRegDataModule','erSvc', 'navMod']);
-		app.controller('regController', function($scope, $http, dataSvc, erSvc) {
+		app.controller('regController', function($scope, $http, dataSvc, erSvc, $element) { // $element is the dashboard root for pull-to-refresh
 			erSvc.loadingDialog("Loading Event Data");
 			$scope.polls = []; // Live poll widget rows; ng-repeat is empty until loadPolls runs
 			$scope.pushNotify = { supported: false, busy: false, enabled: false, blocked: false, message: '' }; // Dashboard Web Push toggle; never throws into the layout
+			$scope.pullRefresh = { dy: 0, busy: false, message: '' }; // Pull-to-refresh indicator bound on the dashboard view
 			erSvc.getAccountIdFromURL().then(function(urlAcct){
 				getAccountEvents();
 				dataSvc.getArray({'query':'accountInfo'}).then(function(resp){
@@ -49,7 +59,7 @@
 			});
 
 			function getAccountEvents(){
-				dataSvc.getObject({'query':'accountEvents'}).then(function(resp){
+				return dataSvc.getObject({'query':'accountEvents'}).then(function(resp){ // Return the promise so pull-to-refresh can wait
 					$scope.events = resp;
 					$scope.recentEvents = [];
 					angular.forEach($scope.events,function(evt){
@@ -282,13 +292,113 @@
 					$scope.$applyAsync(); // Digest — dashboard events/polls unchanged
 				});
 			};
+			$scope.refreshDashboard = function () { // Reload dashboard data without location.reload (keeps AngularJS $scope)
+				if ($scope.pullRefresh.busy) { // Ignore a second pull while in flight
+					return; // Do not stack getAccountEvents
+				}
+				$scope.pullRefresh.busy = true; // Show the 48px status row
+				$scope.pullRefresh.message = 'Refreshing…'; // Bound label
+				$scope.pullRefresh.dy = 0; // Collapse the rubber-band
+				$scope.$applyAsync(); // Digest the indicator
+				$scope.loadPolls(); // Same Network-First poll path as first paint
+				$scope.refreshPushNotifyState(); // Re-read permission/subscription; no prompt
+				dataSvc.getArray({'query':'currentSeasonPassCount'}).then(function (resp) { // Same season-pass flag as first paint
+					if (resp[0] && resp[0].curPassCount) { // Truthy count
+						$scope.hasSeasonPasses = resp[0].curPassCount > 0; // Card visibility
+					} else {
+						$scope.hasSeasonPasses = false; // Hide if the refresh returns empty
+					}
+					$scope.$applyAsync(); // Digest season-pass card
+				});
+				Promise.resolve(getAccountEvents()).then(function () { // Events list is the slow path
+					$scope.pullRefresh.busy = false; // Hide the spinner row
+					$scope.pullRefresh.message = ''; // Clear status
+					$scope.$applyAsync(); // Digest
+				}).catch(function () { // dataSvc failure must not freeze the UI
+					$scope.pullRefresh.busy = false; // Unlock another pull
+					$scope.pullRefresh.message = ''; // Clear status
+					$scope.$applyAsync(); // Digest — existing events stay on screen
+				});
+			};
+			(function tepBindPullToRefresh() { // Touch-only PTR on the dashboard root; desktop mouse scroll unchanged
+				var el = $element && $element[0]; // ng-controller host (the .tep-dashboard div)
+				if (!el || !('ontouchstart' in window)) { // No touch surface
+					return; // Leave desktop behavior alone
+				}
+				var ptrStartY = 0; // Finger Y at touchstart
+				var ptrTracking = false; // True only while pulling at scroll-top
+				var PTR_THRESHOLD = 64; // Pixels of downward travel before release refreshes
+				function tepScrollTop() { // Page scroll, not the inner card overflow
+					return window.pageYOffset || document.documentElement.scrollTop || 0; // 0 = at top
+				}
+				el.addEventListener('touchstart', function (e) { // Remember the start Y
+					if ($scope.pullRefresh.busy) { // Already refreshing
+						return; // Ignore
+					}
+					if (!e.touches || !e.touches[0]) { // Defensive
+						return; // Ignore
+					}
+					if (tepScrollTop() > 0) { // User is mid-list
+						ptrTracking = false; // This is a normal scroll
+						return; // Do not capture
+					}
+					ptrTracking = true; // Candidate pull
+					ptrStartY = e.touches[0].clientY; // Anchor
+					$scope.pullRefresh.dy = 0; // Reset the indicator
+				}, { passive: true }); // Never block the first touch
+				el.addEventListener('touchmove', function (e) { // Rubber-band while at top
+					if (!ptrTracking || $scope.pullRefresh.busy) { // Not a pull
+						return; // Let the browser scroll
+					}
+					if (!e.touches || !e.touches[0]) { // Defensive
+						return; // Ignore
+					}
+					var dy = e.touches[0].clientY - ptrStartY; // Downward is positive
+					if (tepScrollTop() > 0 || dy < 0) { // Scrolled away or pulling up
+						ptrTracking = false; // Hand back to native scroll
+						if ($scope.pullRefresh.dy !== 0) { // Clear a leftover indicator
+							$scope.pullRefresh.dy = 0; // Hide the row
+							$scope.$applyAsync(); // Digest
+						}
+						return; // Do not preventDefault
+					}
+					$scope.pullRefresh.dy = Math.min(dy, 96); // Cap so the row does not grow forever
+					$scope.$applyAsync(); // Digest Pull / Release copy
+					if (dy > 12 && e.cancelable) { // Only after a clear downward intent
+						e.preventDefault(); // Keep the gesture on PTR instead of the browser's native reload
+					}
+				}, { passive: false }); // Need preventDefault on the rubber-band
+				el.addEventListener('touchend', function () { // Refresh or cancel
+					if (!ptrTracking) { // Was a normal scroll
+						return; // Ignore
+					}
+					ptrTracking = false; // End the gesture
+					var shouldRefresh = $scope.pullRefresh.dy >= PTR_THRESHOLD && !$scope.pullRefresh.busy; // Threshold met
+					$scope.pullRefresh.dy = 0; // Collapse the rubber-band
+					if (shouldRefresh) { // Fire the existing dashboard loaders
+						$scope.refreshDashboard(); // $applyAsync inside
+					} else {
+						$scope.$applyAsync(); // Digest the collapsed indicator
+					}
+				}, { passive: true }); // End does not need preventDefault
+				el.addEventListener('touchcancel', function () { // Finger interrupted
+					ptrTracking = false; // Abort
+					$scope.pullRefresh.dy = 0; // Hide the row
+					$scope.$applyAsync(); // Digest
+				}, { passive: true }); // Cancel is always passive
+			})();
 		});//End Controller
 	</script>
 </head>
 <body ng-app="regApp">
 	<top-nav ng-controller="navController"></top-nav>
-	<div class="container-fluid" ng-controller="regController" ng-cloak 
-		ng-show="accountRetrieved">
+	<div class="container-fluid tep-dashboard" ng-controller="regController" ng-cloak 
+		ng-show="accountRetrieved"> <!-- tep-dashboard: 48px tap CSS + pull-to-refresh host -->
+		<div class="tep-ptr-indicator" ng-show="pullRefresh.busy || pullRefresh.dy > 12"> <!-- 48px pull-to-refresh status; hidden until a pull -->
+			<span ng-show="pullRefresh.busy">{{pullRefresh.message}}</span> <!-- Refreshing… from $scope.pullRefresh -->
+			<span ng-show="!pullRefresh.busy && pullRefresh.dy >= 64">Release to refresh</span> <!-- Threshold met -->
+			<span ng-show="!pullRefresh.busy && pullRefresh.dy < 64">Pull to refresh</span> <!-- Still dragging -->
+		</div>
 		<div class="row">
 			<div class="col-lg-12">
 				<H2 class="page-header">{{accountName}}</H2>

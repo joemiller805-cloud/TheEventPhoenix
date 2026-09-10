@@ -2,6 +2,20 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 7] — Phase 4 Mobile Polish & App Shortcuts — 2026-09-10
+
+Phase 4 polishes the installed PWA for mobile: app-icon shortcuts, 48px tap targets, and dashboard pull-to-refresh on the existing AngularJS 1.x view (no Workbox, no Node, no Angular 2+).
+
+### [Added]
+- **App shortcuts (`manifest.json`):** Added PWA App Shortcuts for long-press / app-icon menus on installed Android/Chrome: Dashboard (`/`), My Events (`/user_events.php`), Admin (`/admin.php`), and Season Passes (`/seasonPasses.php`). Each shortcut uses the existing 192x192 `/pwa/icon-192.png` (Chrome requires at least 96x96). JSON cannot hold comments; this entry is the record of that edit. `sw.js` `CACHE_VERSION` is `v1.3.0` so Cache-First drops the previous `manifest.json`.
+- **Pull-to-refresh (`index.php`):** Added touch handling on the AngularJS dashboard (`regController`): `touchstart` / `touchmove` / `touchend` on the dashboard root. A downward pull at scroll-top shows a 48px status row; releasing past 64px calls `refreshDashboard()`, which reloads events, polls, season-pass visibility, and push-toggle state through existing `dataSvc` paths and `$applyAsync` (no `location.reload`, no digest bypass). Denied/busy pulls fail-soft. Desktop mouse scrolling is unchanged.
+
+### [Refactored]
+- **48px min tap targets (`index.php`):** Dashboard primary buttons and inputs now have a CSS floor of 48px tap height (`.tep-dashboard .btn-primary` and form controls), including Season Pass and Learn More links that previously used default Bootstrap padding. The page navbar toggler is also 48×48. Poll and notification buttons already met this floor.
+
+### [Security Fix]
+- Pull-to-refresh only `preventDefault`s while the page is at scroll-top and the finger has moved down more than 12px, so normal list scrolling still works. Refresh reuses session-scoped `dataSvc` GETs; it does not add new query parameters or concatenate input into SQL.
+
 ## [Sprint 6] — Phase 3 Web Push Notification System — 2026-09-10
 
 Phase 3 completes Web Push on the existing vanilla service worker, PDO query API, and AngularJS 1.x dashboard (no Workbox, no Node, no Angular 2+).

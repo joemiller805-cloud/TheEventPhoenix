@@ -29,5 +29,59 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Open the TEP event dashboard",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/pwa/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "My Events",
+      "short_name": "Events",
+      "description": "Open your TEP events list",
+      "url": "/user_events.php",
+      "icons": [
+        {
+          "src": "/pwa/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "short_name": "Admin",
+      "description": "Open TEP admin",
+      "url": "/admin.php",
+      "icons": [
+        {
+          "src": "/pwa/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Season Passes",
+      "short_name": "Passes",
+      "description": "Open season pass offerings",
+      "url": "/seasonPasses.php",
+      "icons": [
+        {
+          "src": "/pwa/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
