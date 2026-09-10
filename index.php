@@ -35,11 +35,20 @@
 
 	<script type="text/javascript">
 		var app = angular.module('regApp', ['easyRegDataModule','erSvc', 'navMod']);
-		app.controller('regController', function($scope, $http, dataSvc, erSvc, $element) { // $element is the dashboard root for pull-to-refresh
+		app.controller('regController', function($scope, $http, dataSvc, erSvc, $element, $timeout) { // $element = PTR host; $timeout = check-in search debounce
+			function hideLoading() { // Explicit dismiss for every dashboard AJAX success and error
+				if (erSvc && typeof erSvc.hideLoading === 'function') { // Preferred helper
+					erSvc.hideLoading(); // jQuery UI loadingDialog + legacy $.unblockUI
+				} else if (erSvc && typeof erSvc.closeLoading === 'function') { // Older erSvc without hideLoading
+					erSvc.closeLoading(); // Dialog only
+				}
+			}
 			erSvc.loadingDialog("Loading Event Data");
 			$scope.polls = []; // Live poll widget rows; ng-repeat is empty until loadPolls runs
 			$scope.pushNotify = { supported: false, busy: false, enabled: false, blocked: false, message: '' }; // Dashboard Web Push toggle; never throws into the layout
 			$scope.pullRefresh = { dy: 0, busy: false, message: '' }; // Pull-to-refresh indicator bound on the dashboard view
+			$scope.checkIn = { q: '', rows: [], busy: false, message: '', searchTimer: null }; // Staff check-in card; never throws into the layout
+			$scope.vendorOps = { booth: null, leads: [], form: { attendee_name: '', email: '', company: '', ticket: '', notes: '' }, busy: false, message: '' }; // Vendor booth + lead capture
 			erSvc.getAccountIdFromURL().then(function(urlAcct){
 				getAccountEvents();
 				dataSvc.getArray({'query':'accountInfo'}).then(function(resp){
@@ -51,11 +60,20 @@
 					$scope.attendeeMessage = resp[0].home_pg_msg;
 					$scope.loadPolls(); // Live poll widget after accountid is on $scope; PDO uses the session account
 					$scope.refreshPushNotifyState(); // Reflect existing permission/subscription without prompting
+					$scope.loadVendorStatus(); // Booth assignment + recent leads for Vendor Operations
 					$scope.$applyAsync();
+				}).catch(function () { // accountInfo transport/parse failure
+					hideLoading(); // Do not leave "Loading Event Data" on screen
+					$scope.$applyAsync(); // Digest
 				});
 				dataSvc.getArray({'query':'currentSeasonPassCount'}).then(function(resp){
 					if(resp[0] && resp[0].curPassCount) $scope.hasSeasonPasses = resp[0].curPassCount > 0;
+				}).catch(function () { // Season-pass flag failed
+					hideLoading(); // Spinner must not stick if this GET is the last one standing
 				});
+			}).catch(function () { // URL/account helper failed before events were requested
+				hideLoading(); // getAccountEvents never ran; dismiss the modal here
+				$scope.$applyAsync(); // Digest
 			});
 
 			function getAccountEvents(){
@@ -68,9 +86,12 @@
 							$scope.recentEvents.push(evt);
 						} 
 					});
-					erSvc.closeLoading();
 					$scope.$applyAsync();
-				});
+				}).catch(function () { // accountEvents $http rejection
+					$scope.events = $scope.events || {}; // Keep the dashboard usable
+					$scope.recentEvents = $scope.recentEvents || []; // Empty recent row
+					$scope.$applyAsync(); // Digest
+				}).finally(hideLoading); // Success or error: never leave "Loading Event Data" up
 			}
 
 			$scope.upcomingEvents = event => event.status == 'future' && event.visible == '1';		
@@ -80,6 +101,8 @@
 				$.post('/attendee/clearAttendeeSessionInfo.php',function(){
 					if(evt.id == '1097') window.location = '/learningCenter/psugevents';
 					else window.location = '/e/' + evt.slug + '/' + (evt.homePg ? evt.homePg : 'register');
+				}).fail(function () { // Session-clear POST failed
+					hideLoading(); // Do not leave a spinner over a stuck click
 				});
 			};
 
@@ -112,7 +135,9 @@
 						$scope.polls.push(tepParsePollRow(row)); // Option buttons + vote counts
 					});
 					$scope.$applyAsync(); // Digest so ng-show/ng-repeat update
-				});
+				}).catch(function () { // getActivePoll rejection
+					$scope.$applyAsync(); // Digest
+				}).finally(hideLoading); // Success or error: drop a leftover Loading Event Data modal
 			};
 			$scope.voteOnPoll = function (poll, opt) { // Touch button handler; stays on this view
 				if (!poll || !opt || poll.voted || poll.busy) { // Ignore double-taps
@@ -139,7 +164,11 @@
 					}
 					poll.busy = false; // Re-enable only if not voted
 					$scope.$applyAsync(); // Digest button disabled + counts
-				});
+				}).catch(function () { // submitPollVote rejection
+					poll.busy = false; // Unlock the 48px buttons
+					poll.message = 'Vote could not be saved. Try again.'; // Fail-soft
+					$scope.$applyAsync(); // Digest
+				}).finally(hideLoading); // Success or error: never leave the spinner up
 			};
 			var TEP_VAPID_PUBLIC_KEY = <?php echo json_encode(tep_vapid_public_key(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>; // applicationServerKey; tep_config overrides the local fallback
 			function tepUrlBase64ToUint8Array(base64String) { // Chrome subscribe() wants a Uint8Array, not a string
@@ -277,7 +306,10 @@
 							state.message = 'On this device, but they could not be saved. Try again.'; // Honest status
 						}
 						$scope.$applyAsync(); // Digest button + message
-					});
+					}).catch(function () { // savePushSubscription rejection
+						state.busy = false; // Unlock
+						$scope.$applyAsync(); // Digest
+					}).finally(hideLoading); // Success or error: drop a leftover spinner
 				}).catch(function (err) { // Permission skip, subscribe throw, or SW failure
 					if (err && (err.message === 'tep-push-not-granted' || err.message === 'tep-push-no-vapid')) { // Already messaged
 						return; // Avoid a second status line
@@ -290,7 +322,7 @@
 						state.message = 'Notifications could not be enabled in this browser.'; // Fail-soft
 					}
 					$scope.$applyAsync(); // Digest — dashboard events/polls unchanged
-				});
+				}).finally(hideLoading); // Permission skip and subscribe errors still dismiss the modal
 			};
 			$scope.refreshDashboard = function () { // Reload dashboard data without location.reload (keeps AngularJS $scope)
 				if ($scope.pullRefresh.busy) { // Ignore a second pull while in flight
@@ -302,6 +334,7 @@
 				$scope.$applyAsync(); // Digest the indicator
 				$scope.loadPolls(); // Same Network-First poll path as first paint
 				$scope.refreshPushNotifyState(); // Re-read permission/subscription; no prompt
+				$scope.loadVendorStatus(); // Refresh booth + lead list
 				dataSvc.getArray({'query':'currentSeasonPassCount'}).then(function (resp) { // Same season-pass flag as first paint
 					if (resp[0] && resp[0].curPassCount) { // Truthy count
 						$scope.hasSeasonPasses = resp[0].curPassCount > 0; // Card visibility
@@ -309,6 +342,8 @@
 						$scope.hasSeasonPasses = false; // Hide if the refresh returns empty
 					}
 					$scope.$applyAsync(); // Digest season-pass card
+				}).catch(function () { // Season-pass refresh failed
+					hideLoading(); // Do not leave the initial modal up
 				});
 				Promise.resolve(getAccountEvents()).then(function () { // Events list is the slow path
 					$scope.pullRefresh.busy = false; // Hide the spinner row
@@ -318,7 +353,7 @@
 					$scope.pullRefresh.busy = false; // Unlock another pull
 					$scope.pullRefresh.message = ''; // Clear status
 					$scope.$applyAsync(); // Digest — existing events stay on screen
-				});
+				}).finally(hideLoading); // getAccountEvents already finallys; this is a second safe dismiss
 			};
 			(function tepBindPullToRefresh() { // Touch-only PTR on the dashboard root; desktop mouse scroll unchanged
 				var el = $element && $element[0]; // ng-controller host (the .tep-dashboard div)
@@ -387,6 +422,139 @@
 					$scope.$applyAsync(); // Digest
 				}, { passive: true }); // Cancel is always passive
 			})();
+			$scope.searchCheckIns = function () { // getAttendeeCheckInStatus by name or ticket; HTTP 200 rows
+				if ($scope.checkIn.searchTimer) { // Cancel a pending debounce
+					$timeout.cancel($scope.checkIn.searchTimer); // Do not double-fetch
+					$scope.checkIn.searchTimer = null; // Clear handle
+				}
+				var q = ($scope.checkIn.q || '').trim(); // Search box
+				if (q.length < 2) { // Server also rejects short q
+					$scope.checkIn.rows = []; // Hide stale hits
+					$scope.checkIn.message = q.length ? 'Type at least two characters.' : ''; // Hint vs idle
+					$scope.checkIn.busy = false; // Unlock
+					$scope.$applyAsync(); // Digest
+					hideLoading(); // No GET fired; still drop a stuck initial spinner
+					return; // Do not call the API
+				}
+				$scope.checkIn.busy = true; // Disable search while in flight
+				$scope.checkIn.message = ''; // Clear prior status
+				dataSvc.getArray({ // Existing GET query path (PDO select server-side)
+					'query': 'getAttendeeCheckInStatus', // Staff search
+					'q': q // Name or confirmation/ticket
+				}).then(function (rows) { // HTTP 200 JSON rows
+					if (!angular.isArray(rows)) { // Transport "error" string
+						$scope.checkIn.rows = []; // Keep the card
+						$scope.checkIn.message = 'Search could not be completed. Try again.'; // Fail-soft
+					} else {
+						$scope.checkIn.rows = rows; // ng-repeat source
+						$scope.checkIn.message = rows.length ? '' : 'No matching attendees.'; // Empty state
+					}
+					$scope.checkIn.busy = false; // Unlock
+					$scope.$applyAsync(); // Digest the list
+				}).catch(function () { // getAttendeeCheckInStatus rejection
+					$scope.checkIn.busy = false; // Unlock Search
+					$scope.checkIn.message = 'Search could not be completed. Try again.'; // Fail-soft
+					$scope.$applyAsync(); // Digest
+				}).finally(hideLoading); // Success or error: never leave "Loading Event Data" up
+			};
+			$scope.onCheckInQueryChange = function () { // Debounced search as the staff types
+				if ($scope.checkIn.searchTimer) { // Replace the previous timer
+					$timeout.cancel($scope.checkIn.searchTimer); // One in-flight debounce
+				}
+				$scope.checkIn.searchTimer = $timeout(function () { // 350ms after last key
+					$scope.searchCheckIns(); // Same path as the Search button
+				}, 350); // Fast enough for a door line, slow enough to skip per-key GETs
+			};
+			$scope.onCheckInKey = function ($event) { // Enter submits immediately
+				if ($event && $event.which === 13) { // Return key
+					$event.preventDefault(); // Do not submit a phantom form
+					$scope.searchCheckIns(); // Skip the debounce
+				}
+			};
+			$scope.toggleCheckIn = function (row) { // Instant check-in / undo; HTTP 200 ok/reason
+				if (!row || row.busy || $scope.checkIn.busy) { // Ignore double-taps
+					hideLoading(); // Do not leave a spinner over a ignored tap
+					return; // Do not fire a second checkInAttendee
+				}
+				row.busy = true; // Disable this 48px button
+				$scope.checkIn.message = ''; // Clear list-level status
+				dataSvc.getArray({ // Existing GET query path (PDO update server-side)
+					'query': 'checkInAttendee', // Toggle write
+					'id': row.id // registrations.id
+				}).then(function (rows) { // HTTP 200 JSON rows
+					var result = (angular.isArray(rows) && rows[0]) ? rows[0] : {}; // ok / checked_in / reason
+					if (result.ok === '1') { // Toggle stored
+						row.checked_in = result.checked_in; // Flip the button label
+						$scope.checkIn.message = (result.checked_in === '1') ? 'Checked in.' : 'Check-in cleared.'; // Confirm without reload
+					} else { // invalid / not_found / unavailable
+						$scope.checkIn.message = 'Check-in could not be saved. Try again.'; // Stay on the dashboard
+					}
+					row.busy = false; // Re-enable
+					$scope.$applyAsync(); // Digest button + message
+				}).catch(function () { // checkInAttendee rejection
+					row.busy = false; // Unlock the 48px button
+					$scope.checkIn.message = 'Check-in could not be saved. Try again.'; // Fail-soft
+					$scope.$applyAsync(); // Digest
+				}).finally(hideLoading); // Success or error: dismiss spinner / blockUI
+			};
+			$scope.loadVendorStatus = function () { // getVendorStatus booth + recent_leads_json
+				dataSvc.getArray({'query':'getVendorStatus'}).then(function (rows) { // HTTP 200 JSON rows
+					if (!angular.isArray(rows) || !rows.length) { // No booth for this login
+						$scope.vendorOps.booth = null; // Hide assignment details
+						$scope.vendorOps.leads = []; // Empty list
+						$scope.$applyAsync(); // Digest
+						return; // Card still shows an empty state
+					}
+					$scope.vendorOps.booth = rows[0]; // First assignment
+					var leads = []; // recent_leads_json
+					try { leads = JSON.parse(rows[0].recent_leads_json || '[]'); } catch (leadErr) { leads = []; } // Fail-soft
+					$scope.vendorOps.leads = angular.isArray(leads) ? leads : []; // ng-repeat
+					$scope.$applyAsync(); // Digest booth + leads
+				}).catch(function () { // getVendorStatus rejection
+					$scope.vendorOps.booth = $scope.vendorOps.booth || null; // Keep last known booth
+					$scope.$applyAsync(); // Digest
+				}).finally(hideLoading); // Success or error: never leave "Loading Event Data" up
+			};
+			$scope.saveVendorLead = function () { // saveVendorLead; HTTP 200 ok/reason
+				if ($scope.vendorOps.busy) { // Ignore double-taps
+					hideLoading(); // Do not leave a spinner over an ignored tap
+					return; // Do not fire a second insert
+				}
+				var form = $scope.vendorOps.form; // Bound inputs
+				var name = (form.attendee_name || '').trim(); // Required
+				if (name.length < 2) { // Same floor as the PDO endpoint
+					$scope.vendorOps.message = 'Enter the attendee name (at least two characters).'; // Stay on the card
+					$scope.$applyAsync(); // Digest
+					hideLoading(); // Validation return must still clear Loading Event Data
+					return; // Do not call the API
+				}
+				$scope.vendorOps.busy = true; // Disable the 48px save button
+				$scope.vendorOps.message = ''; // Clear prior status
+				dataSvc.getArray({ // Existing GET query path (PDO insert server-side)
+					'query': 'saveVendorLead', // Lead write
+					'attendee_name': name, // Bound name
+					'email': (form.email || '').trim(), // Optional
+					'company': (form.company || '').trim(), // Optional
+					'ticket': (form.ticket || '').trim(), // Optional confirmation
+					'notes': (form.notes || '').trim(), // Optional
+					'eventid': ($scope.vendorOps.booth && $scope.vendorOps.booth.eventid) ? $scope.vendorOps.booth.eventid : 0 // Booth event when present
+				}).then(function (rows) { // HTTP 200 JSON rows
+					var result = (angular.isArray(rows) && rows[0]) ? rows[0] : {}; // ok / reason
+					$scope.vendorOps.busy = false; // Unlock
+					if (result.ok === '1') { // Stored
+						$scope.vendorOps.form = { attendee_name: '', email: '', company: '', ticket: '', notes: '' }; // Clear for the next attendee
+						$scope.vendorOps.message = 'Lead saved.'; // Confirm without reload
+						$scope.loadVendorStatus(); // Refresh count + recent list
+					} else { // invalid / unavailable
+						$scope.vendorOps.message = 'Lead could not be saved. Check the name and email.'; // Fail-soft
+					}
+					$scope.$applyAsync(); // Digest form + message
+				}).catch(function () { // saveVendorLead rejection
+					$scope.vendorOps.busy = false; // Unlock Save lead
+					$scope.vendorOps.message = 'Lead could not be saved. Check the name and email.'; // Fail-soft
+					$scope.$applyAsync(); // Digest
+				}).finally(hideLoading); // Success or error: dismiss spinner / blockUI
+			};
 		});//End Controller
 	</script>
 </head>
@@ -423,6 +591,98 @@
 							<span ng-show="pushNotify.enabled">Notifications on — tap to turn off</span>
 						</button>
 						<div ng-show="pushNotify.message" style="margin-top:8px;">{{pushNotify.message}}</div>
+					</div>
+				</div>
+			</div>
+			<!-- Staff check-in card: getAttendeeCheckInStatus + checkInAttendee; $scope.checkIn; 48px taps -->
+			<div class="col-md-6" ng-cloak>
+				<div class="card">
+					<div class="card-header bold">
+						<h5 class="card-title">Staff check-in</h5>
+						<div>Search by name or ticket, then tap to check in.</div>
+					</div>
+					<div class="card-body">
+						<input type="search" class="form-control"
+							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
+							placeholder="Name or ticket"
+							ng-model="checkIn.q"
+							ng-change="onCheckInQueryChange()"
+							ng-keyup="onCheckInKey($event)"
+							ng-disabled="checkIn.busy">
+						<button type="button" class="btn btn-primary"
+							style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
+							ng-click="searchCheckIns()"
+							ng-disabled="checkIn.busy">
+							Search
+						</button>
+						<div ng-repeat="row in checkIn.rows" style="margin-bottom:8px;">
+							<div class="bold">{{row.first_name}} {{row.last_name}}</div>
+							<div>Ticket {{row.confirmation}} · {{row.event_name}}</div>
+							<button type="button" class="btn btn-primary"
+								style="min-height:48px;width:100%;margin-top:4px;font-size:1.1em;"
+								ng-click="toggleCheckIn(row)"
+								ng-disabled="row.busy">
+								<span ng-show="row.checked_in != '1'">Check in</span>
+								<span ng-show="row.checked_in == '1'">Checked in — tap to undo</span>
+							</button>
+						</div>
+						<div ng-show="checkIn.message" style="margin-top:8px;">{{checkIn.message}}</div>
+					</div>
+				</div>
+			</div>
+			<!-- Vendor Operations: getVendorStatus booth details + saveVendorLead; 48px taps -->
+			<div class="col-md-6" ng-cloak>
+				<div class="card">
+					<div class="card-header bold">
+						<h5 class="card-title">Vendor Operations</h5>
+						<div ng-show="vendorOps.booth">{{vendorOps.booth.vendor_name}} · Booth {{vendorOps.booth.booth}}</div>
+						<div ng-show="!vendorOps.booth">Booth assignment and lead capture.</div>
+					</div>
+					<div class="card-body">
+						<div ng-show="vendorOps.booth" style="margin-bottom:8px;">
+							<div>{{vendorOps.booth.hall}}</div>
+							<div ng-show="vendorOps.booth.event_name">{{vendorOps.booth.event_name}}</div>
+							<div ng-show="vendorOps.booth.notes">{{vendorOps.booth.notes}}</div>
+							<div>{{vendorOps.booth.lead_count}} lead<span ng-show="vendorOps.booth.lead_count != 1">s</span> captured</div>
+						</div>
+						<div ng-show="!vendorOps.booth" style="margin-bottom:8px;">No booth assignment for this login.</div>
+						<input type="text" class="form-control"
+							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
+							placeholder="Attendee name"
+							ng-model="vendorOps.form.attendee_name"
+							ng-disabled="vendorOps.busy || !vendorOps.booth">
+						<input type="email" class="form-control"
+							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
+							placeholder="Email (optional)"
+							ng-model="vendorOps.form.email"
+							ng-disabled="vendorOps.busy || !vendorOps.booth">
+						<input type="text" class="form-control"
+							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
+							placeholder="Company (optional)"
+							ng-model="vendorOps.form.company"
+							ng-disabled="vendorOps.busy || !vendorOps.booth">
+						<input type="text" class="form-control"
+							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
+							placeholder="Ticket (optional)"
+							ng-model="vendorOps.form.ticket"
+							ng-disabled="vendorOps.busy || !vendorOps.booth">
+						<textarea class="form-control"
+							style="min-height:72px;margin-bottom:8px;font-size:1.1em;"
+							placeholder="Notes (optional)"
+							ng-model="vendorOps.form.notes"
+							ng-disabled="vendorOps.busy || !vendorOps.booth"></textarea>
+						<button type="button" class="btn btn-primary"
+							style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
+							ng-click="saveVendorLead()"
+							ng-disabled="vendorOps.busy || !vendorOps.booth">
+							Save lead
+						</button>
+						<div ng-repeat="lead in vendorOps.leads" style="margin-bottom:8px;">
+							<div class="bold">{{lead.attendee_name}}</div>
+							<div ng-show="lead.company">{{lead.company}}</div>
+							<div ng-show="lead.email">{{lead.email}}</div>
+						</div>
+						<div ng-show="vendorOps.message" style="margin-top:8px;">{{vendorOps.message}}</div>
 					</div>
 				</div>
 			</div>

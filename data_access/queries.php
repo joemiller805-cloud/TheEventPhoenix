@@ -2968,12 +2968,109 @@
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // One row per browser endpoint
 	}
 
-	$tepPollQueryName = (string)($inputs['query'] ?? ''); // Only open PDO for poll and push-save endpoints
-	if ($tepPollQueryName === 'getActivePoll' || $tepPollQueryName === 'submitPollVote' || $tepPollQueryName === 'savePushSubscription') { // Skip extra connect on every other query
+	function tep_checkin_ensure_local_demo($pdo) { // Local-only attendees stub + two demo tickets so XAMPP can search without production data
+		if (!function_exists('tep_is_local_host') || !tep_is_local_host()) { // Never DDL/seed on production hosts
+			return; // Production already has attendees/registrations
+		}
+		$pdo->exec('CREATE TABLE IF NOT EXISTS attendees (
+			id INT NOT NULL AUTO_INCREMENT,
+			accountid INT NOT NULL DEFAULT 0,
+			first_name VARCHAR(255) NOT NULL DEFAULT "",
+			last_name VARCHAR(255) NOT NULL DEFAULT "",
+			email VARCHAR(255) NOT NULL DEFAULT "",
+			PRIMARY KEY (id)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // Minimal JOIN target for name search on tep_local
+		$evtStmt = $pdo->query("SELECT id FROM events WHERE slug = 'local-checkin-demo' AND accountid = 1000 LIMIT 1"); // Bound-free constants only
+		$evtId = $evtStmt ? (int)$evtStmt->fetchColumn() : 0; // Demo event id
+		if ($evtId < 1) { // First local request
+			$pdo->exec("INSERT INTO events (accountid, name, slug, city, state, logo, visible, archived, hide_after_start) VALUES (1000, 'Local Check-In Demo', 'local-checkin-demo', 'Local', 'NY', '', '0', '0', '0')"); // visible=0 keeps it off Upcoming Events
+			$evtId = (int)$pdo->lastInsertId(); // New event id
+		}
+		$attCount = (int)$pdo->query('SELECT COUNT(*) FROM attendees')->fetchColumn(); // No user input
+		if ($attCount === 0) { // Seed two searchable people
+			$pdo->exec("INSERT INTO attendees (accountid, first_name, last_name, email) VALUES (1000, 'Jane', 'Demo', 'jane@localhost')"); // Search: Jane
+			$pdo->exec("INSERT INTO attendees (accountid, first_name, last_name, email) VALUES (1000, 'John', 'Ticket', 'john@localhost')"); // Search: John or Ticket
+		}
+		$regCount = (int)$pdo->query('SELECT COUNT(*) FROM registrations')->fetchColumn(); // No user input
+		if ($regCount === 0 && $evtId > 0) { // Pair tickets to the hidden demo event
+			$janeId = (int)$pdo->query("SELECT id FROM attendees WHERE email = 'jane@localhost' LIMIT 1")->fetchColumn(); // Demo attendee
+			$johnId = (int)$pdo->query("SELECT id FROM attendees WHERE email = 'john@localhost' LIMIT 1")->fetchColumn(); // Demo attendee
+			$regIns = $pdo->prepare('INSERT INTO registrations (eventid, deleted, attendeeid, confirmation, checkin, checkin_userid, registration_typeid) VALUES (:eventid, 0, :attendeeid, :confirmation, NULL, 0, 0)'); // Bound seed
+			if ($janeId > 0) { // Jane ticket
+				$regIns->bindValue(':eventid', $evtId, PDO::PARAM_INT); // Hidden demo event
+				$regIns->bindValue(':attendeeid', $janeId, PDO::PARAM_INT); // Name JOIN
+				$regIns->bindValue(':confirmation', 'TEPJANE1', PDO::PARAM_STR); // Ticket code
+				$regIns->execute(); // Insert
+			}
+			if ($johnId > 0) { // John ticket
+				$regIns->bindValue(':eventid', $evtId, PDO::PARAM_INT); // Hidden demo event
+				$regIns->bindValue(':attendeeid', $johnId, PDO::PARAM_INT); // Name JOIN
+				$regIns->bindValue(':confirmation', 'TEPJOHN2', PDO::PARAM_STR); // Ticket code
+				$regIns->execute(); // Insert
+			}
+		}
+	}
+
+	function tep_vendor_ensure_schema($pdo) { // CREATE IF NOT EXISTS booth assignments + captured leads
+		$pdo->exec('CREATE TABLE IF NOT EXISTS tep_vendor_booths (
+			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+			accountid INT UNSIGNED NOT NULL DEFAULT 0,
+			sponsorid INT UNSIGNED NOT NULL DEFAULT 0,
+			eventid INT UNSIGNED NULL DEFAULT NULL,
+			vendor_name VARCHAR(255) NOT NULL DEFAULT "",
+			booth VARCHAR(64) NOT NULL DEFAULT "",
+			hall VARCHAR(128) NOT NULL DEFAULT "",
+			notes VARCHAR(255) NOT NULL DEFAULT "",
+			PRIMARY KEY (id),
+			KEY idx_tep_vendor_booth_acct (accountid, sponsorid)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // One booth row per vendor/event
+		$pdo->exec('CREATE TABLE IF NOT EXISTS tep_vendor_leads (
+			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+			accountid INT UNSIGNED NOT NULL DEFAULT 0,
+			sponsorid INT UNSIGNED NOT NULL DEFAULT 0,
+			eventid INT UNSIGNED NULL DEFAULT NULL,
+			attendee_name VARCHAR(255) NOT NULL DEFAULT "",
+			email VARCHAR(255) NOT NULL DEFAULT "",
+			company VARCHAR(255) NOT NULL DEFAULT "",
+			ticket VARCHAR(64) NOT NULL DEFAULT "",
+			notes VARCHAR(500) NOT NULL DEFAULT "",
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			KEY idx_tep_vendor_leads_acct (accountid, sponsorid)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // Floor-captured attendee leads
+		if (function_exists('tep_is_local_host') && tep_is_local_host()) { // Demo booth only on XAMPP
+			$n = (int)$pdo->query('SELECT COUNT(*) FROM tep_vendor_booths')->fetchColumn(); // No user input
+			if ($n === 0) { // First local request
+				$evtId = 0; // Optional event link
+				$evtStmt = $pdo->query("SELECT id FROM events WHERE slug = 'local-checkin-demo' AND accountid = 1000 LIMIT 1"); // Reuse hidden demo event
+				if ($evtStmt) { // Query ran
+					$evtId = (int)$evtStmt->fetchColumn(); // May be 0
+				}
+				$boothIns = $pdo->prepare('INSERT INTO tep_vendor_booths (accountid, sponsorid, eventid, vendor_name, booth, hall, notes) VALUES (1000, 1, :eventid, :vendor_name, :booth, :hall, :notes)'); // Bound seed
+				if ($evtId > 0) { // Link to demo event
+					$boothIns->bindValue(':eventid', $evtId, PDO::PARAM_INT); // Hidden local event
+				} else {
+					$boothIns->bindValue(':eventid', null, PDO::PARAM_NULL); // Booth still valid without an event
+				}
+				$boothIns->bindValue(':vendor_name', 'Phoenix Exhibits', PDO::PARAM_STR); // Demo vendor
+				$boothIns->bindValue(':booth', 'A-12', PDO::PARAM_STR); // Demo booth number
+				$boothIns->bindValue(':hall', 'Hall 2', PDO::PARAM_STR); // Demo hall
+				$boothIns->bindValue(':notes', 'Corner booth, power on the left.', PDO::PARAM_STR); // Assignment note
+				$boothIns->execute(); // Insert
+			}
+		}
+	}
+
+	$tepPollQueryName = (string)($inputs['query'] ?? ''); // Only open PDO for poll, push-save, check-in, and vendor-ops endpoints
+	if ($tepPollQueryName === 'getActivePoll' || $tepPollQueryName === 'submitPollVote' || $tepPollQueryName === 'savePushSubscription' || $tepPollQueryName === 'getAttendeeCheckInStatus' || $tepPollQueryName === 'checkInAttendee' || $tepPollQueryName === 'getVendorStatus' || $tepPollQueryName === 'saveVendorLead') { // Skip extra connect on every other query
 		try {
 			$pollPdo = tep_poll_pdo(); // Separate PDO handle; mysqli path unused when rows are prebuilt
 			if ($tepPollQueryName === 'savePushSubscription') { // Push save does not need poll tables
 				tep_push_ensure_schema($pollPdo); // Idempotent DDL for tep_push_subscriptions
+			} elseif ($tepPollQueryName === 'getAttendeeCheckInStatus' || $tepPollQueryName === 'checkInAttendee') { // Staff check-in uses registrations
+				tep_checkin_ensure_local_demo($pollPdo); // Local attendees stub + demo tickets only
+			} elseif ($tepPollQueryName === 'getVendorStatus' || $tepPollQueryName === 'saveVendorLead') { // Vendor booth + leads
+				tep_vendor_ensure_schema($pollPdo); // Idempotent DDL for tep_vendor_booths / tep_vendor_leads
 			} else {
 				tep_poll_ensure_schema($pollPdo); // Idempotent DDL for Instant Polling
 			}
@@ -3088,12 +3185,172 @@
 					$queries['savePushSubscription'] = query_definition('', '', array(), array(array('ok' => '1'))); // HTTP 200 success
 				}
 			}
+			if ($tepPollQueryName === 'getAttendeeCheckInStatus') { // Fast name/ticket search for the dashboard check-in card
+				$searchRaw = trim((string)($inputs['q'] ?? ($inputs['search'] ?? ''))); // Dashboard search box
+				$searchRaw = substr($searchRaw, 0, 64); // Cap length
+				$searchSafe = str_replace(array('%', '_'), '', $searchRaw); // Strip LIKE wildcards; bind the rest
+				if ($pollAccountId < 1 || strlen($searchSafe) < 2) { // Fail closed: no account leak, no full roster dump
+					$queries['getAttendeeCheckInStatus'] = query_definition('', '', array(), array()); // HTTP 200 empty
+				} else {
+					$like = '%' . $searchSafe . '%'; // Bound pattern
+					$statusSql = 'SELECT r.id, r.confirmation, r.checkin, r.checkin_userid, r.eventid,
+						COALESCE(attendees.first_name, \'\') AS first_name,
+						COALESCE(attendees.last_name, \'\') AS last_name,
+						COALESCE(e.name, \'\') AS event_name,
+						CASE WHEN r.checkin IS NULL OR r.checkin = \'0000-00-00 00:00:00\' THEN \'0\' ELSE \'1\' END AS checked_in
+						FROM registrations r
+						JOIN events e ON e.id = r.eventid
+						LEFT JOIN attendees ON attendees.id = r.attendeeid
+						WHERE e.accountid = :accountid
+						AND COALESCE(r.deleted, 0) = 0
+						AND (
+							r.confirmation LIKE :like_conf
+							OR attendees.first_name LIKE :like_fn
+							OR attendees.last_name LIKE :like_ln
+							OR CONCAT(COALESCE(attendees.first_name, \'\'), \' \', COALESCE(attendees.last_name, \'\')) LIKE :like_full
+						)
+						ORDER BY attendees.last_name, attendees.first_name, r.id
+						LIMIT 25'; // Bound filters only; cap rows for touch UI
+					$statusStmt = $pollPdo->prepare($statusSql); // PDO prepared statement
+					$statusStmt->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Session account
+					$statusStmt->bindValue(':like_conf', $like, PDO::PARAM_STR); // Ticket / confirmation
+					$statusStmt->bindValue(':like_fn', $like, PDO::PARAM_STR); // First name
+					$statusStmt->bindValue(':like_ln', $like, PDO::PARAM_STR); // Last name
+					$statusStmt->bindValue(':like_full', $like, PDO::PARAM_STR); // Full name
+					$statusStmt->execute(); // Run the select
+					$queries['getAttendeeCheckInStatus'] = query_definition('', '', array(), $statusStmt->fetchAll()); // Prebuilt rows → HTTP 200
+				}
+			}
+			if ($tepPollQueryName === 'checkInAttendee') { // Toggle checkin timestamp on this account's registration
+				$regId = (int)($inputs['id'] ?? ($inputs['registrationid'] ?? 0)); // registrations.id
+				$staffUserId = (int)($_SESSION['userid'] ?? 0); // Existing station uses session staff id
+				if ($pollAccountId < 1 || $regId < 1) { // Fail closed
+					$queries['checkInAttendee'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'invalid'))); // HTTP 200
+				} else {
+					$lookup = $pollPdo->prepare('SELECT r.id, r.confirmation, r.checkin, r.checkin_userid,
+						COALESCE(attendees.first_name, \'\') AS first_name,
+						COALESCE(attendees.last_name, \'\') AS last_name,
+						CASE WHEN r.checkin IS NULL OR r.checkin = \'0000-00-00 00:00:00\' THEN \'0\' ELSE \'1\' END AS checked_in
+						FROM registrations r
+						JOIN events e ON e.id = r.eventid
+						LEFT JOIN attendees ON attendees.id = r.attendeeid
+						WHERE r.id = :id AND e.accountid = :accountid AND COALESCE(r.deleted, 0) = 0
+						LIMIT 1'); // Account-scoped; never update another tenant
+					$lookup->bindValue(':id', $regId, PDO::PARAM_INT); // Registration
+					$lookup->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Session account
+					$lookup->execute(); // Lookup
+					$current = $lookup->fetch(); // Row or false
+					if (!$current) { // Missing or wrong account
+						$queries['checkInAttendee'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'not_found'))); // HTTP 200
+					} else {
+						$goingIn = ($current['checked_in'] !== '1'); // Toggle: in if currently out
+						if ($goingIn) { // Check in — same NOW() as runQuery.php checkinAttendee
+							$upd = $pollPdo->prepare('UPDATE registrations r
+								JOIN events e ON e.id = r.eventid
+								SET r.checkin = NOW(), r.checkin_userid = :userid
+								WHERE r.id = :id AND e.accountid = :accountid AND COALESCE(r.deleted, 0) = 0'); // Bound write
+							$upd->bindValue(':userid', $staffUserId, PDO::PARAM_INT); // Staff user; 0 is allowed on tep_local NOT NULL
+						} else { // Check out
+							$upd = $pollPdo->prepare('UPDATE registrations r
+								JOIN events e ON e.id = r.eventid
+								SET r.checkin = NULL, r.checkin_userid = 0
+								WHERE r.id = :id AND e.accountid = :accountid AND COALESCE(r.deleted, 0) = 0'); // Bound write; userid 0 because tep_local is NOT NULL
+						}
+						$upd->bindValue(':id', $regId, PDO::PARAM_INT); // Registration
+						$upd->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Tenant
+						$upd->execute(); // Toggle
+						$queries['checkInAttendee'] = query_definition('', '', array(), array(array( // HTTP 200 JSON for the card
+							'ok' => '1',
+							'checked_in' => $goingIn ? '1' : '0',
+							'id' => (string)$regId,
+							'confirmation' => (string)$current['confirmation'],
+							'first_name' => (string)$current['first_name'],
+							'last_name' => (string)$current['last_name']
+						)));
+					}
+				}
+			}
+			$tepVendorSponsorId = (int)($_SESSION['sponsorid'] ?? 0); // Vendor login; 0 on staff dashboard
+			if ($tepVendorSponsorId < 1 && function_exists('tep_is_local_host') && tep_is_local_host() && $pollAccountId === 1000) { // Local staff can still try the card
+				$tepVendorSponsorId = 1; // Matches tep_vendor_ensure_schema demo booth
+			}
+			if ($tepPollQueryName === 'getVendorStatus') { // Booth assignment + recent leads for this vendor
+				if ($pollAccountId < 1 || $tepVendorSponsorId < 1) { // No tenant or vendor
+					$queries['getVendorStatus'] = query_definition('', '', array(), array()); // HTTP 200 empty
+				} else {
+					$boothSql = 'SELECT b.id, b.accountid, b.sponsorid, b.eventid, b.vendor_name, b.booth, b.hall, b.notes,
+						COALESCE(e.name, \'\') AS event_name,
+						(SELECT COUNT(*) FROM tep_vendor_leads l WHERE l.accountid = b.accountid AND l.sponsorid = b.sponsorid) AS lead_count
+						FROM tep_vendor_booths b
+						LEFT JOIN events e ON e.id = b.eventid
+						WHERE b.accountid = :accountid
+						AND b.sponsorid = :sponsorid
+						ORDER BY b.id ASC'; // Bound tenant + vendor
+					$boothStmt = $pollPdo->prepare($boothSql); // PDO prepared statement
+					$boothStmt->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Session account
+					$boothStmt->bindValue(':sponsorid', $tepVendorSponsorId, PDO::PARAM_INT); // Session or local demo vendor
+					$boothStmt->execute(); // Run the select
+					$boothRows = $boothStmt->fetchAll(); // Assignment rows
+					$leadStmt = $pollPdo->prepare('SELECT id, attendee_name, email, company, ticket, notes, created_at FROM tep_vendor_leads WHERE accountid = :accountid AND sponsorid = :sponsorid ORDER BY id DESC LIMIT 8'); // Latest leads for the card
+					$leadStmt->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Tenant
+					$leadStmt->bindValue(':sponsorid', $tepVendorSponsorId, PDO::PARAM_INT); // Vendor
+					$leadStmt->execute(); // Run the select
+					$recentLeads = $leadStmt->fetchAll(); // Newest first
+					foreach ($boothRows as $boothIdx => $boothRow) { // Attach JSON so one getArray payload is enough
+						$boothRows[$boothIdx]['recent_leads_json'] = json_encode($recentLeads); // Dashboard parses on $scope
+					}
+					$queries['getVendorStatus'] = query_definition('', '', array(), $boothRows); // Prebuilt rows → HTTP 200
+				}
+			}
+			if ($tepPollQueryName === 'saveVendorLead') { // Persist a floor-captured attendee lead
+				$leadName = substr(trim((string)($inputs['attendee_name'] ?? ($inputs['name'] ?? ''))), 0, 255); // Required
+				$leadEmail = substr(trim((string)($inputs['email'] ?? '')), 0, 255); // Optional
+				$leadCompany = substr(trim((string)($inputs['company'] ?? '')), 0, 255); // Optional
+				$leadTicket = substr(str_replace(array('%', '_'), '', trim((string)($inputs['ticket'] ?? ''))), 0, 64); // Optional confirmation
+				$leadNotes = substr(trim((string)($inputs['notes'] ?? '')), 0, 500); // Optional
+				$leadEventId = (int)($inputs['eventid'] ?? $pollEventId); // Optional event
+				$emailOk = ($leadEmail === '' || filter_var($leadEmail, FILTER_VALIDATE_EMAIL)); // Empty or RFC-ish
+				if (!$emailOk && $leadEmail !== '' && function_exists('tep_is_local_host') && tep_is_local_host()) { // XAMPP test addresses like name@localhost
+					$emailOk = (strpos($leadEmail, '@') > 0 && strpos($leadEmail, ' ') === false); // Minimal local check
+				}
+				if ($pollAccountId < 1 || $tepVendorSponsorId < 1 || strlen($leadName) < 2 || !$emailOk) { // Fail closed
+					$queries['saveVendorLead'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'invalid'))); // HTTP 200
+				} else {
+					$leadIns = $pollPdo->prepare('INSERT INTO tep_vendor_leads (accountid, sponsorid, eventid, attendee_name, email, company, ticket, notes) VALUES (:accountid, :sponsorid, :eventid, :attendee_name, :email, :company, :ticket, :notes)'); // Bound insert
+					$leadIns->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Tenant
+					$leadIns->bindValue(':sponsorid', $tepVendorSponsorId, PDO::PARAM_INT); // Vendor
+					if ($leadEventId > 0) { // Optional event
+						$leadIns->bindValue(':eventid', $leadEventId, PDO::PARAM_INT); // Event
+					} else {
+						$leadIns->bindValue(':eventid', null, PDO::PARAM_NULL); // Booth-only lead
+					}
+					$leadIns->bindValue(':attendee_name', $leadName, PDO::PARAM_STR); // Name
+					$leadIns->bindValue(':email', $leadEmail, PDO::PARAM_STR); // Email
+					$leadIns->bindValue(':company', $leadCompany, PDO::PARAM_STR); // Company
+					$leadIns->bindValue(':ticket', $leadTicket, PDO::PARAM_STR); // Ticket
+					$leadIns->bindValue(':notes', $leadNotes, PDO::PARAM_STR); // Notes
+					$leadIns->execute(); // Insert
+					$queries['saveVendorLead'] = query_definition('', '', array(), array(array( // HTTP 200 JSON for the card
+						'ok' => '1',
+						'id' => (string)$pollPdo->lastInsertId(),
+						'attendee_name' => $leadName
+					)));
+				}
+			}
 		} catch (Exception $pollEx) { // Missing schema, PDO down, etc.
 			error_log('TEP poll query failed: ' . $pollEx->getMessage()); // Log only — no HTML error page
 			if ($tepPollQueryName === 'getActivePoll') { // Safe empty list
 				$queries['getActivePoll'] = query_definition('', '', array(), array()); // HTTP 200
 			} elseif ($tepPollQueryName === 'savePushSubscription') { // Push save still returns JSON rows
 				$queries['savePushSubscription'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
+			} elseif ($tepPollQueryName === 'getAttendeeCheckInStatus') { // Search still returns JSON rows
+				$queries['getAttendeeCheckInStatus'] = query_definition('', '', array(), array()); // HTTP 200
+			} elseif ($tepPollQueryName === 'checkInAttendee') { // Toggle still returns JSON rows
+				$queries['checkInAttendee'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
+			} elseif ($tepPollQueryName === 'getVendorStatus') { // Booth lookup still returns JSON rows
+				$queries['getVendorStatus'] = query_definition('', '', array(), array()); // HTTP 200
+			} elseif ($tepPollQueryName === 'saveVendorLead') { // Lead save still returns JSON rows
+				$queries['saveVendorLead'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
 			} else {
 				$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
 			}

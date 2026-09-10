@@ -154,8 +154,21 @@ angular.module("erSvc",['alertModule','easyRegDataModule','gridWidget'])
 		$('div.loadingDialog').css('min-height','auto');
 	};
 
+	this.hideLoading = function(){ // Always drop the "Loading Event Data" modal and leftover blockUI
+		try {
+			$('.loadingDialog').dialog('close'); // jQuery UI dialog opened by loadingDialog()
+		} catch (dialogErr) { // Dialog may already be gone
+		} // Ignore; the overlay must not trap the dashboard
+		try {
+			if (window.jQuery && typeof jQuery.unblockUI === 'function') { // Legacy blockUI plugin
+				jQuery.unblockUI(); // Clear a stuck full-page spinner if a handler used $.blockUI
+			}
+		} catch (blockErr) { // Plugin not loaded on this page
+		} // Ignore
+	};
+
 	this.closeLoading = function(){
-		$('.loadingDialog').dialog('close');
+		erService.hideLoading(); // Legacy name now also dismisses blockUI so old callers cannot leave a stuck overlay
 	};
 
 	this.easyRegAlert = function(message, autoClose){

@@ -2,6 +2,23 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 8] — Phase 5 Staff & Vendor Operations — 2026-09-10
+
+Phase 5 completes floor operations on the AngularJS dashboard: staff check-in, vendor booth status and lead capture, and a universal loader error boundary so “Loading Event Data” cannot stay stuck (no Workbox, no Node, no Angular 2+).
+
+### [Added]
+- **Staff check-in PDO (`query=getAttendeeCheckInStatus`, `query=checkInAttendee`):** Search matches confirmation/ticket or attendee first/last/full name with bound LIKE parameters (wildcards stripped, minimum two characters, max 25 rows, scoped to `events.accountid`). Check-in toggles `registrations.checkin` / `checkin_userid` only when the registration belongs to the session account. Local XAMPP seeds a hidden demo event plus tickets `TEPJANE1` / `TEPJOHN2`.
+- **Vendor ops schema (`sql/tep_vendor_ops.sql`):** Added lightweight `tep_vendor_booths` (account/vendor, event, booth, hall, notes) and `tep_vendor_leads` (attendee name, email, company, ticket, notes). Local XAMPP creates the tables on first request and seeds demo vendor **Phoenix Exhibits**, booth **A-12**, Hall 2.
+- **Vendor PDO (`query=getVendorStatus`, `query=saveVendorLead`):** Status is scoped to session `accountid` plus `sponsorid` (localhost account `1000` uses demo sponsor `1` so the card can be tried). Leads insert with bound parameters. Invalid name/email return HTTP 200 `ok:0`.
+- **AngularJS UI (`index.php`):** Added a Staff check-in card (`regController`): 48px search and check-in/undo buttons, debounced name/ticket search, HTTP 200 `rows` (`ok` / `checked_in`). Added a Vendor Operations card: booth/hall/event, 48px lead form, recent leads. `$applyAsync` updates both cards; events, polls, and notifications stay on screen.
+
+### [Refactored]
+- `data_access/getQueryResults.php` treats `getAttendeeCheckInStatus`, `checkInAttendee`, `getVendorStatus`, and `saveVendorLead` like Instant Polling and push-save: always HTTP 200 JSON `{"rows":[...]}` so AngularJS `dataSvc.getArray` and the PWA Network-First cache see success. Other queries still use 400/500.
+- **Universal loader lifecycle:** Dashboard AJAX on `index.php` calls `hideLoading()` (via `erSvc.hideLoading`) on both success and error: initial `accountEvents` / `accountInfo` load, staff check-in search/toggle, vendor status/lead save, polls, pull-to-refresh, and push subscribe. `erSvc.hideLoading` closes the jQuery UI “Loading Event Data” dialog and calls `$.unblockUI` when the legacy plugin is present, so that modal cannot remain stuck.
+
+### [Security Fix]
+- Check-in and vendor SQL use PDO prepared statements with bound parameters (no concatenated request data). Check-in updates JOIN `events` so another account’s registration cannot be toggled; short searches return an empty list instead of the full roster. Booth and lead rows are limited to the session account and vendor id. Invalid emails are rejected; attendee name must be at least two characters.
+
 ## [Sprint 7] — Phase 4 Mobile Polish & App Shortcuts — 2026-09-10
 
 Phase 4 polishes the installed PWA for mobile: app-icon shortcuts, 48px tap targets, and dashboard pull-to-refresh on the existing AngularJS 1.x view (no Workbox, no Node, no Angular 2+).
