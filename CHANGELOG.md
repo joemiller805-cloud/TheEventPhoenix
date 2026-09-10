@@ -2,6 +2,19 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 5] — Phase 2 Instant Polling System — 2026-09-10
+
+### [Added]
+- Added `sql/tep_polls.sql` with the lightweight `tep_local` schema for Instant Polling: `tep_polls` (account-scoped question, JSON options, optional event, `is_active`) and `tep_poll_votes` (one vote per `voter_key` per poll).
+- Added PDO endpoints `query=getActivePoll` and `query=submitPollVote` in `data_access/queries.php`. Active polls are loaded with bound parameters (including `vote_counts_json` per-option tallies). Votes insert with a unique `(pollid, voter_key)` constraint. Local XAMPP creates the tables on first poll request and seeds a demo poll for account `1000`.
+- Added an AngularJS live poll widget on the `index.php` dashboard (`regController`): loads `getActivePoll`, shows the question and 48px-tall option buttons, submits `submitPollVote`, and updates `$scope.polls` with `$applyAsync` (no page reload). Hidden when there are no active polls.
+
+### [Refactored]
+- `data_access/getQueryResults.php` always returns HTTP 200 JSON `{"rows":[...]}` for `getActivePoll` and `submitPollVote` (empty list or `ok`/`reason` on vote) so AngularJS `dataSvc.getArray` and the PWA Network-First cache see success. Other queries still use 400/500.
+
+### [Security Fix]
+- Poll SQL uses PDO prepared statements with bound parameters (no concatenated request data). Votes are scoped to an active poll id; empty session account ids do not list other accounts’ polls.
+
 ## [Sprint 4] — PWA icons, manifest validation, and offline shell — 2026-09-10
 
 ### [Added]

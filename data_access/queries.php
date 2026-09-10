@@ -2898,4 +2898,134 @@
 		"s",
 		array($_SESSION['accountid'])
 	);
+
+	/** --------------------------  Live poll queries  -------------------------------**/
+	function tep_poll_pdo() { // PDO for new poll SQL only; existing queries stay on mysqli
+		$host = defined('DB_HOST') ? DB_HOST : 'localhost'; // Same host as database_connect()
+		$port = defined('DB_PORT') ? (int)DB_PORT : 3306; // XAMPP default
+		$httpHost = str_replace('www.', '', (string)($_SERVER['HTTP_HOST'] ?? '')); // Match database_connect prod vs dev
+		if (substr($httpHost, 0, 4) == 'easy') { // Production hostname
+			$dbname = defined('DB_NAME_PROD') ? DB_NAME_PROD : 'tep_local'; // Schema name from tep_config
+			$user = defined('DB_USER_PROD') ? DB_USER_PROD : 'root'; // Prod user
+			$pass = defined('DB_PASS') ? DB_PASS : ''; // Prod password
+		} else {
+			$dbname = defined('DB_NAME_DEV') ? DB_NAME_DEV : 'tep_local'; // Local tep_local schema
+			$user = defined('DB_USER_LOCAL') ? DB_USER_LOCAL : 'root'; // XAMPP user
+			$pass = defined('DB_PASS_LOCAL') ? DB_PASS_LOCAL : ''; // XAMPP empty root password
+		}
+		$dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $dbname . ';charset=utf8mb4'; // Constants only — never request data
+		return new PDO($dsn, $user, $pass, array( // Exceptions so callers can still emit HTTP 200 rows
+			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Catch and convert to {"rows":[]}
+			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // dataSvc-friendly associative rows
+			PDO::ATTR_EMULATE_PREPARES => false, // Real server-side prepares
+		));
+	}
+
+	function tep_poll_ensure_schema($pdo) { // CREATE IF NOT EXISTS so tep_local can serve polls without a manual import
+		$pdo->exec('CREATE TABLE IF NOT EXISTS tep_polls (
+			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+			accountid INT UNSIGNED NOT NULL DEFAULT 0,
+			eventid INT UNSIGNED NULL DEFAULT NULL,
+			question VARCHAR(500) NOT NULL,
+			options_json TEXT NOT NULL,
+			is_active TINYINT(1) NOT NULL DEFAULT 1,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			KEY idx_tep_polls_active (accountid, is_active, eventid)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // Lightweight poll header
+		$pdo->exec('CREATE TABLE IF NOT EXISTS tep_poll_votes (
+			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+			pollid INT UNSIGNED NOT NULL,
+			option_index TINYINT UNSIGNED NOT NULL,
+			voter_key VARCHAR(64) NOT NULL,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			UNIQUE KEY uk_tep_poll_votes_voter (pollid, voter_key),
+			KEY idx_tep_poll_votes_poll (pollid)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // One vote per voter_key per poll
+		if (function_exists('tep_is_local_host') && tep_is_local_host()) { // Demo row only on XAMPP
+			$n = (int)$pdo->query('SELECT COUNT(*) FROM tep_polls')->fetchColumn(); // No user input
+			if ($n === 0) { // First local request only
+				$pdo->exec("INSERT INTO tep_polls (accountid, eventid, question, options_json, is_active) VALUES (1000, NULL, 'Is this session useful?', '[\"Yes\",\"No\"]', 1)"); // Matches TEP_LOCAL_DEV_ACCOUNT_ID
+			}
+		}
+	}
+
+	$tepPollQueryName = (string)($inputs['query'] ?? ''); // Only open PDO for the two poll endpoints
+	if ($tepPollQueryName === 'getActivePoll' || $tepPollQueryName === 'submitPollVote') { // Skip extra connect on every other query
+		try {
+			$pollPdo = tep_poll_pdo(); // Separate PDO handle; mysqli path unused when rows are prebuilt
+			tep_poll_ensure_schema($pollPdo); // Idempotent DDL
+			$pollAccountId = (int)($_SESSION['accountid'] ?? ($inputs['accountid'] ?? 0)); // Session first; optional request override
+			$pollEventId = (int)($inputs['eventid'] ?? 0); // 0 means any event for this account
+			if ($tepPollQueryName === 'getActivePoll') { // Fetch active polls for AngularJS dataSvc.getArray
+				if ($pollAccountId < 1) { // Do not leak other accounts when session is empty
+					$queries['getActivePoll'] = query_definition('', '', array(), array()); // HTTP 200 empty rows
+				} else {
+					$pollSql = 'SELECT p.id, p.accountid, p.eventid, p.question, p.options_json, p.is_active,
+						(SELECT COUNT(*) FROM tep_poll_votes v WHERE v.pollid = p.id) AS total_votes
+						FROM tep_polls p
+						WHERE p.is_active = 1
+						AND p.accountid = :accountid
+						AND (:eventid = 0 OR p.eventid = :eventid_match)
+						ORDER BY p.id DESC'; // Bound filters only
+					$pollStmt = $pollPdo->prepare($pollSql); // PDO prepared statement
+					$pollStmt->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Account scope
+					$pollStmt->bindValue(':eventid', $pollEventId, PDO::PARAM_INT); // 0 = no event filter
+					$pollStmt->bindValue(':eventid_match', $pollEventId, PDO::PARAM_INT); // Native prepares cannot reuse one name
+					$pollStmt->execute(); // Run the select
+					$pollRows = $pollStmt->fetchAll(); // Active polls for this account
+					$voteCountStmt = $pollPdo->prepare('SELECT option_index, COUNT(*) AS vote_count FROM tep_poll_votes WHERE pollid = :pollid GROUP BY option_index'); // Per-option tallies for the widget
+					foreach ($pollRows as $pollIdx => $pollRow) { // Attach counts without a second round-trip from AngularJS
+						$voteCountStmt->bindValue(':pollid', (int)$pollRow['id'], PDO::PARAM_INT); // Bound poll id
+						$voteCountStmt->execute(); // Grouped counts
+						$countMap = array(); // option_index => votes
+						foreach ($voteCountStmt->fetchAll() as $countRow) { // Build a JSON-friendly map
+							$countMap[(string)$countRow['option_index']] = (int)$countRow['vote_count']; // String keys survive json_encode
+						}
+						$pollRows[$pollIdx]['vote_counts_json'] = json_encode($countMap); // Dashboard widget parses this on $scope
+					}
+					$queries['getActivePoll'] = query_definition('', '', array(), $pollRows); // Prebuilt rows → HTTP 200
+				}
+			}
+			if ($tepPollQueryName === 'submitPollVote') { // Insert a vote; always return rows JSON
+				$pollId = (int)($inputs['pollid'] ?? 0); // Required poll id
+				$optionIndex = (int)($inputs['option_index'] ?? -1); // 0-based index into options_json
+				$voterKey = (string)($inputs['voter'] ?? ($_SESSION['userid'] ?? ($_SESSION['attendeeid'] ?? ''))); // Explicit voter, else session
+				if ($voterKey === '' && session_id()) { // Last resort: PHP session id
+					$voterKey = session_id(); // Still bound; never concatenated into SQL
+				}
+				$voterKey = substr($voterKey, 0, 64); // Match tep_poll_votes.voter_key
+				if ($pollId < 1 || $optionIndex < 0 || $optionIndex > 20 || $voterKey === '') { // Fail closed without throwing
+					$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'invalid'))); // HTTP 200
+				} else {
+					$check = $pollPdo->prepare('SELECT id FROM tep_polls WHERE id = :id AND is_active = 1 LIMIT 1'); // Only active polls accept votes
+					$check->bindValue(':id', $pollId, PDO::PARAM_INT); // Bound poll id
+					$check->execute(); // Lookup
+					if (!$check->fetch()) { // Closed or missing poll
+						$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'inactive'))); // HTTP 200
+					} else {
+						try {
+							$ins = $pollPdo->prepare('INSERT INTO tep_poll_votes (pollid, option_index, voter_key) VALUES (:pollid, :option_index, :voter_key)'); // Unique (pollid, voter_key)
+							$ins->bindValue(':pollid', $pollId, PDO::PARAM_INT); // Poll
+							$ins->bindValue(':option_index', $optionIndex, PDO::PARAM_INT); // Choice
+							$ins->bindValue(':voter_key', $voterKey, PDO::PARAM_STR); // Voter
+							$ins->execute(); // Insert
+							$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '1', 'pollid' => (string)$pollId))); // HTTP 200 success
+						} catch (PDOException $dup) { // Duplicate unique key or other write error
+							$reason = ((string)$dup->getCode() === '23000') ? 'already_voted' : 'unavailable'; // 23000 = unique violation
+							$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => $reason))); // HTTP 200
+						}
+					}
+				}
+			}
+		} catch (Exception $pollEx) { // Missing schema, PDO down, etc.
+			error_log('TEP poll query failed: ' . $pollEx->getMessage()); // Log only — no HTML error page
+			if ($tepPollQueryName === 'getActivePoll') { // Safe empty list
+				$queries['getActivePoll'] = query_definition('', '', array(), array()); // HTTP 200
+			} else {
+				$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
+			}
+		}
+	}
 ?>

@@ -3,13 +3,20 @@
 	touch_session_activity(true);
 	$inputs = sanitize_inputs($_REQUEST);
 	include "{$_SERVER['DOCUMENT_ROOT']}/data_access/queries.php";
-	$resourceID = database_connect();
-
 	header('Content-Type: application/json');
 
 	function json_error_response($statusCode, $message){
 		http_response_code($statusCode);
 		print json_encode(array("error" => $message));
+	}
+
+	function tep_is_poll_query($queryName) { // Live-poll endpoints stay HTTP 200 for dataSvc.rows and SW Network-First
+		return ($queryName === 'getActivePoll' || $queryName === 'submitPollVote'); // Only these two names
+	}
+
+	function json_poll_rows($rows) { // Always HTTP 200 JSON {"rows":[...]} — never 400/500 for polls
+		http_response_code(200); // Override any prior status so PWA cache and AngularJS see success
+		print json_encode(array("rows" => is_array($rows) ? $rows : array())); // Same shape as every other getQueryResults success
 	}
 
 	function bind_stmt_params($stmt, $types, $params){
@@ -53,6 +60,17 @@
 	}
 
 	$queryName = $inputs['query'] ?? '';
+	$queryDefinition = $queries[$queryName] ?? null; // May be a prebuilt poll/eventData rows payload
+	if (is_array($queryDefinition) && isset($queryDefinition['rows']) && is_array($queryDefinition['rows'])) { // Polls and empty-slug eventData skip mysqli
+		print json_encode(array("rows" => $queryDefinition['rows'])); // HTTP 200 JSON for AngularJS dataSvc
+		exit; // No database_connect — poll PDO already ran (or returned empty rows)
+	}
+	if (tep_is_poll_query($queryName)) { // Poll name with no rows payload still must not 400/500
+		json_poll_rows(array()); // HTTP 200 {"rows":[]}
+		exit; // Skip mysqli
+	}
+
+	$resourceID = database_connect(); // Existing queries still use mysqli prepared statements
 
 	try{
 		if($queryName === '' || !isset($queries[$queryName])){
@@ -67,12 +85,6 @@
 			json_error_response(400, 'Query is not available.');
 			mysqli_close($resourceID);
 			exit;
-		}
-
-		if (isset($queryDefinition['rows']) && is_array($queryDefinition['rows'])) { // queries.php prebuilt payload (empty eventData slug)
-			print json_encode(array("rows" => $queryDefinition['rows'])); // HTTP 200 JSON for AngularJS dataSvc — no mysqli execute
-			mysqli_close($resourceID); // Release the connection opened above
-			exit; // Skip prepare/bind so PHP 8.2 cannot fatal on a missing slug
 		}
 
 		$resultID = execute_query_definition($resourceID, $queryDefinition);

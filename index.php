@@ -28,6 +28,7 @@
 		var app = angular.module('regApp', ['easyRegDataModule','erSvc', 'navMod']);
 		app.controller('regController', function($scope, $http, dataSvc, erSvc) {
 			erSvc.loadingDialog("Loading Event Data");
+			$scope.polls = []; // Live poll widget rows; ng-repeat is empty until loadPolls runs
 			erSvc.getAccountIdFromURL().then(function(urlAcct){
 				getAccountEvents();
 				dataSvc.getArray({'query':'accountInfo'}).then(function(resp){
@@ -37,6 +38,7 @@
 					setTimeout(() => $('.navbar').show() , 200);
 					$scope.accountName = resp[0].name;
 					$scope.attendeeMessage = resp[0].home_pg_msg;
+					$scope.loadPolls(); // Live poll widget after accountid is on $scope; PDO uses the session account
 					$scope.$applyAsync();
 				});
 				dataSvc.getArray({'query':'currentSeasonPassCount'}).then(function(resp){
@@ -68,6 +70,65 @@
 					else window.location = '/e/' + evt.slug + '/' + (evt.homePg ? evt.homePg : 'register');
 				});
 			};
+
+			function tepParsePollRow(row) { // Turn API JSON into $scope-friendly option buttons
+				var labels = []; // options_json is a JSON array of strings
+				var counts = {}; // vote_counts_json is { "0": n, "1": n }
+				try { labels = JSON.parse(row.options_json || '[]'); } catch (e) { labels = []; } // Fail-soft bad JSON
+				try { counts = JSON.parse(row.vote_counts_json || '{}'); } catch (e2) { counts = {}; } // Fail-soft missing counts
+				row.options = []; // ng-repeat source
+				angular.forEach(labels, function (label, idx) { // One button per option
+					row.options.push({ // Touch button model
+						index: idx, // 0-based option_index for submitPollVote
+						label: label, // Button text
+						votes: Number(counts[idx] || counts[String(idx)] || 0) // Local results tally
+					});
+				});
+				row.total_votes = Number(row.total_votes || 0); // Headline count
+				row.voted = false; // Lock buttons after a successful or duplicate vote
+				row.busy = false; // Disable while the GET vote is in flight
+				row.message = ''; // Status line under the buttons
+				return row; // Mutated row is bound on $scope.polls
+			}
+			$scope.loadPolls = function () { // Network-First getActivePoll; no location.reload
+				dataSvc.getArray({'query':'getActivePoll'}).then(function (rows) { // Same dataSvc path as accountInfo
+					if (!angular.isArray(rows)) { // getArray returns "error" on transport failure
+						return; // Leave existing $scope.polls in place
+					}
+					$scope.polls = []; // Replace list without a full page refresh
+					angular.forEach(rows, function (row) { // Parse each active poll
+						$scope.polls.push(tepParsePollRow(row)); // Option buttons + vote counts
+					});
+					$scope.$applyAsync(); // Digest so ng-show/ng-repeat update
+				});
+			};
+			$scope.voteOnPoll = function (poll, opt) { // Touch button handler; stays on this view
+				if (!poll || !opt || poll.voted || poll.busy) { // Ignore double-taps
+					return; // Do not fire a second submitPollVote
+				}
+				poll.busy = true; // Disable buttons immediately
+				poll.message = ''; // Clear prior status
+				dataSvc.getArray({ // Existing GET query endpoint (PDO insert server-side)
+					'query': 'submitPollVote', // Vote write
+					'pollid': poll.id, // Active poll id
+					'option_index': opt.index // 0-based choice
+				}).then(function (rows) { // HTTP 200 JSON rows
+					var result = (angular.isArray(rows) && rows[0]) ? rows[0] : {}; // ok / reason
+					if (result.ok === '1') { // New vote stored
+						opt.votes = Number(opt.votes || 0) + 1; // Update local option tally
+						poll.total_votes = Number(poll.total_votes || 0) + 1; // Update local total
+						poll.voted = true; // Show results; lock buttons
+						poll.message = 'Thanks for voting.'; // Confirm without reload
+					} else if (result.reason === 'already_voted') { // Unique (pollid, voter_key)
+						poll.voted = true; // Show existing counts; lock buttons
+						poll.message = 'You already voted in this poll.'; // Honest status
+					} else { // invalid / inactive / unavailable
+						poll.message = 'Vote could not be saved. Try again.'; // Stay on the dashboard
+					}
+					poll.busy = false; // Re-enable only if not voted
+					$scope.$applyAsync(); // Digest button disabled + counts
+				});
+			};
 		});//End Controller
 	</script>
 </head>
@@ -82,6 +143,31 @@
 					style="font-size:large">
 					{{attendeeMessage}}
 				</div>
+			</div>
+			<!-- Live poll widget: getActivePoll + submitPollVote; $scope.polls / voteOnPoll; no page reload -->
+			<div class="col-md-6" ng-repeat="poll in polls" ng-cloak>
+				<div class="card">
+					<div class="card-header bold">
+						<h5 class="card-title">Live poll</h5>
+						<div>{{poll.question}}</div>
+					</div>
+					<div class="card-body">
+						<button type="button" class="btn btn-primary"
+							style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
+							ng-repeat="opt in poll.options"
+							ng-click="voteOnPoll(poll, opt)"
+							ng-disabled="poll.voted || poll.busy">
+							{{opt.label}}
+							<span ng-show="poll.voted"> — {{opt.votes}}</span>
+						</button>
+						<div ng-show="poll.voted" style="margin-top:8px;">
+							{{poll.total_votes}} vote<span ng-show="poll.total_votes != 1">s</span>
+						</div>
+						<div ng-show="poll.message" style="margin-top:8px;">{{poll.message}}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-12">
 				<h2>Upcoming Events</h2>
 			</div>
 			<div class="col-md-3" ng-cloak ng-show="hasSeasonPasses">
