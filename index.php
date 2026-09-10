@@ -29,6 +29,7 @@
 		app.controller('regController', function($scope, $http, dataSvc, erSvc) {
 			erSvc.loadingDialog("Loading Event Data");
 			$scope.polls = []; // Live poll widget rows; ng-repeat is empty until loadPolls runs
+			$scope.pushNotify = { supported: false, busy: false, enabled: false, blocked: false, message: '' }; // Dashboard Web Push toggle; never throws into the layout
 			erSvc.getAccountIdFromURL().then(function(urlAcct){
 				getAccountEvents();
 				dataSvc.getArray({'query':'accountInfo'}).then(function(resp){
@@ -39,6 +40,7 @@
 					$scope.accountName = resp[0].name;
 					$scope.attendeeMessage = resp[0].home_pg_msg;
 					$scope.loadPolls(); // Live poll widget after accountid is on $scope; PDO uses the session account
+					$scope.refreshPushNotifyState(); // Reflect existing permission/subscription without prompting
 					$scope.$applyAsync();
 				});
 				dataSvc.getArray({'query':'currentSeasonPassCount'}).then(function(resp){
@@ -129,6 +131,157 @@
 					$scope.$applyAsync(); // Digest button disabled + counts
 				});
 			};
+			var TEP_VAPID_PUBLIC_KEY = <?php echo json_encode(tep_vapid_public_key(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>; // applicationServerKey; tep_config overrides the local fallback
+			function tepUrlBase64ToUint8Array(base64String) { // Chrome subscribe() wants a Uint8Array, not a string
+				var padding = '='.repeat((4 - (base64String.length % 4)) % 4); // Restore standard base64 padding
+				var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/'); // URL-safe → standard
+				var rawData = atob(base64); // Binary string
+				var outputArray = new Uint8Array(rawData.length); // Byte view for applicationServerKey
+				for (var i = 0; i < rawData.length; ++i) { // Copy each byte
+					outputArray[i] = rawData.charCodeAt(i); // Uint8
+				}
+				return outputArray; // Ready for pushManager.subscribe
+			}
+			function tepRequestNotifyPermission() { // Promise wrapper; old Safari used a callback only
+				try {
+					var result = Notification.requestPermission(); // May return a Promise or undefined
+					if (result && typeof result.then === 'function') { // Modern browsers
+						return result; // granted | denied | default
+					}
+					return Promise.resolve(Notification.permission); // Sync fallback after the prompt
+				} catch (permErr) { // API missing or threw
+					return Promise.resolve(Notification.permission || 'denied'); // Fail closed; do not break the dashboard
+				}
+			}
+			$scope.refreshPushNotifyState = function () { // Feature-detect and read current subscription; no permission prompt
+				var state = $scope.pushNotify; // Bound toggle model
+				state.supported = !!(window.Notification && navigator.serviceWorker && window.PushManager); // Secure-context APIs
+				if (!state.supported) { // HTTP non-localhost, old browsers
+					state.blocked = false; // Not a user deny
+					state.enabled = false; // Cannot subscribe
+					state.message = 'Notifications are not available in this browser.'; // Honest empty state
+					$scope.$applyAsync(); // Digest the message
+					return; // Leave events/polls alone
+				}
+				if (Notification.permission === 'denied') { // User or browser blocked the site
+					state.blocked = true; // Disable the toggle
+					state.enabled = false; // Treat as off
+					state.message = 'Notifications are blocked in this browser. Allow them in site settings to enable.'; // Recovery hint
+					$scope.$applyAsync(); // Digest
+					return; // Do not call requestPermission (it will not re-prompt)
+				}
+				state.blocked = false; // default or granted
+				if (!navigator.serviceWorker.ready) { // No ready promise
+					state.enabled = false; // Treat as off
+					$scope.$applyAsync(); // Digest
+					return; // SW IIFE still registers on load
+				}
+				navigator.serviceWorker.ready.then(function (reg) { // Wait for /sw.js
+					return reg.pushManager.getSubscription(); // Existing PushSubscription or null
+				}).then(function (sub) {
+					state.enabled = !!sub; // Toggle on when a subscription already exists
+					if (state.enabled && !state.message) { // First paint with an existing sub
+						state.message = 'Notifications on.'; // Confirm without a prompt
+					}
+					$scope.$applyAsync(); // Digest button label
+				}).catch(function () { // getSubscription can fail if SW is broken
+					state.enabled = false; // Stay off; dashboard remains usable
+					$scope.$applyAsync(); // Digest
+				});
+			};
+			$scope.togglePushNotifications = function () { // Permission prompt + subscribe or unsubscribe; fail-soft
+				var state = $scope.pushNotify; // Bound toggle model
+				if (state.busy || state.blocked || !state.supported) { // Ignore taps that cannot succeed
+					return; // Do not throw
+				}
+				state.busy = true; // Disable the 48px button while async work runs
+				state.message = ''; // Clear prior status
+				if (state.enabled) { // Toggle off: drop the browser subscription (server row can stay until send 410)
+					navigator.serviceWorker.ready.then(function (reg) { // Same /sw.js registration
+						return reg.pushManager.getSubscription(); // Need the PushSubscription to unsubscribe
+					}).then(function (sub) {
+						if (sub && typeof sub.unsubscribe === 'function') { // Standard Push API
+							return sub.unsubscribe(); // Resolves true/false
+						}
+					}).then(function () {
+						state.enabled = false; // Button returns to Enable
+						state.busy = false; // Re-enable taps
+						state.message = 'Notifications off.'; // Confirm without reload
+						$scope.$applyAsync(); // Digest
+					}).catch(function () { // Unsubscribe failed; keep current UI honest
+						state.busy = false; // Unlock the button
+						state.message = 'Could not turn notifications off. Try again.'; // Dashboard still works
+						$scope.$applyAsync(); // Digest
+					});
+					return; // Enable path is below
+				}
+				tepRequestNotifyPermission().then(function (perm) { // Browser chrome prompt (or immediate denied)
+					if (perm !== 'granted') { // dismissed or denied
+						state.busy = false; // Unlock
+						if (perm === 'denied' || Notification.permission === 'denied') { // Sticky block
+							state.blocked = true; // Disable further prompts
+							state.message = 'Notifications are blocked in this browser. Allow them in site settings to enable.'; // Recovery hint
+						} else { // default / dismissed
+							state.message = 'Notifications were not enabled.'; // No layout break
+						}
+						$scope.$applyAsync(); // Digest
+						return Promise.reject(new Error('tep-push-not-granted')); // Skip subscribe without an uncaught throw in AngularJS
+					}
+					if (!TEP_VAPID_PUBLIC_KEY) { // No applicationServerKey
+						state.busy = false; // Unlock
+						state.message = 'Push is not configured on this server.'; // Fail-soft
+						$scope.$applyAsync(); // Digest
+						return Promise.reject(new Error('tep-push-no-vapid')); // Skip subscribe
+					}
+					return navigator.serviceWorker.ready; // /sw.js must be active for pushManager
+				}).then(function (reg) {
+					var opts = { userVisibleOnly: true }; // Chrome requires visible notifications (no silent push)
+					opts.applicationServerKey = tepUrlBase64ToUint8Array(TEP_VAPID_PUBLIC_KEY); // VAPID public key bytes
+					return reg.pushManager.subscribe(opts); // Creates or returns the PushSubscription
+				}).then(function (sub) {
+					var json = {}; // PushSubscription.toJSON()
+					try { json = sub.toJSON() || {}; } catch (jsonErr) { json = {}; } // Fail-soft
+					var keys = json.keys || {}; // p256dh + auth
+					var endpoint = json.endpoint || ''; // HTTPS push endpoint
+					var p256dh = keys.p256dh || ''; // Client public key
+					var auth = keys.auth || ''; // Auth secret
+					if (!endpoint || !p256dh || !auth) { // Browser omitted keys
+						state.busy = false; // Unlock
+						state.message = 'This browser did not return push keys.'; // Stay on the dashboard
+						$scope.$applyAsync(); // Digest
+						return; // Do not call savePushSubscription
+					}
+					return dataSvc.getArray({ // Existing GET query path (PDO upsert server-side)
+						'query': 'savePushSubscription', // Sprint 6 endpoint
+						'endpoint': endpoint, // Bound HTTPS URL
+						'p256dh': p256dh, // Bound key
+						'auth': auth // Bound secret
+					}).then(function (rows) { // HTTP 200 JSON rows
+						var result = (angular.isArray(rows) && rows[0]) ? rows[0] : {}; // ok / reason
+						state.busy = false; // Unlock
+						if (result.ok === '1') { // Stored
+							state.enabled = true; // Toggle on
+							state.message = 'Notifications on.'; // Confirm without reload
+						} else { // Transport error string or ok:0
+							state.enabled = true; // Browser is subscribed even if save failed
+							state.message = 'On this device, but they could not be saved. Try again.'; // Honest status
+						}
+						$scope.$applyAsync(); // Digest button + message
+					});
+				}).catch(function (err) { // Permission skip, subscribe throw, or SW failure
+					if (err && (err.message === 'tep-push-not-granted' || err.message === 'tep-push-no-vapid')) { // Already messaged
+						return; // Avoid a second status line
+					}
+					state.busy = false; // Unlock
+					if (window.Notification && Notification.permission === 'denied') { // Race: user blocked during subscribe
+						state.blocked = true; // Disable the toggle
+						state.message = 'Notifications are blocked in this browser. Allow them in site settings to enable.'; // Recovery hint
+					} else { // AbortError, InvalidStateError, etc.
+						state.message = 'Notifications could not be enabled in this browser.'; // Fail-soft
+					}
+					$scope.$applyAsync(); // Digest — dashboard events/polls unchanged
+				});
+			};
 		});//End Controller
 	</script>
 </head>
@@ -142,6 +295,25 @@
 				<div class='alert alert-danger' role='alert' ng-show="attendeeMessage"
 					style="font-size:large">
 					{{attendeeMessage}}
+				</div>
+			</div>
+			<!-- Web Push toggle: Notification.requestPermission + pushManager.subscribe + savePushSubscription -->
+			<div class="col-md-6" ng-cloak>
+				<div class="card">
+					<div class="card-header bold">
+						<h5 class="card-title">Notifications</h5>
+						<div>Get TEP alerts on this device.</div>
+					</div>
+					<div class="card-body">
+						<button type="button" class="btn btn-primary"
+							style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
+							ng-click="togglePushNotifications()"
+							ng-disabled="pushNotify.busy || pushNotify.blocked || !pushNotify.supported">
+							<span ng-show="!pushNotify.enabled">Enable notifications</span>
+							<span ng-show="pushNotify.enabled">Notifications on — tap to turn off</span>
+						</button>
+						<div ng-show="pushNotify.message" style="margin-top:8px;">{{pushNotify.message}}</div>
+					</div>
 				</div>
 			</div>
 			<!-- Live poll widget: getActivePoll + submitPollVote; $scope.polls / voteOnPoll; no page reload -->

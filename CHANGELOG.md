@@ -2,6 +2,23 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 6] — Phase 3 Web Push Notification System — 2026-09-10
+
+Phase 3 completes Web Push on the existing vanilla service worker, PDO query API, and AngularJS 1.x dashboard (no Workbox, no Node, no Angular 2+).
+
+### [Added]
+- **Service worker listeners (`sw.js`):** Added `push` and `notificationclick` on vanilla `sw.js`. Incoming Web Push payloads show a system notification (title/body/url from JSON, fail-soft to plain text). A click focuses an existing TEP window or opens a new one at a same-origin path (default `/`). Push handling does not write PHP HTML or non-GET responses to Cache Storage.
+- **Schema (`sql/tep_push_subscriptions.sql`):** Added the lightweight `tep_local` table `tep_push_subscriptions` for browser PushSubscription rows: account/user, unique HTTPS `endpoint`, `p256dh` and `auth` keys, truncated user-agent, and created/updated timestamps.
+- **Backend persistence (`query=savePushSubscription`):** Added a PDO endpoint in `data_access/queries.php` that upserts on unique `endpoint` with bound parameters (`accountid`/`userid` from session, `endpoint`, `p256dh`, `auth`). Local XAMPP creates the table on first save. Invalid or missing HTTPS keys return HTTP 200 `ok:0` instead of 400/500.
+- **AngularJS opt-in UI (`index.php` dashboard card):** Added a Notifications card on `regController` with a 48px toggle. It calls `Notification.requestPermission()` and `serviceWorker.ready` → `pushManager.subscribe()`, then sends `endpoint` / `p256dh` / `auth` to `savePushSubscription` through existing `dataSvc.getArray`. Tapping again unsubscribes on this device. Denied, blocked, unsupported, and missing-key paths only update `$scope.pushNotify` (with `$applyAsync`) and never break events or polls. `common_functions.php` exposes `tep_vapid_public_key()` for `applicationServerKey` (`TEP_VAPID_PUBLIC_KEY` from `tep_config.php` in production; localhost falls back to the NIST P-256 generator point so Chrome subscribe() has a valid 65-byte key).
+
+### [Refactored]
+- `data_access/getQueryResults.php` treats `savePushSubscription` like the Instant Polling endpoints: always HTTP 200 JSON `{"rows":[...]}` so AngularJS `dataSvc.getArray` and the PWA Network-First cache see success. Other queries still use 400/500.
+
+### [Security Fix]
+- Push subscription SQL uses PDO prepared statements with bound parameters (no concatenated request data). Endpoints must be `https://`. `notificationclick` only opens same-origin relative URLs that start with `/` (protocol-relative and off-origin URLs fall back to `/`).
+- Dashboard notification permission denied/blocked/unsupported paths only update `$scope.pushNotify` and never throw into the AngularJS digest, so events and polls stay on screen.
+
 ## [Sprint 5] — Phase 2 Instant Polling System — 2026-09-10
 
 ### [Added]

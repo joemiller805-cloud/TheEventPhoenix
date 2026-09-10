@@ -139,3 +139,67 @@ self.addEventListener('fetch', function (event) { // Route GET traffic: API Netw
   }
   event.respondWith(cacheFirst(request)); // Cache-First for CSS, JS, fonts, and images
 });
+
+function tepSafeNotificationUrl(rawUrl) { // Block open redirects from push payloads
+  var url = (rawUrl && String(rawUrl)) || '/'; // Default: dashboard
+  if (url.charAt(0) !== '/') { // Only in-app relative paths
+    return '/'; // Ignore https://evil.example payloads
+  }
+  if (url.indexOf('//') === 0) { // Protocol-relative still leaves the origin
+    return '/'; // Keep the click on TEP
+  }
+  return url; // e.g. / or /index.php
+}
+
+self.addEventListener('push', function (event) { // Incoming Web Push — show a system notification
+  var title = 'The Event Phoenix'; // TEP identity; payload may override
+  var notifyOptions = { // Vanilla Notification options; no Workbox
+    body: 'You have a new TEP update.', // Fallback body when the payload is empty
+    icon: '/pwa/icon-192.png', // Square 192 from the validated manifest set
+    badge: '/pwa/icon-192.png', // Compact badge uses the same mark
+    data: { url: '/' } // notificationclick focuses/opens this path
+  };
+  if (event.data) { // PushMessageData is optional
+    try {
+      var payload = event.data.json(); // Expected { title, body, url }
+      if (payload.title) { // Sender-supplied title
+        title = String(payload.title); // Coerce so showNotification always gets a string
+      }
+      if (payload.body) { // Sender-supplied body
+        notifyOptions.body = String(payload.body); // Coerce
+      }
+      if (payload.url) { // Deep-link for the click handler
+        notifyOptions.data.url = tepSafeNotificationUrl(payload.url); // Same-origin relative only
+      }
+    } catch (parseErr) { // Non-JSON payload
+      var asText = event.data.text(); // Plain-text body
+      if (asText) { // Use the raw text when JSON parse fails
+        notifyOptions.body = asText; // Still show a notification
+      }
+    }
+  }
+  event.waitUntil(self.registration.showNotification(title, notifyOptions)); // Display until the user dismisses or clicks
+});
+
+self.addEventListener('notificationclick', function (event) { // Focus an existing TEP window or open a new one
+  event.notification.close(); // Dismiss the notification chrome
+  var targetUrl = tepSafeNotificationUrl(event.notification.data && event.notification.data.url); // Same-origin path
+  event.waitUntil( // Keep the SW alive until focus/open finishes
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (windowClients) { // Include pages not yet claimed
+      for (var i = 0; i < windowClients.length; i++) { // Prefer an already-open dashboard tab
+        var client = windowClients[i]; // WindowClient
+        if (client && 'focus' in client) { // Desktop browsers expose focus()
+          return client.focus().then(function (focused) { // Bring TEP to the foreground
+            if (focused && typeof focused.navigate === 'function' && targetUrl !== '/') { // Optional deep-link
+              return focused.navigate(targetUrl); // Stay in the existing AngularJS tab
+            }
+            return focused; // Dashboard already visible
+          });
+        }
+      }
+      if (clients.openWindow) { // No existing tab — open a new one
+        return clients.openWindow(targetUrl); // Loads index.php / PWA start_url
+      }
+    })
+  );
+});

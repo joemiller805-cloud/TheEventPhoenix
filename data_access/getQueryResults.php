@@ -10,8 +10,8 @@
 		print json_encode(array("error" => $message));
 	}
 
-	function tep_is_poll_query($queryName) { // Live-poll endpoints stay HTTP 200 for dataSvc.rows and SW Network-First
-		return ($queryName === 'getActivePoll' || $queryName === 'submitPollVote'); // Only these two names
+	function tep_is_poll_query($queryName) { // Prebuilt PDO payloads stay HTTP 200 for dataSvc.rows and SW Network-First
+		return ($queryName === 'getActivePoll' || $queryName === 'submitPollVote' || $queryName === 'savePushSubscription'); // Poll + push save
 	}
 
 	function json_poll_rows($rows) { // Always HTTP 200 JSON {"rows":[...]} — never 400/500 for polls
@@ -60,8 +60,8 @@
 	}
 
 	$queryName = $inputs['query'] ?? '';
-	$queryDefinition = $queries[$queryName] ?? null; // May be a prebuilt poll/eventData rows payload
-	if (is_array($queryDefinition) && isset($queryDefinition['rows']) && is_array($queryDefinition['rows'])) { // Polls and empty-slug eventData skip mysqli
+	$queryDefinition = $queries[$queryName] ?? null; // May be a prebuilt poll/push/eventData rows payload
+	if (is_array($queryDefinition) && isset($queryDefinition['rows']) && is_array($queryDefinition['rows'])) { // Polls, push save, and empty-slug eventData skip mysqli
 		print json_encode(array("rows" => $queryDefinition['rows'])); // HTTP 200 JSON for AngularJS dataSvc
 		exit; // No database_connect — poll PDO already ran (or returned empty rows)
 	}

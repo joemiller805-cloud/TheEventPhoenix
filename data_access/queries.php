@@ -2951,11 +2951,32 @@
 		}
 	}
 
-	$tepPollQueryName = (string)($inputs['query'] ?? ''); // Only open PDO for the two poll endpoints
-	if ($tepPollQueryName === 'getActivePoll' || $tepPollQueryName === 'submitPollVote') { // Skip extra connect on every other query
+	function tep_push_ensure_schema($pdo) { // CREATE IF NOT EXISTS so tep_local can store PushSubscription keys
+		$pdo->exec('CREATE TABLE IF NOT EXISTS tep_push_subscriptions (
+			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+			accountid INT UNSIGNED NOT NULL DEFAULT 0,
+			userid INT UNSIGNED NULL DEFAULT NULL,
+			endpoint VARCHAR(512) NOT NULL,
+			p256dh VARCHAR(255) NOT NULL,
+			auth VARCHAR(255) NOT NULL,
+			user_agent VARCHAR(255) NOT NULL DEFAULT "",
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			UNIQUE KEY uk_tep_push_endpoint (endpoint),
+			KEY idx_tep_push_account (accountid)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // One row per browser endpoint
+	}
+
+	$tepPollQueryName = (string)($inputs['query'] ?? ''); // Only open PDO for poll and push-save endpoints
+	if ($tepPollQueryName === 'getActivePoll' || $tepPollQueryName === 'submitPollVote' || $tepPollQueryName === 'savePushSubscription') { // Skip extra connect on every other query
 		try {
 			$pollPdo = tep_poll_pdo(); // Separate PDO handle; mysqli path unused when rows are prebuilt
-			tep_poll_ensure_schema($pollPdo); // Idempotent DDL
+			if ($tepPollQueryName === 'savePushSubscription') { // Push save does not need poll tables
+				tep_push_ensure_schema($pollPdo); // Idempotent DDL for tep_push_subscriptions
+			} else {
+				tep_poll_ensure_schema($pollPdo); // Idempotent DDL for Instant Polling
+			}
 			$pollAccountId = (int)($_SESSION['accountid'] ?? ($inputs['accountid'] ?? 0)); // Session first; optional request override
 			$pollEventId = (int)($inputs['eventid'] ?? 0); // 0 means any event for this account
 			if ($tepPollQueryName === 'getActivePoll') { // Fetch active polls for AngularJS dataSvc.getArray
@@ -3019,10 +3040,60 @@
 					}
 				}
 			}
+			if ($tepPollQueryName === 'savePushSubscription') { // Persist Web Push endpoint + keys for this session
+				$endpoint = trim((string)($inputs['endpoint'] ?? '')); // PushSubscription.endpoint
+				$p256dh = trim((string)($inputs['p256dh'] ?? '')); // PushSubscription.keys.p256dh
+				$auth = trim((string)($inputs['auth'] ?? '')); // PushSubscription.keys.auth
+				if (($p256dh === '' || $auth === '') && isset($inputs['keys'])) { // Optional JSON keys blob from the browser
+					$keysDecoded = json_decode((string)$inputs['keys'], true); // Fail-soft if not JSON
+					if (is_array($keysDecoded)) { // Standard PushSubscription.toJSON().keys
+						if ($p256dh === '') { // Fill missing p256dh
+							$p256dh = trim((string)($keysDecoded['p256dh'] ?? '')); // Bound later
+						}
+						if ($auth === '') { // Fill missing auth
+							$auth = trim((string)($keysDecoded['auth'] ?? '')); // Bound later
+						}
+					}
+				}
+				$endpoint = substr($endpoint, 0, 512); // Match tep_push_subscriptions.endpoint
+				$p256dh = substr($p256dh, 0, 255); // Match tep_push_subscriptions.p256dh
+				$auth = substr($auth, 0, 255); // Match tep_push_subscriptions.auth
+				$pushUserId = (int)($_SESSION['userid'] ?? 0); // Optional user from session
+				$userAgent = substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255); // Truncate UA; not SQL
+				$endpointIsHttps = (strpos($endpoint, 'https://') === 0); // Web Push endpoints are always HTTPS
+				if ($pollAccountId < 1 || !$endpointIsHttps || $p256dh === '' || $auth === '') { // Fail closed without throwing
+					$queries['savePushSubscription'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'invalid'))); // HTTP 200
+				} else {
+					$pushSql = 'INSERT INTO tep_push_subscriptions (accountid, userid, endpoint, p256dh, auth, user_agent)
+						VALUES (:accountid, :userid, :endpoint, :p256dh, :auth, :user_agent)
+						ON DUPLICATE KEY UPDATE
+							p256dh = VALUES(p256dh),
+							auth = VALUES(auth),
+							accountid = VALUES(accountid),
+							userid = VALUES(userid),
+							user_agent = VALUES(user_agent),
+							updated_at = CURRENT_TIMESTAMP'; // Unique endpoint upsert
+					$pushStmt = $pollPdo->prepare($pushSql); // PDO prepared statement
+					$pushStmt->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Session account
+					if ($pushUserId > 0) { // Bound integer when logged in
+						$pushStmt->bindValue(':userid', $pushUserId, PDO::PARAM_INT); // users.id
+					} else {
+						$pushStmt->bindValue(':userid', null, PDO::PARAM_NULL); // Anonymous / missing session user
+					}
+					$pushStmt->bindValue(':endpoint', $endpoint, PDO::PARAM_STR); // HTTPS push endpoint
+					$pushStmt->bindValue(':p256dh', $p256dh, PDO::PARAM_STR); // Client public key
+					$pushStmt->bindValue(':auth', $auth, PDO::PARAM_STR); // Auth secret
+					$pushStmt->bindValue(':user_agent', $userAgent, PDO::PARAM_STR); // Debug / device hint
+					$pushStmt->execute(); // Insert or refresh keys
+					$queries['savePushSubscription'] = query_definition('', '', array(), array(array('ok' => '1'))); // HTTP 200 success
+				}
+			}
 		} catch (Exception $pollEx) { // Missing schema, PDO down, etc.
 			error_log('TEP poll query failed: ' . $pollEx->getMessage()); // Log only — no HTML error page
 			if ($tepPollQueryName === 'getActivePoll') { // Safe empty list
 				$queries['getActivePoll'] = query_definition('', '', array(), array()); // HTTP 200
+			} elseif ($tepPollQueryName === 'savePushSubscription') { // Push save still returns JSON rows
+				$queries['savePushSubscription'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
 			} else {
 				$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
 			}

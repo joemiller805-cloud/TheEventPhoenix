@@ -43,6 +43,18 @@ function tep_is_local_host() { // Local XAMPP detector used by DB fallbacks and 
 	return ($host === 'localhost' || $host === '127.0.0.1' || strpos($host, 'localhost:') === 0); // Allow localhost:port from IDEs
 }
 
+function tep_vapid_public_key() { // URL-safe P-256 applicationServerKey for pushManager.subscribe (not a send private key)
+	if (defined('TEP_VAPID_PUBLIC_KEY') && TEP_VAPID_PUBLIC_KEY !== '') { // Production tep_config.php wins when present
+		return (string)TEP_VAPID_PUBLIC_KEY; // Real VAPID public key for FCM/Mozilla send
+	}
+	$x = hex2bin('6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296'); // NIST P-256 generator G.x (public curve parameter)
+	$y = hex2bin('4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5'); // NIST P-256 generator G.y (public curve parameter)
+	if ($x === false || $y === false) { // hex2bin failed
+		return ''; // Dashboard will fail-soft and skip subscribe
+	}
+	return rtrim(strtr(base64_encode("\x04" . $x . $y), '+/', '-_'), '='); // Uncompressed 65-byte point as VAPID applicationServerKey for local Chrome subscribe
+}
+
 function tep_apply_local_dev_session() { // Lightweight localhost auto-login so / skips landing.php
 	if (!tep_is_local_host()) { // Never seed sessions on production hosts
 		return; // Production login_process.php remains the only auth path
