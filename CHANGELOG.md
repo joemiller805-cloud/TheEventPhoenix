@@ -2,6 +2,20 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 4] — PWA icons, manifest validation, and offline shell — 2026-09-10
+
+### [Added]
+- Added committed square PWA icons under `/pwa/`: `icon-192.png` (192x192, purpose `any`), `icon-512.png` (512x512, purpose `any`), and `icon-maskable-512.png` (512x512, purpose `maskable`, fire `#D84315` fill with safe-zone padding). These replace the previous install set that pointed at the 800x600 `/img/e.png` landscape mark.
+- Added static `/offline.html` as a dedicated offline fallback shell (fire theme colors, no AngularJS, no PHP session). Direct GETs of that file are Cache-First. Document navigations that fail when Apache is unreachable receive this shell instead of the browser’s default error page.
+
+### [Refactored]
+- Validated `manifest.json` for installability: `start_url` is `/`, `display` is `standalone`, `theme_color` is `#E65100`, `background_color` is `#D84315`, and the icons array now has real 192x192, 512x512, and maskable PNGs whose `sizes` match the files on disk. The 48x48 favicon entry was removed from the install set.
+- `sw.js` `CACHE_VERSION` is `v1.2.0` so activate drops `tep-static-v1.1.0` / `tep-api-v1.1.0` and precaches the new icons plus `/offline.html`. HTML navigations stay Network-First; PHP HTML is still never written to Cache Storage.
+- `index.php` apple-touch-icon now points at `/pwa/icon-192.png` so iOS gets the square 192 asset that matches the validated manifest.
+
+### [Security Fix]
+- The offline shell is static HTML only. PHP documents, non-GET requests, and HTTP 404/500 bodies remain uncached.
+
 ## [Sprint 3] — PWA caching rules and local DB fallbacks — 2026-09-10
 
 ### [Added]

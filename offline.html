@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Match index.php mobile chrome -->
+	<meta name="theme-color" content="#E65100"> <!-- Same fire theme as manifest.json / index.php -->
+	<title>The Event Phoenix — Offline</title>
+	<style>
+		html, body { margin: 0; min-height: 100%; } /* Full-viewport shell; no AngularJS/CSS deps if those caches miss */
+		body { display: flex; align-items: center; justify-content: center; font-family: Arial, Helvetica, sans-serif; background: #D84315; color: #fff; text-align: center; } /* Manifest background_color so splash and offline match */
+		main { max-width: 28em; padding: 2em 1.25em; } /* Readable column on phone and desktop */
+		img { width: 12em; height: auto; display: block; margin: 0 auto 1.25em; } /* Precached mark; width-only so 4:3 e.png is not stretched */
+		h1 { font-size: 1.5rem; margin: 0 0 0.5em; } /* Plain heading — no $scope bindings */
+		p { margin: 0 0 1.25em; line-height: 1.4; } /* Explain why this shell appeared */
+		button, a.tep-retry { display: inline-block; background: #E65100; color: #fff; border: 0; border-radius: 4px; padding: 0.6em 1.25em; font-size: 1rem; text-decoration: none; cursor: pointer; } /* Theme_color CTA; reload retries the original route */
+	</style>
+</head>
+<body>
+	<main>
+		<img src="/img/e.png" alt="The Event Phoenix"> <!-- Precached in sw.js STATIC_CACHE; not a PHP HTML document -->
+		<h1>You are offline</h1> <!-- Dedicated fallback when a non-cached route cannot be fetched -->
+		<p>This Event Phoenix page is not available without a connection. Cached event data may still load after you reconnect.</p> <!-- Does not fake a PHP session or AngularJS digest -->
+		<p><button type="button" onclick="location.reload()">Try again</button></p> <!-- Reloads the URL the user asked for, not a hardcoded home -->
+		<p><a class="tep-retry" href="/">Return home</a></p> <!-- start_url; SW will retry the network, then this shell again if still offline -->
+	</main>
+</body>
+</html>

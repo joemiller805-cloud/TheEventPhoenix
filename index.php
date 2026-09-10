@@ -21,7 +21,7 @@
 	<base href="<?php echo htmlspecialchars($tepBaseHref, ENT_QUOTES, 'UTF-8'); ?>"> <!-- Sprint 1: escaped BASE_URL for PWA standalone asset resolution -->
 	<link rel="manifest" href="/manifest.json"> <!-- Sprint 1: TEP web app manifest for install/standalone display -->
 	<meta name="theme-color" content="#E65100"> <!-- Sprint 1: fire theme color for browser and PWA chrome -->
-	<link rel="apple-touch-icon" href="/img/e.png"> <!-- Sprint 1: iOS home-screen icon paired with the manifest -->
+	<link rel="apple-touch-icon" href="/pwa/icon-192.png"> <!-- Square 192 any-icon for iOS home screen; matches manifest.json -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
 
 	<script type="text/javascript">
