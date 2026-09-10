@@ -176,8 +176,24 @@ function alerts(){
 	}
 }
 
-$encKey = TEP_ENC_KEY_RAW;
-$encryption_key = base64_decode($encKey);
+if (!defined('TEP_ENC_KEY_RAW')) { // PHP 8.2 fatals on undefined constants; local XAMPP has no private/tep_config.php
+	define('TEP_ENC_KEY_RAW', ''); // Empty local placeholder so index.php can load; production tep_config still wins when present
+}
+$encKey = TEP_ENC_KEY_RAW; // Decode path unchanged once the constant exists
+$encryption_key = base64_decode($encKey); // Empty string is safe when config is missing on localhost
+
+$tepHttpHost = $_SERVER['HTTP_HOST'] ?? 'localhost'; // Host used to scope XAMPP-only DB fallbacks
+$tepIsLocalHost = ($tepHttpHost === 'localhost' || $tepHttpHost === '127.0.0.1'); // Production hosts must keep using tep_config.php
+if ($tepIsLocalHost) { // Local XAMPP: private tep_config.php is absent, so queries.php cannot read DB_NAME_DEV
+	if (!defined('DB_HOST')) define('DB_HOST', 'localhost'); // XAMPP MySQL listen address
+	if (!defined('DB_PORT')) define('DB_PORT', 3306); // XAMPP default MySQL port
+	if (!defined('DB_NAME_DEV')) define('DB_NAME_DEV', 'tep_local'); // Local schema so getQueryResults.php can bind information_schema
+	if (!defined('DB_NAME_PROD')) define('DB_NAME_PROD', 'tep_local'); // Same local schema; easyreg hostnames are not used on XAMPP
+	if (!defined('DB_USER_LOCAL')) define('DB_USER_LOCAL', 'root'); // XAMPP default MySQL user
+	if (!defined('DB_PASS_LOCAL')) define('DB_PASS_LOCAL', ''); // XAMPP default empty root password
+	if (!defined('DB_USER_PROD')) define('DB_USER_PROD', 'root'); // Unused on localhost; prevents a later undefined-constant fatal
+	if (!defined('DB_PASS')) define('DB_PASS', ''); // Unused on localhost; prevents a later undefined-constant fatal
+}
 
 function encryptthis($data) {
 	$iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));

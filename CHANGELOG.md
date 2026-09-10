@@ -14,6 +14,8 @@ All notable changes to The Event Phoenix (TEP) are documented in this file in pl
 
 ### [Refactored]
 - AngularJS modules, `$scope` bindings, and digest calls in `index.php` were left as they were.
+- `common_functions.php` no longer fatals on PHP 8.2 when `TEP_ENC_KEY_RAW` is missing because `private/tep_config.php` is absent on local XAMPP; it defines an empty placeholder so `index.php` can load. Production still uses the real key when that config file is present.
+- Local XAMPP now gets `DB_HOST` / `DB_PORT` / `DB_NAME_DEV` / `DB_USER_LOCAL` fallbacks in `common_functions.php` so `/data_access/getQueryResults.php` no longer 500s on undefined `DB_NAME_DEV`. Production `tep_config.php` still wins when present. `queries.php` also uses those fallbacks and an empty session `accountid` when the key is missing.
 - `sw.js` now fail-softs missing precache files, deletes only old `tep-static-*` buckets on activate, and never cache-firsts `/sw.js` itself.
 - `index.php` slash-normalizes `BASE_URL` before writing `<base href>` and registers `/sw.js` with `{ scope: '/' }` using a load/`readyState` async path.
 - `manifest.json` icon purpose is `any` for both 192 and 512 entries because `/img/e.png` is the existing non-square TEP mark, not a maskable asset.

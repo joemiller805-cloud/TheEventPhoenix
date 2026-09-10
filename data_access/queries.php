@@ -1,6 +1,9 @@
 <?php session_start(); ?>
 <?php
 	$inputs = sanitize_inputs($_REQUEST);
+	if (!isset($_SESSION['accountid'])) { // PHP 8.2 warns when bound query params read a missing session key
+		$_SESSION['accountid'] = ''; // Empty id matches existing public-account SQL branches (accounts.id = 1000)
+	}
 	$queries = array();
 
 	function query_definition($sql, $types = '', $params = array()){
@@ -61,8 +64,8 @@
 		array($_SESSION['accountid'])
 	);
 
-	if (substr($_SERVER['HTTP_HOST'], 0, 4) == "easy") $database = DB_NAME_PROD;
-	else $database = DB_NAME_DEV;
+	if (substr($_SERVER['HTTP_HOST'], 0, 4) == "easy") $database = defined('DB_NAME_PROD') ? DB_NAME_PROD : 'tep_local'; // PHP 8.2: do not fatal when tep_config is missing on XAMPP
+	else $database = defined('DB_NAME_DEV') ? DB_NAME_DEV : 'tep_local'; // Local fallback used only when private tep_config.php did not define DB_NAME_DEV
 
 	$queries["tableColumns"] = query_definition("
 		SELECT column_name, is_nullable, data_type
