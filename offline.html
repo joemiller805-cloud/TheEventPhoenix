@@ -18,8 +18,8 @@
 <body>
 	<main>
 		<img src="/img/e.png" alt="The Event Phoenix"> <!-- Precached in sw.js STATIC_CACHE; not a PHP HTML document -->
-		<h1>You are offline</h1> <!-- Dedicated fallback when a non-cached route cannot be fetched -->
-		<p>This Event Phoenix page is not available without a connection. Cached event data may still load after you reconnect.</p> <!-- Does not fake a PHP session or AngularJS digest -->
+		<h1>This page is not available</h1> <!-- Fallback heading for offline AND missing navigation routes -->
+		<p>This Event Phoenix page could not be loaded. If you are offline, reconnect and try again. Cached event data may still load after you are back online.</p> <!-- Does not fake a PHP session or AngularJS digest -->
 		<p><button type="button" onclick="location.reload()">Try again</button></p> <!-- Reloads the URL the user asked for, not a hardcoded home -->
 		<p><a class="tep-retry" href="/">Return home</a></p> <!-- start_url; SW will retry the network, then this shell again if still offline -->
 	</main>

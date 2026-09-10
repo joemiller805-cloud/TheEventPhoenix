@@ -14,6 +14,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
+$is_production = true; // Strict live flag: when true, developer session bypass (account 1000) is disabled
+
 apply_security_headers();
 
 function apply_security_headers() {
@@ -56,8 +58,12 @@ function tep_vapid_public_key() { // URL-safe P-256 applicationServerKey for pus
 }
 
 function tep_apply_local_dev_session() { // Lightweight localhost auto-login so / skips landing.php
-	if (!tep_is_local_host()) { // Never seed sessions on production hosts
-		return; // Production login_process.php remains the only auth path
+	global $is_production; // File-scope live flag set to true unless XAMPP flips it
+	if ($is_production === true) { // Strict production check: live deploy never seeds account 1000
+		return; // login_process.php remains the only auth path when $is_production = true
+	}
+	if (!tep_is_local_host()) { // Host-header belt-and-suspenders if the flag was flipped by mistake
+		return; // Non-localhost hosts never receive the developer session
 	}
 	if (!defined('TEP_LOCAL_DEV_AUTOLOGIN') || !TEP_LOCAL_DEV_AUTOLOGIN) { // Toggle: define false in tep_config.php to disable
 		return; // Explicit off switch for local testing of the real login flow
@@ -235,6 +241,9 @@ if (!defined('TEP_ENC_KEY_RAW')) { // PHP 8.2 fatals on undefined constants; loc
 $encKey = TEP_ENC_KEY_RAW; // Decode path unchanged once the constant exists
 $encryption_key = base64_decode($encKey); // Empty string is safe when config is missing on localhost
 
+if (tep_is_local_host() && !(defined('TEP_IS_PRODUCTION') && TEP_IS_PRODUCTION === true)) { // XAMPP only; tep_config can lock production even on a local host name
+	$is_production = false; // Flip the live flag so account 1000 autologin can run on this machine only
+}
 if (tep_is_local_host()) { // Local XAMPP: private tep_config.php is absent, so queries.php cannot read DB_NAME_DEV
 	if (!defined('DB_HOST')) define('DB_HOST', 'localhost'); // XAMPP MySQL listen address
 	if (!defined('DB_PORT')) define('DB_PORT', 3306); // XAMPP default MySQL port

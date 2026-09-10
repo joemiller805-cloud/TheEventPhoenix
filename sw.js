@@ -1,5 +1,5 @@
 /* TEP Sprint 1: root service worker — bump CACHE_VERSION to kill stale caches */
-const CACHE_VERSION = 'v1.3.0'; // TEP kill-switch: bump so activate drops v1.2.0 and picks up manifest shortcuts
+const CACHE_VERSION = 'v1.4.0'; // TEP kill-switch: bump so activate drops v1.3.0 and picks up 404 navigation → offline.html
 const STATIC_CACHE = 'tep-static-' + CACHE_VERSION; // Versioned bucket for CSS/JS/fonts/images (Cache-First)
 const API_CACHE = 'tep-api-' + CACHE_VERSION; // Versioned bucket for /data_access/ GET JSON (Network-First)
 const OFFLINE_URL = '/offline.html'; // Static shell for document navigations when Apache is unreachable
@@ -65,17 +65,30 @@ function networkFirst(request) { // /data_access/: live JSON first, cached 200 o
   });
 }
 
-function isHtmlNavigation(request) { // Document loads (/, /index.php, /landing.php) — not XHR/dataSvc
-  return request.mode === 'navigate'; // Browser navigation mode; AngularJS $http stays on its own path
+function isHtmlNavigation(request) { // Document loads (/, /index.php, missing paths) — not XHR/dataSvc
+  return request.mode === 'navigate' || request.destination === 'document'; // Navigate + document destination; AngularJS $http stays off this path
 }
 
-function networkThenOfflineShell(request) { // Live PHP first; never cache PHP HTML; shell only when fetch throws
-  return fetch(request).then(function (response) { // Online: return Apache/PHP as-is (200, 404, or 500)
-    return response; // Do not putInCache — PHP documents must not enter Cache Storage
+function matchOfflineShell() { // Precached /offline.html for failed or missing document routes
+  return caches.match(OFFLINE_URL).then(function (cached) { // STATIC_CACHE entry from install
+    return cached || Response.error(); // Fail closed if install skipped offline.html
+  });
+}
+
+function networkThenOfflineShell(request) { // Live PHP first; never cache PHP HTML; shell for offline + missing routes
+  return fetch(request).then(function (response) { // Try Apache/PHP without storing the document
+    if (response && response.ok) { // HTTP 200–299 live PHP (index, landing, admin)
+      return response; // Do not putInCache — PHP documents must not enter Cache Storage
+    }
+    if (response && response.status === 404) { // Missing navigation route (unknown path / missing PHP)
+      return matchOfflineShell(); // Dedicated shell instead of Apache 404 or the browser error page
+    }
+    if (response && response.type === 'basic' && response.status > 0) { // Live 401/403/500 — keep Apache
+      return response; // Auth and server errors stay network-only; not the offline copy
+    }
+    return matchOfflineShell(); // Opaque / status 0 / failed Response — treat as unavailable
   }).catch(function () { // Completely offline / network throw — not an HTTP error body
-    return caches.match(OFFLINE_URL).then(function (cached) { // Precached static shell
-      return cached || Response.error(); // Fail closed if install skipped offline.html
-    });
+    return matchOfflineShell(); // Same precached shell as a missing route
   });
 }
 
@@ -127,8 +140,8 @@ self.addEventListener('fetch', function (event) { // Route GET traffic: API Netw
     event.respondWith(cacheFirst(request)); // Precached; available when Apache is unreachable
     return; // Do not treat this file as an unknown HTML type
   }
-  if (isHtmlNavigation(request)) { // / and *.php document loads — Network then offline.html
-    event.respondWith(networkThenOfflineShell(request)); // Online PHP unchanged; offline gets the static shell
+  if (isHtmlNavigation(request)) { // /, *.php, and unknown document URLs — Network then offline.html
+    event.respondWith(networkThenOfflineShell(request)); // Live PHP 200 stays Apache; 404 and offline use /offline.html
     return; // Skip Cache-First so index.php is never stored
   }
   if (/\.php$/i.test(url.pathname)) { // Non-navigation PHP (legacy script GETs) stays network-only

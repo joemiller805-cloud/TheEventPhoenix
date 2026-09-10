@@ -2,6 +2,17 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 9] — Phase 6 Offline Resiliency & Production Security Hardening — 2026-09-10
+
+Phase 6 hardens the vanilla PWA offline path and locks the developer session bypass on live hosts (no Workbox, no Node, no Angular 2+).
+
+### [Refactored]
+- **Service worker navigation fallback (`sw.js` `CACHE_VERSION` `v1.4.0`):** Activate drops `tep-static-v1.3.0` / `tep-api-v1.3.0`. Document navigations (`mode=navigate` or `destination=document`) still try live PHP first and never write PHP HTML to Cache Storage. HTTP 404 (missing routes), opaque/status-0 responses, and network throws now receive the precached `/offline.html` shell via `matchOfflineShell()`. Live 200 PHP is unchanged. Live 401/403/500 still pass through from Apache. `/offline.html` copy now covers both offline and unknown URLs.
+
+### [Security Fix]
+- **Production flag (`common_functions.php`):** Sets `$is_production = true` as the strict live default. `tep_apply_local_dev_session()` returns immediately when `$is_production === true`, so the developer session bypass (account `1000` / user `1`) cannot run on a live deploy. Host-header `tep_is_local_host()` remains a second gate.
+- **`TEP_IS_PRODUCTION` override:** Local XAMPP may set `$is_production = false` only when the host is localhost or 127.0.0.1 **and** `TEP_IS_PRODUCTION` is not defined true in `tep_config.php`. Defining `TEP_IS_PRODUCTION` as `true` keeps the production lock even on a local hostname, so account 1000 autologin cannot be forced on by host-header spoofing when that constant is set.
+
 ## [Sprint 8] — Phase 5 Staff & Vendor Operations — 2026-09-10
 
 Phase 5 completes floor operations on the AngularJS dashboard: staff check-in, vendor booth status and lead capture, and a universal loader error boundary so “Loading Event Data” cannot stay stuck (no Workbox, no Node, no Angular 2+).
