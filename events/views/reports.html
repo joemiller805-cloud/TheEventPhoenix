@@ -1,0 +1,48 @@
+<H3>Event Reports</H3>
+<div class="col-md-12">
+	<table class="table scrollable striped">
+		<thead><tr><th>Report</th><th>Description</th></tr></thead>
+		<tbody>
+			<tr ng-if="hasPageAccess('payments')">
+				<td><a href="/admin.php#!payments">Attendee Payments</a></td>
+				<td>Attendee Payments</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_roster')">
+				<td><a href="/admin.php#!rpt_roster">Event Roster</a></td>
+				<td>Event Attendee Roster</td>
+			</tr>
+			<tr ng-if="hasPageAccess('order_summary')">
+				<td><a href="/admin.php#!order_summary">Order Summary</a></td>
+				<td>Event Orders & Ticket/Extras Purchases</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_presenters') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!rpt_presenters">Presenters</a></td>
+				<td>Event Presenters/Sessions</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_rooms') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!rpt_rooms">Rooms</a></td>
+				<td>Room Schedules</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_sessions') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!rpt_sessions">Sessions</a></td>
+				<td>Event Sessions</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_signups') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!rpt_signups">Signups</a></td>
+				<td>Attendee Signups</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_staff') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!rpt_staff">Staff</a></td>
+				<td>Event Staff</td>
+			</tr>
+			<tr ng-if="hasPageAccess('evt_expense_rpt') && enable_staff_expense && acctType != 'ticketing'">
+				<td><a href="/admin.php#!evt_expense_rpt">Staff Expenses</a></td>
+				<td>Staff Expenses</td>
+			</tr>
+			<tr ng-if="hasPageAccess('evt_staff_pymt_rpt') && enable_staff_expense && acctType != 'ticketing'">
+				<td><a href="/admin.php#!evt_staff_pymt_rpt">Staff Expense Payments</a></td>
+				<td>Staff Expense Payments</td>
+			</tr>
+		</tbody>
+	</table>
+</div>

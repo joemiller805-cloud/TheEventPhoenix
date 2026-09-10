@@ -1,0 +1,209 @@
+<H3 style="display:inline-block;margin-right:2em">Vendors</H3>
+<div style="float:right;margin-top:20px">
+	<button class="btn btn-sm btn-primary exportResultsBtn readOnly" 
+		data-table-id="vendorTbl" data-file-name="Vendor Info">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	<button class="btn btn-sm btn-primary readOnly" 
+		style="margin-left:2em" ng-click="downloadLogos('logo')">
+		Download Web Logos
+	</button>
+	<button class="btn btn-sm btn-primary readOnly" 
+		style="margin-left:2em" ng-click="downloadLogos('logo2')">
+		Download High-Res Logos
+	</button>
+</div>
+
+<div class="col-md-12">
+	<section style="margin:1em" class="threeCol">
+		<div>
+			<label>
+				<input type="radio" name="status" value="0" ng-model="statusFilter"> Active
+			</label>
+			<label style="margin-left:1em">
+				<input type="radio" name="status" value="1" ng-model="statusFilter"> Archived
+			</label>
+		</div>
+		<div>
+			<input type="text" class="form-control" placeholder="Quick Search" ng-model="quickSearch"/>
+		</div>
+		<div>
+			<button class="btn btn-success select" ng-click="updateVendor()"
+				style="float:right;margin-right:20px">
+				<span class="bi bi-plus-lg" aria-hidden="true"></span>New Vendor
+			</button>
+		</div>
+	</section>
+	<table class="table scrollable striped" id="vendorTbl">
+		<thead>
+			<tr>
+				<th class="noExport">&nbsp;</th>
+				<th>Name</th>
+				<th>Logo</th>
+				<th class="noExport">High-Res Logo</th>
+				<th class="noExport">Web Address</th>
+				<th>Bio</th>
+				<th>Category</th>
+				<th>Address</th>
+				<th>Contact</th>
+				<th>Email</th>
+				<th>Phone</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="vendor in vendors | orderObjectBy:'name':false" 
+				ng-if="showVendor(vendor)">
+				<td class="noExport">
+					<button class='btn btn-primary select' ng-click="updateVendor(vendor)">
+						<i class="bi bi-pencil"></i>
+					</button>
+				</td>
+				<td>
+
+					<a ng-if="hasPageAccess('vendor_details')" href="#!vendor_details/{{vendor.id}}">
+						{{vendor.name}}
+					</a>
+					<span ng-if="!hasPageAccess('vendor_details')">{{vendor.name}}</span>
+				</td>
+				<td class="noExport">
+					<img 
+						ng-src="/img/account{{accountid}}/vendorLogos/{{vendor.id}}/{{vendor.logo}}"
+						ng-if="vendor.logo" style="max-height:50px;max-width:130px"/>
+				</td>
+				<td class="noExport">
+					<img 
+						ng-src="/img/account{{accountid}}/vendorLogos/{{vendor.id}}/{{vendor.logo2}}"
+						ng-if="vendor.logo2" style="max-height:50px;max-width:130px"/>
+				</td>
+				<td>
+					<a target="_blank" href="{{getLink(vendor.web_address)}}">
+						{{vendor.web_address}}
+					</a>
+				</td>
+				<td title="{{vendor.bio}}">
+					{{vendor.bio.substring(0,80)}}
+					<span ng-show="{{vendor.bio.length > 80}}">...</span>
+				</td>
+				<td>{{vendor.category}}</td>
+				<td>
+					<div>{{vendor.address1}}</div>
+					<div ng-show="vendor.address2">{{vendor.address2}}</div>
+					<div>{{vendor.city}}, {{vendor.state}} {{vendor.zip}}
+				</td>
+				<td>{{vendor.contact_first_name}} {{vendor.contact_last_name}}</td>
+				<td>{{vendor.email}}</td>
+				<td>{{vendor.phone}}</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div id="editDialog" class="dialogRight">
+	<div class="dialogTitle">
+		<span ng-show="editVendor.id > 0">Edit Vendor - {{editVendor.name}}</span>
+		<span ng-show="editVendor.id < 0">Add Vendor</span>
+	</div>
+	<div class="dialogContents">
+	<table>
+		<tr>
+			<td class="bold" style="width:16em">Name</td>
+			<td><input ng-model="editVendor.name" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold" style="width:16em">Web Address</td>
+			<td><input ng-model="editVendor.web_address" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Bio</td>
+			<td>
+				<textarea ng-model="editVendor.bio" class="form-control" rows="5">
+				</textarea>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Category</td>
+			<td>
+				<select ng-model="categorySelect" class="form-select" style="display:inline;width:48%"
+					ng-change="categoryChange()">
+					<option ng-repeat="cat in categorySettings.categories" value="{{cat}}">
+						{{cat}}
+					</option>
+					<option ng-if="categorySettings.allowOther" value="Other">Other</option>
+				</select>
+				<input type="text" class="form-control" ng-model="editVendor.category" 
+					ng-show="categorySelect == 'Other'" style="display:inline;width:48%"/>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Address 1</td>
+			<td><input ng-model="editVendor.address1" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Address 2</td>
+			<td><input ng-model="editVendor.address2" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">City</td>
+			<td><input ng-model="editVendor.city" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">State</td>
+			<td>
+				<select ng-options="state for state in states" ng-model="editVendor.state" class="form-select"
+					style="width:8em">
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Zip</td>
+			<td><input ng-model="editVendor.zip" class="form-control" class="form-control" style="width:10em"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Primary Contact First Name</td>
+			<td><input ng-model="editVendor.contact_first_name" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Primary Contact Last Name</td>
+			<td><input ng-model="editVendor.contact_last_name" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Email</td>
+			<td><input ng-model="editVendor.email" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Phone</td>
+			<td><input ng-model="editVendor.phone" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Username</td>
+			<td><input type="text" ng-model="editVendor.username" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Archived</td>
+			<td><input type="checkbox" ng-model="editVendor.archived"
+				ng-true-value="'1'" ng-false-value="'0'"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Set/Rest Password</td>
+			<td><input type="checkbox" ng-model="resetPassword"/></td>
+		</tr>
+		<tr ng-show='resetPassword'>
+			<td class="bold">Password</td>
+			<td>
+				<input type="text" ng-model="editVendor.pass" class="form-control"/>
+				<password-requirements></password-requirements>
+			</td>
+		</tr>
+	</table>
+	<div class="modal-footer" style="margin-top:10px">
+		<button type="button" class="btn btn-primary"
+			ng-click="closeRightDialog()">Cancel
+		</button>
+		<button type="button" class="btn btn-primary" ng-click="saveVendor()">
+			<span ng-show="editVendor.id > 0">Update</span>
+			<span ng-show="editVendor.id < 0">Create Vendor</span>
+		</button>
+	</div>
+	</div>
+</div>
+

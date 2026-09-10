@@ -1,0 +1,54 @@
+.ng-cloak { display: none !important; }
+div.container { margin:0px; }		
+div#body{	overflow:scroll; min-height:300px; max-height:500px; }
+div#wysiwyg-buttons i.bi {
+	font-size:0.75em;
+	line-height:0.75em;
+}
+table#export td, table#colmodel_columns td {	padding:3px 0px 0px 8px; }
+#registrationDataTbl{
+	border:1px solid black;
+	border-collapse: collapse;
+}
+#registrationDataTbl td, #registrationDataTbl th{
+	border: 1px solid black;
+	padding:0px 12px 0px 5px;
+	white-space: pre;
+	font-size:9pt;
+}
+.selected{ background-color:#fffa90; }
+.right{
+	text-align:right;
+	margin:5px 30px 10px 0px;
+}
+.filterTbl tr td{	padding:5px 10px 5px 0px; }
+.red{	color:red; }
+.green{	color:green; }
+div.container {	margin:0px; }		
+div#body{
+	overflow:scroll; min-height:300px; max-height:500px;
+}
+div#wysiwyg-buttons i.bi {
+	font-size:0.75em;
+	line-height:0.75em;
+}
+table#export td, table#colmodel_columns td { padding:3px 0px 0px 8px;	}
+div.panel-heading{ padding:3px 4px; }
+.regTotalLabel{
+	font-weight: bold;
+	margin-left:20px;
+	white-space: nowrap;
+}
+.paymentForm{
+	-webkit-box-shadow: 0px 0px 15px -2px rgba(0,0,0,0.75);
+	-moz-box-shadow: 0px 0px 15px -2px rgba(0,0,0,0.75);
+	box-shadow: 0px 0px 15px -2px rgba(0,0,0,0.75);
+	margin-bottom:5px;
+	padding-bottom:3px;
+	background-color:white;
+}
+.deleted td{ background-color: #f39898; }
+.virtualSessionSpan{
+	display:inline-block;
+	width:33em;
+}

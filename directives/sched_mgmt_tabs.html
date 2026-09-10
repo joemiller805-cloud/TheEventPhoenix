@@ -1,0 +1,26 @@
+<div class="col-md-12" style="margin-bottom:1em">
+	<h2>Schedule Management</h2>
+	<ul class="nav nav-tabs">
+		<li class="nav-link active" ng-if="hasPageAccess('registration_form')">
+			<a href="/admin.php#!/manage_schedule">Event Schedule</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('sessions')">
+			<a href="/admin.php#!/sessions">Sessions</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('rooms')">
+			<a href="/admin.php#!/rooms">Rooms</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('event_users')">
+			<a href="/admin.php#!/event_users">Event Staff</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('course_catalog')">
+			<a href="/admin.php#!/course_catalog">Event Courses</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('import_event_data')">
+			<a href="/admin.php#!/import_event_data">Import Event Data</a>
+		</li>
+		<li class="nav-link">
+			<a href="/admin.php#!/section_attendance">Section Attendance</a>
+		</li>
+	</ul>
+</div>

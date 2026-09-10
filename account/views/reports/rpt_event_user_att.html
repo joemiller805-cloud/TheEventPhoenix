@@ -1,0 +1,155 @@
+<div class="row">
+	<div class="col-lg-12">
+		<p style="font-size:16pt;font-weight:bold">Event Staff Attendance</p>
+		<p>
+			<button class="btn btn-primary exportResultsBtn readOnly"
+				data-table-id="userTable" data-file-name="User Event Attendance">
+				<span class="bi bi-floppy"></span> Export To CSV
+			</button>
+			<button class="btn btn-primary" ng-click="startEmail()">
+				<span class="bi bi-envelope"></span>Email Staff
+			</button>
+		</p>
+	</div>
+</div>
+<div id="loadingSpan">Loading Staff Data<span class="loader"></span></div>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th style="width:20%">Quick Search</th>
+			<th style="width:30%">Event(s)</th>
+			<th style="width:20%;padding-left:3em">Staff Roles</th>
+			<th>Course Preferences</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>
+				<input ng-model="quickSearchValue" ng-keyup="userSearch()" 
+					placeholder="Quick Search" class="form-control" />
+			</td>
+			<td>
+				<select ng-model="eventFilter" class="form-select" 
+					ng-change="filterEvents()">
+					<optgroup label="Multiple Events">
+						<option value="future">Upcoming Events</option>
+						<option value="recent">Recent Events (Last 365 Days)</option>
+						<option value="upcomingAndRecent">Upcoming and Recent Events</option>
+						<option value="all">All Events</option>
+					</optgroup>
+					<optgroup label="Specific Event">
+						<option ng-repeat="event in events | orderObjectBy:'startdate':true"
+							value="{{event.id}}">
+							{{event.name}}
+						</option>
+					</optgroup>
+				</select>
+			</td>
+			<td style="padding-left:3em">
+				<input type="checkbox" ng-change="userSearch()" ng-model="includeAdmin" /> Admin
+				<input type="checkbox" ng-change="userSearch()" 
+					ng-model="includePresenters" /> Presenters
+				<input type="checkbox" ng-change="userSearch()" ng-model="includeStaff" /> Staff
+			</td>
+			<td>
+				<select ng-model="selectedCourse" ng-change="userSearch()" 
+					class="form-select">
+					<option value="">-- No Course Filter --</option>
+					<option ng-repeat="course in courses | orderObjectBy:'name':false"" 
+						value="{{course.id}}">
+						{{course.name}}
+					</option>
+				</select>
+				<select ng-model="courseSearchPref" ng-change="userSearch()" 
+					class="form-select" style="margin-top:.5em">
+					<option value="both">Preferred or Able</option>
+					<option value="preferred">Preferred Only</option>
+					<option value="able">Able Only</option>
+				</select>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<table id="userTable" class="table scrollable striped">
+	<thead>
+		<tr class="headerRow sticky noPad">
+			<th class="pointer" ng-click="changeSort('last_name')">
+				<sort-arrows></sort-arrows>Name
+			</th>
+			<th class="pointer" ng-click="changeSort('email')">
+				<sort-arrows></sort-arrows>Email
+			</th>
+			<th ng-repeat="event in filteredEvents | orderObjectBy:'startdate'">
+				{{event.name}}
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="user in users | orderObjectBy:sortField:sortReverse"
+			ng-if="user.include" data-id="{{user.id}}" class="userRow">
+			<td>{{user.last_name}}, {{user.first_name}}</td>
+			<td>{{user.email}}</td>
+			<td ng-repeat="event in filteredEvents | orderObjectBy:'startdate'">
+				{{user.eventRoles[event.id].toString()}}
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<div id="emailDialog" class="dialogRight">
+	<div class="dialogTitle">Email Users</div>
+	<div class="col-sm-12 dialogContents form-horizontal">
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">To:</label>
+			<span class='col-sm-9'>
+				<select ng-model="emailRecipients" class="form-select"
+					ng-change="setIncludeEmail(false)">
+					<option value="all">All</option>
+					<option value="select">Select By Hand</option>
+				</select>
+			</span>
+		</div>
+		<div class="form-group" ng-show="emailRecipients == 'select'">
+			<label class="col-2 col-form-label">Recipients:</label>
+			<span class="col-sm-9">
+				<button ng-click="setIncludeEmail(true)">Select All</button>
+				<button ng-click="setIncludeEmail(false)">Clear All</button><br/>
+				<label ng-repeat="user in users | orderObjectBy:'last_name'" style="display:block"
+					ng-show="user.include">
+					<input type="checkbox" ng-model="user.includeInEmail"/>
+					{{user.last_name}}, {{user.first_name}} ({{user.email}})
+				</label>
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Subject:</label>
+			<span class='col-sm-9'>
+				<input ng-model="emailSubject" class="form-control" />
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">From:</label>
+			<span class='col-sm-9'>
+				<select class="form-select" ng-model="replytoemail">
+					<option ng-repeat="email in replytoemails" value="{{email}}">
+						{{email}}
+					</option>
+				</select>
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Body:</label>
+			<span class='col-sm-9'>
+				<textarea ng-model="emailBody" class="form-control" cols="100" rows="20"></textarea>
+			</span>
+		</div>
+		<div class="button-row">
+			<button type="button" class="btn btn-primary"
+				ng-click="closeEmailDialog()">Cancel
+			</button>
+			<button class="btn btn-primary" ng-click="sendEmail()">Send Email</button>
+		</div>
+	</div>
+</div> <!-- End Email Dialog -->

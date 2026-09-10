@@ -1,0 +1,562 @@
+<link rel="stylesheet" type="text/css" media="screen" href="/css/jquery-ui.theme.css" />
+<link rel="stylesheet" type="text/css" media="screen" href="/css/jquery-ui.structure.css" />
+<link href="/css/registration_management.css" rel="stylesheet" />
+<style>
+	#regbuttons button.btn{ margin:0px 5px 5px 0px; }
+</style>
+
+<div style="margin-bottom:10px">
+	<span style="font-size:18pt;margin-right:30px">Manage Registrations</span>
+</div>
+
+<div style="padding: 0px 0px .5rem .5rem">
+	<div class="btn-toolbar" role="toolbar" id="regbuttons">
+		<button ng-click="new_registration()" class="btn btn-primary btn-xs">
+			New Reg
+		</button>
+		<button ng-click="addPayment()" ng-disabled="selectedRegs.length < 1"
+			class="btn btn-primary btn-xs">
+			New pymt
+		</button>
+		<button class="btn btn-primary btn-xs" ng-click="manage_payments()"
+			ng-disabled="selectedRegs.length != 1">
+			View pymts
+		</button>
+		<button id="invoice" class="btn btn-primary btn-xs"
+			ng-click="generate_invoice()" ng-disabled="selectedRegs.length < 1">
+			<span class="bi bi-list-task" aria-hidden="true"></span> Invoice
+		</button>
+		<button class="btn btn-primary btn-xs"
+			ng-click="generate_certificate()" ng-disabled="selectedRegs.length < 1">
+			<span class="bi bi-asterisk" aria-hidden="true"></span> Certificate
+		</button>
+		<button id="badge" class="btn btn-primary btn-xs"
+			ng-click="generate_badge()" ng-disabled="selectedRegs.length < 1">
+			<span class="bi bi-credit-card" aria-hidden="true"></span> Badge
+		</button>
+		<button class="btn btn-primary btn-xs"
+			ng-click="checkin_user()" ng-disabled="selectedRegs.length == 0">
+			<span class="bi bi-check-lg" aria-hidden="true"></span> Check In
+		</button>
+		<button class="btn btn-primary btn-xs"
+			ng-click="edit_registration()" ng-disabled="selectedRegs.length != 1">
+			<span class="bi bi-pencil" aria-hidden="true"></span> Edit Reg
+		</button>
+		<button class="btn btn-primary btn-xs"
+			ng-click="edit_schedule()" ng-disabled="selectedRegs.length != 1">
+			<span class="bi bi-pencil" aria-hidden="true"></span> Edit Schedule
+		</button>
+		<button class="btn btn-primary btn-xs" disabled data-bs-toggle="modal"
+			ng-click="modifyEmailRecipientCount()" ng-disabled="selectedRegs.length < 1" 
+			data-bs-target="#email_dialog">
+			<span class="bi bi-envelope" aria-hidden="true"></span> E-Mail
+		</button>
+		<button class="btn btn-primary btn-xs"
+			ng-click="checkout()" ng-disabled="selectedRegs.length != 1">
+			<span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span> Un-Check In
+		</button>
+		<button class="btn btn-danger btn-xs"
+			ng-show="selectedRegs[0].deleted != 1"
+			ng-click="delete_click()" ng-disabled="selectedRegs.length != 1">
+			<span class="bi bi-x-circle" aria-hidden="true"></span> Cancel
+		</button>
+		<button class="btn btn-danger btn-xs" ng-click="deleteRef_click()"
+			ng-disabled="selectedRegs.length != 1"
+			ng-show="selectedRegs[0].deleted != 1">
+			<span class="bi bi-x-circle" aria-hidden="true"></span>
+			<span class="bi bi-currency-dollar" aria-hidden="true"></span>
+			Cancel / Clear Balance
+		</button>
+		<button class="btn btn-primary btn-xs" ng-click="undeleteRegistration()"
+			ng-show="selectedRegs[0].deleted == 1 && selectedRegs.length == 1">
+			<span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span> Reactivate
+		</button>
+	</div>
+</div>
+
+<div style="padding-left:.5em" class="bold mb-2">
+	<label>
+		<input type="checkbox" ng-model="includeCancelled" /> Include Cancelled 
+	</label>
+	<span style="padding-left:3em">
+		<span>Active: {{activeRegistrations}}</span>  
+		<span style="margin-left:1em">Inactive: {{inactiveRegistrations}}</span>
+	</span>
+</div>
+
+<div 
+	er-grid-widget 
+	data-data="eventRegistrations"
+	data-columns="columns"
+	enable-selection="true"
+	export-name="registrations">
+</div>
+
+<!--Email Dialog -->
+<div class="modal fade" id="email_dialog">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<b>Send E-mail</b>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" 
+					aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="email_form">
+					<div ng-show="emailRecipients.length > 1">
+						<label class="me-3" ng-repeat="fld in emailRecipients">
+							<input type="checkbox" ng-model="fld.selected" 
+								ng-change="modifyEmailRecipientCount()"/> 
+							{{fld.label}}
+						</label>
+					</div>
+					<div class="input-group">
+						<label class="col-2 input-group-text" id="to-addon">To: </label>
+						<input id="to" type="text" class="form-control" 
+							aria-describedby="to-addon" disabled value="">
+					</div>
+					<div class="input-group">
+						<label class="col-2 input-group-text" id="subject-addon">Subject: </label>
+						<input type="text" class="form-control" ng-model="emailSubject" id="emailSubject"
+							aria-describedby="subject-addon" name="subject">
+					</div>
+					<div class="input-group">
+						<label class="col-2 input-group-text" id="bcc-addon">Reply to Email: </label>
+						<select class="form-select" name="replytoemail" id="replytoemail">
+							<option ng-repeat="email in replytoemails" value="{{email}}">
+								{{email}}
+							</option>
+						</select>
+					</div>
+					<div class="row mt-1">
+						<div>
+							<textarea name="body" id="body_text" ng-model="emailContent"
+								style="width:100%; min-height:300px; max-height:500px;">
+							</textarea>
+						</div>
+					</div>
+					<input type="hidden" name="sender" value="{{selectedEvent.name}}" />
+					<p style="text-align:right;" class="mt-2">
+						<button type="button" class="btn btn-primary" id="send_email" 
+						ng-click="send_email()">
+							<i class="bi bi-envelope"> Send</i>
+						</button>
+					</p>
+				</form>
+			</div>
+		</div>
+	</div>
+</div><!--End Email Dialog -->
+
+<!-- Payment Dialog -->
+<div id="pymtDialog" class="dialogRight">
+	<div class="dialogTitle">{{dialogTitle}} - {{selectedEvent.name}}</div>
+	<div class="dialogContents">
+		<div ng-repeat="reg in selectedRegs" class="paymentForm"
+			ng-class="{'error': pymtError(reg)}" data-regId="{{reg.id}}">
+			<h3>
+				{{reg.first_name}} {{reg.last_name}} ({{reg.confirmation}})
+			</h3>
+			<table>
+				<tr>
+					<td class="rowLabel">Email</td>
+					<td>{{reg.email}}</td>
+				</tr>
+				<tr>
+					<td class="rowLabel">Business</td>
+					<td>{{reg.business}}</td>
+				</tr>
+				<tr>
+					<td class="rowLabel">Payment Type</td>
+					<td>
+						<select ng-model="reg.payment_type" ng-change="pymtTypeChg(reg)">
+							<option></option>
+							<option>Check</option>
+							<option>CC</option>
+							<option>Paypal</option>
+							<option>Credit</option>
+							<option>Refund</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td class="rowLabel">Payment Amount</td>
+					<td>
+						<input name="amount" ng-model="reg.paymentTotal" />
+					</td>
+				</tr>
+				<tr>
+					<td class="rowLabel">Reference Nbr</td>
+					<td><input ng-model="reg.ref_nbr" type="text"></td>
+				</tr>
+				<tr>
+					<td class="rowLabel">Payment Note</td>
+					<td><textarea ng-model="reg.pymtNote" rows="3" cols="40"></textarea></td>
+				</tr>
+			</table>
+			<div class="errorMsg">Payment will result in negative balance</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary" ng-click="closeRightDialog()">Cancel</button>
+			<button type="button" class="btn btn-primary" ng-click="savePayment()">Save</button>
+		</div>
+	</div>
+</div> <!-- End Payment Dialog -->
+
+<!-- Dialog for attendee schedule -->
+<div id="schedDialog" class="dialogRight">
+	<div class="dialogTitle">
+		{{dialogTitle}} - {{selectedRegs[0].first_name}} {{selectedRegs[0].last_name}}
+	</div>
+	<div class="dialogContents">
+		Sessions will be updated automatically as new options are selected.<br/>
+		Click the "x" button to set a session as unscheduled (blank).
+		<table>
+			<tr class="bold">
+				<td>Session</td>
+				<td>
+					<span class="virtualSessionSpan">Course</span>
+					<span ng-show="hasVirtual">Video Viewed</span>
+				</td>
+				<td>Clear</td>
+			</tr>
+			<tr ng-repeat="session in sessions | orderObjectBy:'starttime':false" style="border-top:1px solid silver">
+				<td class="bold" style="padding-right:5px;padding-bottom:20px">{{session.name}}</td>
+				<td>
+					<select ng-model="session.selectedSection" ng-show="!extraSession(session) && session.hasLive"
+						ng-options="section.id as section.course for section in session.liveSections | orderObjectBy:'course':false" ng-change="selectUserSection(session)">
+					</select>
+					<div ng-show="extraSession(session)">{{extraSession(session)}}</div>
+					<div ng-repeat="section in session.virtualSections">
+						<span class="virtualSessionSpan">
+							<input type="checkbox" ng-model="section.selected" ng-change="updateVirtualSignup(section)"/>
+							{{section.course}}
+						</span>
+						<input type="checkbox" ng-model="section.video_viewed" ng-disabled="!section.selected"
+							ng-change="updateVideoViewed(section)" />
+					</div>
+				</td>
+				<td style="padding-left:5px;font-size:8pt">
+					<button ng-click="removeSignup(session)" title="Clear Session"
+						ng-show="session.selectedSection && !extraSession(session)">
+						x
+					</button>
+				</td>
+			</tr>
+		</table>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary" ng-click="closeRightDialog()">Done</button>
+		</div>
+	</div>
+</div> <!-- End Attendee Schedule Dialog -->
+
+<!-- Checkin Dialog -->
+<div id="checkinDialog" class="dialogRight">
+	<div class="dialogTitle">
+		Check In - {{selectedRegs.length}} Attendee(s)
+	</div>
+	<div class="dialogContents">
+		<table>
+			<tr class="bold">
+				<td>Attendee</td>
+				<td>Confirmation</td>
+				<td>Email</td>
+				<td>Registration Fee</td>
+				<td>Balance</td>
+			</tr>
+			<tr ng-repeat="reg in selectedRegs">
+				<td>{{reg.last_name}} {{reg.first_name}}</td>
+				<td>{{reg.confirmation}}</td>
+				<td>{{reg.email}}</td>
+				<td>{{reg.price | currency}}</td>
+				<td>{{reg.balance | currency}}</td>
+			</tr>
+		</table>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary" ng-click="closeRightDialog()">Cancel</button>
+			<button type="button" class="btn btn-primary btn-lg" ng-click="completeCheckin()">
+				Check In
+			</button>
+		</div>
+	</div>
+</div> <!-- End Checkin Dialog -->
+
+<!-- Dialog for payment list -->
+<div id="paymentsDialog" class="dialogRight">
+	<div class="dialogTitle">
+		{{dialogTitle}} - {{selectedRegs[0].first_name}} {{selectedRegs[0].last_name}}
+	</div>
+	<div class="dialogContents">
+		<table>
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Method</th>
+					<th>Entered By</th>
+					<th>Note</th>
+					<th>Ref Nbr</th>
+					<th>Amount</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="payment in payments">
+					<td>
+						<span ng-show="!payment.editing">{{payment.entered_date}}</span>
+						<input type="text" ng-model="editPayment.entered_date" datepicker ng-show="payment.editing" style="width:6em"/>
+					</td>
+					<td>
+						<span ng-show="!payment.editing">{{payment.payment_type}}</span>
+						<select ng-model="editPayment.payment_type"  ng-show="payment.editing">
+							<option></option>
+							<option>Check</option>
+							<option>CC</option>
+							<option>Paypal</option>
+							<option>Credit</option>
+							<option>Refund</option>
+						</select>
+					</td>
+					<td>
+						<span ng-show="!payment.editing">{{payment.entered_by}}</span>
+						<input type="text" ng-model="editPayment.entered_by" ng-show="payment.editing"/>
+					</td>
+					<td>
+						<span ng-show="!payment.editing">{{payment.note}}</span>
+						<input type="text" ng-model="editPayment.note" ng-show="payment.editing"/>
+					</td>
+					<td>
+						<span ng-show="!payment.editing">{{payment.ref_nbr}}</span>
+						<input type="text" ng-model="editPayment.ref_nbr" ng-show="payment.editing"/>
+					</td>
+					<td>
+						<span ng-show="!payment.editing">{{payment.amount | currency}}</span>
+						<input type="text" ng-model="editPayment.amount"ng-show="payment.editing" style="width:10em"/>
+					</td>
+					<td style="white-space: nowrap;">
+						<button class="btn btn-primary" ng-click="prepPaymentEdit(payment)"	title="Edit Payment" 
+							ng-show="!payment.editing">
+							<span class="bi bi-pencil-fill"></span>
+						</button>
+						<button class="btn btn-danger" ng-click="cancelPayment()" ng-show="payment.editing" title="Cancel">
+							<span class="bi bi-x-circle"></span>
+						</button>
+						<button class="btn btn-success" ng-click="savePaymentEdit()" ng-show="payment.editing">
+							<span class="bi bi-floppy"></span>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+			<tfoot ng-show="payments.length > 1">
+				<tr style="border-top:1px solid gray">
+					<td colspan="5"></td>
+					<td class="bold">{{regPayments | currency}}</td>
+				</tr>
+			</tfoot>
+		</table>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary" ng-click="closeRightDialog()">Done</button>
+		</div>
+	</div>
+</div>
+
+<!-- Dialog for registration add/edit -->
+<div id="registrationDialog" class="dialogRight smallerInputs">
+	<div class="dialogTitle">
+		{{dialogTitle}} - {{editReg.first_name}} {{editReg.last_name}}
+	</div>
+	<div class="dialogContents">
+	<table>
+		<tr>
+			<td class="bold">Name (Last, First)</td>
+			<td class="inlineInputs">
+				<input type="text" class="form-control" ng-model="editReg.last_name" style="width:15em" />
+				<input type="text" class="form-control" ng-model="editReg.first_name" style="width:15em" />
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Email</td>
+			<td class="inlineInputs">
+				<input type="text" class="form-control" ng-model="editReg.email" style="display: inline-block;width:20em" />
+				<b style="margin-left:2em" ng-show="columnIncluded('phone')">Phone</b>
+				<input type="text" class="form-control" ng-model="editReg.phone" style="width:20em" 
+					ng-show="columnIncluded('phone')"/>
+			</td>
+		</tr>
+		<tr ng-show="columnIncluded('business') || columnIncluded('title')">
+			<td class="bold"><span ng-show="columnIncluded('business')">Organization</span></td>
+			<td class="inlineInputs">
+				<input type="text" class="form-control" ng-model="editReg.business"	style="width: 20em"
+					ng-show="columnIncluded('business')"/>
+				<b style="margin-left:2em" ng-show="columnIncluded('title')">Title</b>
+				<input type="text" class="form-control" ng-model="editReg.title" style="width:15em"
+					ng-show="columnIncluded('title')"/>
+			</td>
+		</tr>
+		<tr ng-show="columnIncluded('address1')">
+			<td class="bold">Address</td>
+			<td class="inlineInputs">
+				<input type="text" class="form-control" ng-model="editReg.address1" style="width:25em" />
+				<input type="text" class="form-control" ng-model="editReg.address2" style="width:10em" />
+			</td>
+		</tr>
+		<tr  ng-show="columnIncluded('address1')">
+			<td class="bold">City, State Zip</td>
+			<td class="inlineInputs">
+				<input type="text" class="form-control" ng-model="editReg.city" style="width:11em"/>
+				<input type="text" class="form-control" ng-model="editReg.state" style="width:4em"/>
+				<input type="text" class="form-control" ng-model="editReg.zip" style="width:5em"/>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Registration Type</td>
+			<td class="inlineInputs">
+				<select  class="form-select" ng-model="editReg.registration_typeid" style="width:20em"
+					ng-options="regType.id as regType.name for regType in registrationTypes">
+				</select>
+				<b style="margin-left:2em"  ng-show="columnIncluded('vendor_access')">Vendor Access</b>
+				<select  class="form-select" ng-model="editReg.vendor_access" style="width:auto"
+					ng-show="columnIncluded('vendor_access')">
+					<option value="0">No</option>
+					<option value="1">Yes</option>
+				</select>
+			</td>
+		</tr>
+		<tr ng-show="columnIncluded('web_address')">
+			<td class="bold">Web Address</td>
+			<td>
+				<input type="text" class="form-control" ng-model="editReg.web_address" />
+			</td>
+		</tr>
+		<tr ng-show="columnIncluded('dietary_restrictions')">
+			<td class="bold">Dietary Restrictions</td>
+			<td>
+				<select  class="form-select" ng-model="editReg.dietary_restrictions"
+					ng-options="res.value as res.label for res in dietary_restrictions">
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Payment Method</td>
+			<td class="inlineInputs">
+				<select  class="form-select" ng-model="editReg.payment_method" style="width:20em">
+					<option value="cc">Credit Card</option>
+					<option value="po">Purchase Order (PO)</option>
+					<option value="check">Check</option>
+				</select>
+				<b style="margin-left:2em">Payment Number</b>
+				<input type="text"  class="form-control" ng-model="editReg.payment_number" style="width:10em"/>
+			</td>
+		</tr>
+		<tr ng-show="columnIncluded('ec1_name')">
+			<td class="bold">Emergency Contact 1</td>
+			<td class="inlineInputs">
+				<input type="text" class="form-control" ng-model="editReg.ec1_name" style="width:20em" placeholder="Name"/>
+				<input type="email" class="form-control" ng-model="editReg.ec1_email" style="width:20em" placeholder="Email"/> <br/>
+				<input type="text" class="form-control" ng-model="editReg.ec1_phone_prim" 
+					style="width:20em;margin-top:5px" placeholder="Primary Phone"/>
+				<input type="text" class="form-control" ng-model="editReg.ec1_phone_alt" 
+					style="width:20em;margin-top:5px" placeholder="Alternate Phone"/>
+			</td>
+		</tr>
+		<tr ng-show="columnIncluded('ec2_name')">
+			<td class="bold">Emergency Contact 2</td>
+			<td class="inlineInputs">
+				<input type="text" class="form-control" ng-model="editReg.ec2_name" style="width:20em" placeholder="Name"/>
+				<input type="email" class="form-control" ng-model="editReg.ec2_email" style="width:20em" placeholder="Email"/> <br/>
+				<input type="text" class="form-control" ng-model="editReg.ec2_phone_prim" 
+					style="width:20em;margin-top:5px" placeholder="Primary Phone"/>
+				<input type="text" class="form-control" ng-model="editReg.ec2_phone_alt" 
+					style="width:20em;margin-top:5px" placeholder="Alternate Phone"/>
+			</td>
+		</tr>
+		<tr ng-repeat="field in extraFields | notLabel" ng-show="field.type != 'a'">
+			<td class="bold">{{field.label}}</td>
+			<td ng-show="field.type == 't'">
+				<input type="text" ng-model="editReg[field.field]" class="form-control"/>
+			</td>
+			<td ng-show="field.type == 'e'">
+				<input type="email" ng-model="editReg[field.field]" class="form-control"/>
+			</td>
+			<td ng-show="field.type == 's'">
+				<select class="form-select" 
+					ng-options="idx as option for (idx, option) in field.options"
+					ng-model="editReg[field.field]"></select>
+			</td>
+			<td ng-show="field.type == 'r'" class="inlineInputs">
+				<label ng-repeat="option in field.options" style="margin-right:1em">
+					<input type="radio" ng-model="editReg[field.field]" ng-value="$index.toString()">
+					{{option}}
+				</label>
+			</td>
+			<td ng-show="field.type == 'c'" class="inlineInputs">
+				<label ng-repeat="option in field.options" style="margin-right:1em">
+					<input type="checkbox" 
+						ng-checked="editReg[field.field].indexOf(option) > -1"
+						ng-click="toggleCheckbox(field.field, option)"
+						value="{{option}}">
+					{{option}}
+				</label>
+			</td>
+		</tr>
+		<tr ng-show="hasExtras">
+			<td colspan="2">&nbsp;</td>
+		</tr>
+		<tr ng-show="hasExtras" style="border-top:1px solid silver">
+			<td class='bold'>Extras/Tickets</td>
+			<td>
+				<table>
+					<tr>
+						<th>Ticket/Extra</th>
+						<th>Quantity</th>
+						<th>Price</th>
+						<th>Current Orders</th>
+						<th>Max Orders</th>
+					</tr>
+					<tr ng-repeat="xtra in editReg.extraOrders">
+						<td>{{xtra.label}}</td>
+						<td>
+							<input type="number" ng-model="xtra.quantity" class="form-control"
+								style="width:5em;display:inline-block;"/>
+						</td>
+						<td>{{xtra.price | currency}}</td>
+						<td>{{xtra.purchases}}</td>
+						<td>{{xtra.capacity_evt  == 9999999 ? 'Unlimited' : xtra.capacity_evt}}</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+	<div class="modal-footer" style="margin:8px 15px;padding:8px 15px">
+		<button type="button" class="btn btn-primary btn-sm" ng-click="closeRightDialog()">
+			Cancel
+		</button>
+		<button type="button" class="btn btn-primary btn-sm" ng-click="updateRegistration()" ng-disabled="!editRegComplete()">
+			<span ng-show="editReg.id">Update</span>
+			<span ng-show="!editReg.id">Add Registration</span>
+		</button>
+	</div>
+	<H3 style="margin:2px" ng-show="editReg.id">Switch Event</H3>
+	<table ng-show="editReg.id">
+		<tr>
+			<td>
+				<b>Event</b>
+				<select ng-model="switchEvent" class="form-select" style="width:18em;"
+					ng-options="event as event.name for event in events | orderObjectBy:'startdate':true"
+					ng-change="getEventRegTypes()">
+				</select>
+			</td>
+			<td>
+				<b>Registration Type</b>
+				<select ng-model="switchRegType" class="form-select" style="width:18em;"
+					ng-options="type.id as type.name for type in switchRegTypes">
+				</select>
+			</td>
+		</tr>
+	</table>
+	<div class="button-row" ng-show="editReg.id">
+		<button ng-click="processEvtSwitch()" class="btn btn-primary btn-sm" ng-disabled="!switchEvent || !switchRegType">
+			Process Event Switch
+		</button>
+	</div>
+	</div> <!-- End Dialog Contents -->
+</div> <!-- End Registration Edit Dialog -->

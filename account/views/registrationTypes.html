@@ -1,0 +1,234 @@
+<div class="col-md-12">
+<div class='alert alert-info' role='alert'>
+	Registration types are associated with each event in the event settings.<br/>
+	These account registration types will be available to copy into any event
+	to streamline the process of event-specific registration type creation.
+</div>
+
+<h3 style="float:left;display:inline-block" ng-if="sponsors_enabled">
+	Attendee Registration Types (Account)
+</h3>
+<h3 style="float:left;display:inline-block" ng-if="!sponsors_enabled">Registration Types</h3>
+<button class="btn btn-success" ng-click="addNew()" style="float:right;margin-top:.5em">
+	Add Attendee Reg Type <span class="badge"><i class="bi bi-plus-circle"></i></span>
+</button>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>Sort</th>
+			<th>Name</th>
+			<th>Price</th>
+			<th>Sections <br/>Allowed</th>
+			<th colspan="2" class="center">Registration Start-End</th>
+			<th colspan="2" class="center">Section Signup Start-End</th>
+			<th colspan="2" class="center" ng-show="enable_videos">
+				Videos Available Start - End<br/>
+				<i style="font-weight:normal">
+					For events including pre-recorded courses
+				</i>
+			</th>
+		</tr>
+	</thead>
+	<tbody id="regTypesTbody">
+		<tr ng-repeat="regType in registrationTypes | orderObjectBy:'sortorder' | filter:{'vendor_reg':'0'}">
+			<td>
+				<span class="handle pointer">&#9776;</span>
+			</td>
+			<td title="{{regType.name}}"><input type='text' class="form-control" ng-model="regType.name" /></td>
+			<td>
+				<input type='text' ng-model="regType.price" class="form-control" 
+					style="width:6em;display:inline"/>
+			</td>
+			<td>
+				<input type='number' ng-model="regType.sections_allowed" class="form-control"
+					string-to-number style="width:6em;display:inline"/>
+			</td>
+			<td>
+				<input type='number' step="1" ng-model="regType.sunrise_days" 
+					string-to-number class="form-control" 
+					style="width:7em;display:inline-block"/>
+				Day(s)<br/>
+				Before event start
+			</td>
+			<td>
+				<input type='number' step="1" ng-model="regType.sunset_days" 
+					string-to-number class="form-control" 
+					style="width:7em;display:inline-block"/> 
+				Day(s)<br/>
+				<select ng-model="regType.sunset_before_after" class="form-select"
+					style="width:7em;display:inline-block;">
+					<option value="before">Before</option>
+					<option value="after">After</option>
+				</select>
+				event start
+			</td>
+			<td>
+				<input type='number' step="1" ng-model="regType.signup_start_days" 
+					string-to-number class="form-control" 
+					style="width:7em;display:inline-block"/> 
+				Day(s)<br/>
+				Before event start
+			</td>
+			<td>
+				<input type='number' step="1" ng-model="regType.signup_end_days" 
+					string-to-number class="form-control" 
+					style="width:7em;display:inline-block"/> 
+				Day(s)<br/>
+				<select ng-model="regType.signup_end_before_after" class="form-select"
+					style="width:7em;display:inline-block;">
+					<option value="before">Before</option>
+					<option value="after">After</option>
+				</select>
+				event start
+			</td>
+			<td ng-show="enable_videos">
+				<input type='number' step="1" ng-model="regType.video_start_days" 
+					string-to-number class="form-control" 
+					style="width:7em;display:inline-block"/> 
+				Day(s)<br/>
+				<select ng-model="regType.video_start_before_after" class="form-select"
+					style="width:7em;display:inline-block;">
+					<option value="before">Before</option>
+					<option value="after">After</option>
+				</select>
+				event start
+			</td>
+			<td ng-show="enable_videos">
+				<input type='number' step="1" ng-model="regType.video_end_days" 
+					string-to-number class="form-control" 
+					style="width:7em;display:inline-block"/> 
+				Day(s)<br/>
+				<select ng-model="regType.video_end_before_after" class="form-select"
+									      video_end_before_after
+					style="width:7em;display:inline-block;">
+					<option value="before">Before</option>
+					<option value="after">After</option>
+				</select>
+				event start
+			</td>
+		</tr>
+</table>
+
+<!-- ******** VENDOR REGISTRATION TYPES ********* -->
+<hr/>
+<div ng-if="sponsors_enabled" style="margin-top:2em">
+	<button class="btn btn-success" ng-click="addNew('vendor')" style="float:right">
+		Add Vendor Reg Type 
+		<span class="badge"><i class="bi bi-plus-circle"></i></span>
+	</button>
+	<h3 style="float:left;display:inline-block" ng-if="sponsors_enabled">
+		Vendor Registration Types (Account)
+	</h3>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Price</th>
+				<th>Sections Allowed</th>
+				<th colspan="2" class="center">Registration Start-End</th>
+				<th colspan="2" class="center">Section Signup Start-End</th>
+				<th colspan="2" class="center">
+					Videos Available Start - End<br/>
+					<i style="font-weight:normal">
+						For events including pre-recorded courses
+					</i>
+				</th>
+				<th># Staff Allowed</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="regType in registrationTypes | orderObjectBy:'sortorder'" 
+				ng-show="regType.vendor_reg == '1'">
+				<td><input type='text' class="form-control" ng-model="regType.name" /></td>
+				<td>
+					<input type='text' ng-model="regType.price" class="form-control" 
+						style="width:6em;display:inline"/>
+				</td>
+				<td>
+					<input type='number' ng-model="regType.sections_allowed" class="form-control"
+						string-to-number style="width:6em;display:inline"/>
+				</td>
+				<td>
+					<input type='number' step="1" ng-model="regType.sunrise_days" 
+						string-to-number class="form-control" 
+						style="width:7em;display:inline-block"/> 
+					Day(s)<br/>
+					Before event start
+				</td>
+				<td>
+					<input type='number' step="1" ng-model="regType.sunset_days" 
+						string-to-number class="form-control" 
+						style="width:7em;display:inline-block"/> 
+					Day(s)<br/>
+					<select ng-model="regType.sunset_before_after" class="form-select"
+						style="width:7em;display:inline-block;">
+						<option value="before">Before</option>
+						<option value="after">After</option>
+					</select>
+					event start
+				</td>
+				<td>
+					<input type='number' step="1" ng-model="regType.signup_start_days" 
+						string-to-number class="form-control" 
+						style="width:7em;display:inline-block"/> 
+					Day(s)<br/>
+					Before event start
+				</td>
+				<td>
+					<input type='number' step="1" ng-model="regType.signup_end_days" 
+						string-to-number class="form-control" 
+						style="width:7em;display:inline-block"/> 
+					Day(s)<br/>
+					<select ng-model="regType.signup_end_before_after" class="form-select"
+						style="width:7em;display:inline-block;">
+						<option value="before">Before</option>
+						<option value="after">After</option>
+					</select>
+					event start
+				</td>
+				<td>
+					<input type='number' step="1" ng-model="regType.video_start_days" 
+						string-to-number class="form-control" 
+						style="width:7em;display:inline-block"/> 
+					Day(s)<br/>
+					<select ng-model="regType.video_start_before_after" class="form-select"
+						style="width:7em;display:inline-block;">
+						<option value="before">Before</option>
+						<option value="after">After</option>
+					</select>
+					event start
+				</td>
+				<td>
+					<input type='number' step="1" ng-model="regType.video_end_days" 
+						string-to-number class="form-control" 
+						style="width:7em;display:inline-block"/> 
+					Day(s)<br/>
+					<select ng-model="regType.video_end_before_after" class="form-select"
+						style="width:7em;display:inline-block;">
+						<option value="before">Before</option>
+						<option value="after">After</option>
+					</select>
+					event start
+				</td>
+				<td>
+					<input type="number" step="1" ng-model="regType.staff_allowance"
+						string-to-number class="form-control"
+						style="width:7em;display:inline-block">
+				</td>
+				<td>
+					<textarea ng-model="regType.description" 
+						class="form-control" rows="5" cols="35"></textarea>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div class="button-row" style="margin-top:15px;text-align:right">
+	<button ng-click="saveTypes()" class="btn btn-primary">Save</button>
+	<button type="button" class="btn btn-primary" ng-click="reload()">Cancel</button>
+</div>
+<div class="row successMessage"><div class='alert alert-success'>Updates Saved</div></div>
+</div>

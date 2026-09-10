@@ -1,0 +1,70 @@
+<style>
+	.qLabel{
+		font-weight:bold;
+		text-decoration:underline;
+	}
+</style>
+<div class="row">
+	<div class="col-md-9">
+		<H3 style="display:inline-block;margin-right:3em;width:9em">Event Questions</H3>
+		<button class="btn btn-primary btn-sm" ng-click="selectAll('event')">
+			<span class="bi bi-check-lg"></span> Select All
+		</button>
+		<button class="btn btn-primary btn-sm" ng-click="clearAll('event')" style="margin-left:2em">
+			<span class="bi bi-arrow-clockwise"></span> Clear All
+		</button>
+		<table class="table">
+			<thead>
+				<tr>
+					<th style="width:7em"></th>
+					<th style="width:60%">Question</th>
+					<th>Response Type</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="question in questions | orderObjectBy:'sortorder'" ng-show="question.assoc == 'event'">
+					<td><input class="form-check-input" type="checkbox" ng-model="question.active" /></td>
+					<td class="{{question.type=='label' ? 'qLabel' : ''}}">{{question.text}}</td>
+					<td>{{question.type | typeFilter}}</td>
+				</tr>
+				<tr>
+					<td colspan="3" class="bold center" style="padding-right:2em">
+						Publish Date
+						<input type="text" class="form-control" ng-model="publishDate" datepicker
+							style="width:8em;display:inline"/>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<H3 style="display:inline-block;margin-right:3em;width:9em">Section Questions</H3>
+		<button class="btn btn-primary btn-sm" ng-click="selectAll('section')">
+			<span class="bi bi-check-lg"></span>
+			Select All
+		</button>
+		<button class="btn btn-primary btn-sm" ng-click="clearAll('section')" style="margin-left:2em">
+			<span class="bi bi-arrow-clockwise"></span>
+			Clear All
+		</button>
+		<table class="table">
+			<thead>
+				<tr>
+					<th style="width:7em"></th>
+					<th style="width:60%">Question</th>
+					<th>Response Type</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="question in questions | orderObjectBy:'sortorder'" ng-show="question.assoc == 'section'">
+					<td><input class="form-check-input" type="checkbox" ng-model="question.active" /></td>
+					<td class="{{question.type=='label' ? 'qLabel' : ''}}">{{question.text}}</td>
+					<td>{{question.type | typeFilter}}</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="save()">Save</button>
+		</div>
+	</div>
+</div> <!-- End Row -->

@@ -1,0 +1,52 @@
+<event-reg-tabs></event-reg-tabs>
+<div class="col-md-11">
+	<p>
+		Registration messages will be sent as an email to all event attendees following their registration.
+	</p>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="newMsg()">New Message</button>
+	</div>
+	<div class='alert alert-warning' role='alert' ng-show="empty" style='margin-top:.5em'>
+		No messages have been created for this event.
+	</div>
+
+	<div id="newMsgDialog" class="dialogRight">
+		<div class="dialogTitle">New Registration message</div>
+		<div class="dialogContents">
+			<form name="newMessgeForm">
+				<b>From/Reply-to Email</b>
+				<input type="email" class="form-control" ng-model="newMessgeFrom" ng-required="true"/>
+				<b>Subject</b>
+				<input type="text" class="form-control" ng-model="newMessageSubject" ng-required="true"/>
+				<b>Message Content</b>
+				<textarea class="form-control" rows="10" cols="40" ng-model="newMessageBody"
+					ng-required="true">
+				</textarea>
+			</form>
+			<div class="button-row" style="margin-top:1em">
+				<button class="btn btn-danger" ng-click="closeDialog()">
+					<span class="bi bi-chevron-left"></span> Cancel
+				</button>
+				<button class="btn btn-success" ng-click="createMessage()">
+					<span class="bi bi-check-lg"></span> Create Message
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<div ng-repeat="message in messages">
+		<b>From/Reply-to Email</b>
+		<input type="email" class="form-control" ng-model="message.from_email" ng-required="true"/>
+		<b>Subject</b>
+		<input type="text" class="form-control" ng-model="message.subject" ng-required="true"/>
+		<b>Message Content</b>
+		<textarea class="form-control" rows="10" cols="20" ng-model="message.message"
+			ng-required="true">
+		</textarea>
+		<div class="button-row" style="margin-top:.5em">
+			<button class="btn btn-danger" ng-click="deleteMsg(message)">Delete Message</button>
+			<button class="btn btn-primary" ng-click="upateMsg(message)">Update Message</button>
+		</div>
+		<hr/>
+	</div>
+</div>

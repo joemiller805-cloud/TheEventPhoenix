@@ -1,0 +1,117 @@
+<style>
+	.pointer{ color:blue; }
+	.row .form-control{
+		display: inline-block;
+	}
+	#filterTbl td{
+		padding:0px 2em;
+	}
+</style>
+
+<div class="flex-row">
+	<div class="col-lg-12">
+		<p style="font-size:16pt;font-weight:bold">Presenter Report</p>
+		<p>
+			<button class="btn btn-primary exportResultsBtn" data-table-id="presenterTable" 
+				data-file-name="Presenter Sections" style="vertical-align:super;">
+				<span class="bi bi-floppy"></span> Export To CSV
+			</button>
+			<button ng-click="columnFilter()" class="btn btn-primary colDisplayBtn readOnly"
+				style="float:none;margin-right:4em">
+				Edit displayed columns
+			</button>
+			<label>
+				Show Attendee Lists
+				<input type="checkbox" class="form-check-input" ng-model="showAttendeeLists" 
+					style="margin-right:4em"/>
+			</label>
+			Sort 
+			<select ng-model="sortField" class="form-select" style="width:8em;display:inline-block;">
+				<option value="last_name">Presenter</option>
+				<option value="dtTime">Session</option>
+				<option value="roomsort">Room</option>
+			</select>
+		</p>
+	</div>
+</div>
+<div class="center bold" style="margin-bottom:8px">
+	<table style="width:99%" id="filterTbl">
+		<tr>
+			<td style="vertical-align: top">
+				Quick Search<br/> 
+				<input class="form-control" ng-model="quickSearchValue" ng-keyup="search()"/>
+			</td>
+			<td>
+				Session(s)<br/>
+				<select multiple size="7" ng-model="sessionFilter" ng-change="search()"
+					class="form-select">
+					<option value="all"> -- All Sessions -- </option>
+					<option ng-repeat="sess in sessions | orderBy:sess" value="{{sess}}">
+						{{sess}}
+					</option>
+				</select>
+			</td>
+			<td>
+				Course(s)<br/>
+				<select multiple size="7" ng-model="courseFilter" ng-change="search()"
+					class="form-select">
+					<option value="all"> -- All Courses -- </option>
+					<option ng-repeat="crs in courses | orderBy:crs" value="{{crs}}">
+						{{crs}}
+					</option>
+				</select>
+			</td>
+			<td>
+				Presenter(s)<br/>
+				<select multiple size="7" ng-model="presenterFilter" ng-change="search()"
+					class="form-select">
+					<option value="all"> -- All Presenters -- </option>
+					<option ng-repeat="pres in presenters | orderBy:pres" value="{{pres}}">
+						{{pres}}
+					</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+</div>
+<table id="presenterTable" class="table scrollable striped"
+	data-width="95%">
+	<thead>
+		<tr>
+			<th>Last Name</th>
+			<th>First Name</th>
+			<th>Email</th>
+			<th>Session</th>
+			<th>Date</th>
+			<th>Start Time</th>
+			<th>End Time</th>
+			<th>Room</th>
+			<th>Course</th>
+			<th>Description</th>
+			<th>Capacity</th>
+			<th>Attendees</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="section in sections | orderBy:[sortField,'last_name','first_name','dtTime']" data-idx="{{$index}}"
+			ng-if="section.include" class="sectionRow" data-sectionid="{{section.sectionid}}">
+			<td>{{section.last_name}}</td>
+			<td>{{section.first_name}}</td>
+			<td>{{section.email}}</td>
+			<td>{{section.session}}</td>
+			<td>{{section.date}}</td>
+			<td>{{section.starttime}}</td>
+			<td>{{section.endtime}}</td>
+			<td>{{section.room}}</td>
+			<td>{{section.course}}</td>
+			<td>{{section.description}}</td>
+			<td>{{section.capacity}}</td>
+			<td>
+				<span class="pointer" ng-click="section.showAttendees = !section.showAttendees">{{section.signups}}</span>
+				<div ng-repeat="attendee in section.attendees | orderBy:attendee" ng-show="showAttendeeLists || section.showAttendees">
+					{{attendee.name}} {{attendee.email}}
+				</div>
+			</td>
+		</tr>
+	</tbody>
+</table>

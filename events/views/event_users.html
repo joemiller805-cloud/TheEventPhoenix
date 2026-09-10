@@ -1,0 +1,149 @@
+<sched-mgmt-tabs ng-show="acctType == 'event'"></sched-mgmt-tabs>
+<div class="col-md-11">
+	<h2>Event Staff</h2>
+	<div class="row" style="margin-bottom:1em">
+		<div class="col-sm-5">
+			<select style="width:20em;" class="form-select"
+				ng-options="user as (user.last_name + ', ' + user.first_name) for user in availableUsers()"
+				ng-model="selectedUser">
+			</select>
+		</div>
+		<div class="col-sm-6">
+			<button type="button" class="btn btn-success" ng-click="addUser()">
+				<span class="bi bi-plus-lg" aria-hidden="true"></span>&nbsp;Add
+			</button>
+			<button type="button" class="btn btn-success" ng-click="addUser('all')">
+				<span class="bi bi-plus-lg" aria-hidden="true"></span>&nbsp;Add all
+			</button>
+			<button type="button" class="btn btn-success" ng-click="startGroupEmail()">
+				<span class="bi bi-envelope" aria-hidden="true"></span>&nbsp;Send Email
+			</button>
+		</div>
+	</div>
+	<div class="form-group" ng-show="requests.length">
+		<table class="table striped scrollable">
+			<thead>
+				<tr>
+					<th>User</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="request in requests">
+					<td>{{request.first_name}} {{request.last_name}}</td>
+					<td>
+						<button class="btn btn-primary" ng-click="confirm(request)">Confirm</button>
+						<button class="btn btn-danger" ng-click="deny(request)">Deny</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="mb-2 row">
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th>&nbsp;</th>
+					<th>Name</th>
+					<th></th>
+					<th>Security Group(s)</th>
+					<th ng-show="acctType == 'event'">Presenter</th>
+					<th ng-show="acctType == 'event'">Registered</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="user in users | filter: {include:true}">
+					<td>
+						<button class="btn btn-danger btn-sm remove" ng-click="removeUser(user)">
+							<span class="bi bi-x-circle" aria-hidden="true"></span>
+						</button>
+					</td>
+					<td>{{user.last_name}}, {{user.first_name}} </td>
+					<td><img ng-src="{{user.photo}}" height="50"/></td>
+					<td>
+						<div ng-repeat="group in user.security_groups">
+							{{groups[group].name}}
+						</div>
+					</td>
+					<td ng-show="acctType == 'event'">
+						<span ng-show="user.presenter == '1'">&#x2714;</span>
+					</td>
+					<td ng-show="acctType == 'event'">
+						<span ng-show="user.registrationid > 0">&#x2714;</span>
+						<span ng-show="!user.registrationid">
+							<select ng-model="user.registration_typeid"
+								ng-options="reg.id as reg.name for reg in regTypes">
+							</select>
+							<button class="btn btn-primary"
+								ng-disabled="!user.registration_typeid"
+								ng-click="registerUser(user)">
+								Register
+							</button>
+						</span>
+					</td>
+				</tr>
+			</tbody>
+			<tfoot></tfoot>
+		</table>
+	</div>
+	<div class="button-row">
+		<button type="button" class="btn btn-primary" ng-click="saveChanges()">Save</button>
+	</div>
+</div>
+
+<!-- Email Dialog -->
+<div id="emailDialog" class="dialogRight">
+	<div class="dialogTitle">{{emailHeader}}</div>
+	<div class="col-sm-12 dialogContents form-horizontal">
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">To:</label>
+			<span class='col-sm-9'>
+				<select ng-model="emailRecipients" class="form-select" ng-hide="emailTo"
+					ng-change="setIncludeEmail(false)">
+					<option value="all">All</option>
+					<option value="select">Select By Hand</option>
+				</select>
+				<label ng-show="emailTo">{{emailTo}}</label>
+			</span>
+		</div>
+		<div class="form-group" ng-show="emailRecipients == 'select'">
+			<label class="col-2 col-form-label">Recipients:</label>
+			<span class="col-sm-9">
+				<button ng-click="setIncludeEmail(true)">Select All</button>
+				<button ng-click="setIncludeEmail(false)">Clear All</button><br/>
+				<label ng-repeat="user in users | filter: {include:true}" style="display:block">
+					<input type="checkbox" ng-model="user.includeInEmail"/>
+					{{user.first_name}} {{user.last_name}} ({{user.email}})
+				</label>
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Subject:</label>
+			<span class='col-sm-9'>
+				<input ng-model="emailSubject" class="form-control" />
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">From:</label>
+			<span class='col-sm-9'>
+				<select class="form-select" ng-model="replytoemail">
+					<option ng-repeat="email in replytoemails" value="{{email}}">
+						{{email}}
+					</option>
+				</select>
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Body:</label>
+			<span class='col-sm-9'>
+				<textarea ng-model="emailBody" class="form-control" cols="100" rows="20"></textarea>
+			</span>
+		</div>
+		<div class="button-row">
+			<button type="button" class="btn btn-primary"
+				ng-click="closeEmailDialog()">Cancel
+			</button>
+			<button class="btn btn-primary" ng-click="sendEmail()">Send Email</button>
+		</div>
+	</div>
+</div> <!-- End Email Dialog -->

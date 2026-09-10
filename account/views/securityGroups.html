@@ -1,0 +1,89 @@
+<div class="col-md-12">
+	<div class="center" style="margin-bottom:1em">
+		<input type="text" class="form-control" style="display:inline-block;width:18em" placeholder="Quick Search" 
+			ng-model="quickSearch"/>
+		<button class="btn btn-primary" style="float:right;margin-right:1em;" ng-click="newGroup()">
+			New Security Group
+		</button>
+	</div>
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Account Page Access</th>
+				<th>Account Report Access</th>
+				<th>Event Page Access</th>
+				<th>Event Report Access</th>
+				<th>Staff Assigned</th>
+				<th style="width:2em"></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="group in groups | orderObjectBy:'name'" ng-if="showGroup(group)">
+				<td>{{group.name}}</td>
+				<td>
+					<div ng-repeat="pg in group.account_pages | orderBy" 
+						ng-show="getPgType(pg) == 'Account Pages'">
+						{{getPgName(pg)}}
+					</div>
+				</td>
+				<td>
+					<div ng-repeat="pg in group.account_pages | orderBy" 
+						ng-show="getPgType(pg) == 'Account Reports'">
+						{{getPgName(pg)}}
+					</div>
+				</td>
+				<td>
+					<div ng-repeat="pg in group.event_pages | orderBy" 
+						ng-show="getPgType(pg) == 'Event Pages'">
+						{{getPgName(pg)}}
+					</div>
+				</td>
+				<td>
+					<div ng-repeat="pg in group.event_pages | orderBy" 
+						ng-show="getPgType(pg) == 'Event Reports'">
+						{{getPgName(pg)}}
+					</div>
+				</td>
+				<td>
+					<div ng-repeat="user in group.users | orderBy">{{user}}</div>
+				</td>
+				<td>
+					<button class="btn btn-primary" ng-click="editGroup(group)">
+						<span class="bi bi-pencil-fill"></span>
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div id="editDialog" class="dialogRight">
+	<div class="dialogTitle">{{dialogTitle}}</div>
+	<div class="dialogContents">
+		<b>Group Name</b>
+		<input ng-model="selectedGroup.name" style="width:25em" />
+		<div ng-repeat="cat in pages">
+			<H3 style="text-align:left">{{cat.category}}</H3>
+			<div style="column-count:3">
+				<label ng-repeat="pg in cat.pages | orderBy:'label'" style="display:block"
+					ng-if="showPg(pg)">
+					<input type="checkbox" ng-checked="hasAccess(pg.route)" 
+						ng-click="pageChange($event, cat, pg)"/>
+					{{pg.label}}
+				</label>
+			</div>
+		</div>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="cancelUpdate()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-danger" ng-click="deleteConfirm()">
+				<span class="bi bi-trash"></span> Delete
+			</button>
+			<button class="btn btn-success" ng-click="saveGroup()">
+				<span class="bi bi-check-lg"></span> Save
+			</button>
+		</div>
+	</div>
+</div>

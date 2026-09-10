@@ -1,0 +1,213 @@
+<div class="row tab-pane active" id="sponsorProfile" ng-cloak>
+	<div class="col-sm-11">
+		<form class="form-horizontal" role="form" name="sponsorForm">
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label"></label>
+				<H4 class='col-sm-5'><u>Company/Vendor Information</u></H4>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Vendor Name</label>
+				<span class='col-sm-5'>
+					<input type='text' ng-model="vendor.name" class='form-control' required>
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Company Web Logo</label>
+				<sapn class="col-sm-7">
+					<div>
+						This image will be used on the registration site in association with 
+						your company.
+					</div>
+					<label class="btn btn-primary btn-primary">
+						Browse
+						<input type="file" name="image" data-target="logo" class="imageUpload" 
+							style="display:none"/>
+					</label>
+					<input type="text" class="form-control" readonly ng-model="vendor.logo"
+						style="width:200px;display:inline-block;">
+					<label class="btn btn-primary btn-primary" ng-click="uploadImage('logo')"
+						ng-disabled="!vendor.logo">
+						Upload
+					</label>
+					<img ng-src="/img/account{{accountid}}/vendorLogos/{{vendor.id}}/{{vendor.logo}}"
+						height="50" alt="Logo Not Uploaded" id="vendorImage" ng-if="vendor.logo"/>
+				</sapn>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Company High Res Logo</label>
+				<sapn class="col-sm-7">
+					<div>
+						This should be a high-resolution image. This will be used for 
+						promotional materials and may appear in large format on banners.
+					</div>
+					<label class="btn btn-primary btn-primary">
+						Browse
+						<input type="file" name="image2" data-target="logo2" class="imageUpload" 
+							style="display:none"/>
+					</label>
+					<input type="text" class="form-control" readonly ng-model="vendor.logo2"
+						style="width:200px;display:inline-block;">
+					<label class="btn btn-primary btn-primary" ng-click="uploadImage('logo2')"
+						ng-disabled="!vendor.logo2">
+						Upload
+					</label>
+					<img ng-src="/img/account{{accountid}}/vendorLogos/{{vendor.id}}/{{vendor.logo2}}"
+						height="50" alt="Logo Not Uploaded" id="vendorImage2" ng-if="vendor.logo2"/>
+				</sapn>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Web Address</label>
+				<span class='col-sm-5'>
+					<input type='text' ng-model="vendor.web_address" class='form-control'>
+				</span>
+			</div>
+			<div class="mb-2 row" ng-show="showCategory">
+				<label class="col-2 col-form-label">Category</label>
+				<span class='col-sm-7'>
+					<select ng-model="categorySelect" class="form-select" 
+						style="display:inline;width:48%" ng-change="categoryChange()">
+						<option ng-repeat="cat in categorySettings.categories" value="{{cat}}">
+							{{cat}}
+						</option>
+						<option ng-if="categorySettings.allowOther" value="Other">Other</option>
+					</select>
+					<input type="text" class="form-control" ng-model="vendor.category" 
+						ng-show="categorySelect == 'Other'" style="display:inline;width:48%"/>
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Company Bio</label>
+				<span class='col-sm-8'>
+					<textarea rows="5" ng-model="vendor.bio" class='form-control'></textarea>
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Address</label>
+				<span class='col-sm-6'>
+					<input type='text' ng-model="vendor.address1" class='form-control' required placeholder="Address">
+				</span>
+				<span class='col-sm-4'>
+					<input type='text' ng-model="vendor.address2" class='form-control' placeholder="Suite #">
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">City State Zip</label>
+				<span class='col-sm-3'>
+					<input type='text' ng-model="vendor.city" class='form-control' required placeholder="City">
+				</span>
+				<span class='col-sm-1'>
+					<select ng-options="state for state in states" ng-model="vendor.state" class="form-select" required>
+					</select>
+				</span>
+				<span class='col-sm-2'>
+					<input type='text' ng-model="vendor.zip" class='form-control' required placeholder="Zip">
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label"></label>
+				<H4 class='col-sm-5'><u>Primary Contact Information</u></H4>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Contact Name</label>
+				<span class='col-sm-5'>
+					<input type='text' ng-model="vendor.contact_first_name" 
+						class='form-control' required placeholder="First">
+				</span>
+				<span class='col-sm-5'>
+					<input type='text' ng-model="vendor.contact_last_name" 
+						class='form-control' required placeholder="Last">
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Email/Phone</label>
+				<span class='col-sm-6'>
+					<input type='email' ng-model="vendor.email" 
+						class='form-control' required placeholder="Email">
+				</span>
+				<span class='col-sm-3'>
+					<input type='text' ng-model="vendor.phone" 
+						class='form-control' required placeholder="Phone">
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label"></label>
+				<H4 class='col-sm-5'><u>Login Information</u></H4>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Username</label>
+				<span class='col-sm-3'>
+					<input type='text' ng-model="vendor.username" class='form-control' required>
+				</span>
+				<span class='col-sm-7' ng-if="vendor.pass">
+					<button class="btn btn-primary" ng-click="openPwReset()">Reset Password</button>
+				</span>
+				<span class='col-sm-3' ng-if="!vendor.pass">
+					<input type="text" ng-model="newAcct.pass" class='form-control' required/>
+				</span>
+			</div>
+		</form>
+		<div class="button-row col-sm-10">
+			<button class="btn btn-primary" ng-click="updateSponsor()">Update Vendor Info</button>
+		</div>
+	</div>
+</div> <!-- End Profile Tab -->
+
+<div id="pwResetDialog" class="dialogRight">
+	<div class="dialogTitle">Reset Password</div>
+	<div class="dialogContents">
+
+		<form name="pwResetForm">
+		<div class="col-sm-11 form-horizontal">
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Current Password</label>
+				<span class='col-sm-8'>
+					<input type="password" ng-model="currentPassword" required
+						class="form-control"/>
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">New Password</label>
+				<span class='col-sm-8'>
+					<input type="password" ng-model="newPassword" required
+						class="form-control" minlength="7"/>
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">New Password Confirm</label>
+				<span class='col-sm-8'>
+					<input type="password" ng-model="newPasswordConfirm" required
+						class="form-control" minlength="7"/>
+					<password-requirements></password-requirements>
+				</span>
+			</div>
+			<div class="mb-2 row" ng-show="badCurrentPw">
+				<label class="col-2 col-form-label"></label>
+				<span class='alert alert-danger col-sm-8 offset-sm-2' role='alert'>
+					Current Password Is Not Correct
+				</span>
+			</div>
+			<div class="mb-2 row" ng-show="noPasswordMatch">
+				<label class="col-2 col-form-label"></label>
+				<span class='alert alert-danger col-sm-8 offset-sm-2' role='alert'>
+					Passwords Do Not Match
+				</span>
+			</div>
+			<div class="mb-2 row" style="display:none" id="passwordResetConfirm">
+				<label class="col-2 col-form-label"></label>
+				<span class='alert alert-success col-sm-8 offset-sm-2' role='alert'>
+					The Account Password Has Been Updated
+				</span>
+			</div>
+		</div>
+		</form>
+
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="resetPassword()">
+				<span class="bi bi-check-lg"></span> Update Password
+			</button>
+		</div>
+	</div>
+</div>

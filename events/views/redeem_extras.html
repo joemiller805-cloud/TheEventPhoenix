@@ -1,0 +1,109 @@
+<div class="col-md-12">
+	<H2>Redeem Registration Extras</H2>
+	<button class="btn btn-primary exportResultsBtn" data-table-id="extrasTbl" data-file-name="tickets"
+		style="float:right;margin-right:20px">
+		<span class="bi bi-floppy"></span>
+		Export
+	</button>
+	<div style="display: flex;margin-bottom:1em">
+		<div>
+			<input type="text" class="form-control" placeholder="Search or Scan Barcode" id="searchTxt"
+				ng-model="search" style="display: inline;width:20em" ng-change="filterExtras()">
+		</div>
+		<div class='alert alert-success redeemAlert' role='alert' ng-show="successMsg">{{successMsg}}</div>
+		<div class='alert alert-warning redeemAlert' role='alert' ng-show="cancellationMsg">{{cancellationMsg}}</div>
+	</div>
+	<div class='alert alert-danger' role='alert' ng-show="errorMsg">
+		{{errorMsg}}
+	</div>
+
+	<H1 ng-show="matchedRegs.length > 1">{{matchedRegs.length}} registrations match this search</H1>
+
+	<section class="center">
+		<span ng-repeat="(label, value) in extrasSummary" style="margin-right:2em">
+			<b>{{label}}</b> {{value.redeemed}} of {{value.ordered}}
+		</span>
+	</section>
+	<table class="table scrollable striped" id="extrasTbl">
+		<thead>
+			<tr class="headerRow sticky noPad">
+				<th>Confirmation</th>
+				<th>First</th>
+				<th>Last</th>
+				<th>Email</th>
+				<th>Registration Type</th>
+				<th>Price</th>
+				<th>Payments</th>
+				<th>Balance</th>
+				<th>Extra</th>
+				<th>Redeemed</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="xtra in filteredExtras">
+				<td>{{xtra.confirmation}}</td>
+				<td>{{xtra.first_name}}</td>
+				<td>{{xtra.last_name}}</td>
+				<td>{{xtra.email}}</td>
+				<td>{{xtra.registration_type}}</td>
+				<td>{{xtra.price}}</td>
+				<td>{{xtra.payments}}</td>
+				<td>{{xtra.balance}}</td>
+				<td>{{xtra.label}} (#{{xtra.num}})</td>
+				<td>
+					<input type="checkbox" ng-model="xtra.redeemed" ng-disabled="reg.deleted == '1'"
+						ng-change="redeemExtraItem(xtra)" />
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	
+
+	<div ng-repeat="reg in matchedRegs" class="matchedReg">
+		<h2>{{reg.first_name}} {{reg.last_name}} - {{reg.registration_type}}</h2>
+		<div class='alert alert-danger' role='alert' ng-if="reg.deleted == '1'" style="margin:0px 1em">
+			This registration has been cancelled.
+		</div>
+		<div class='alert alert-warning' role='alert' ng-if="noExtras(reg)" style="margin:0px 1em">
+			No extra options were ordered for this registration.
+		</div>
+		<div ng-repeat="xtra in reg.extras | orderObjectBy:'sortorder'" style="padding:1em"
+			ng-class="{matchedExtra : xtra == matchedExtra}">
+			<h3 style="margin-top:0px">{{xtra.label}}</h3>
+			<ul style="list-style: none;">
+				<li ng-repeat="item in xtra.items" ng-class="{matchedItem : item == matchedItem}">
+					<label class="pointer">
+						<span style="color: gray">{{xtra.label}} #{{item.num}} </span>
+						<input type="checkbox" ng-model="item.redeemed" ng-change="redeemExtraItem(xtra, item)" 
+							ng-disabled="reg.deleted == '1'"/>
+					</label>
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<style>
+	.matchedReg{
+		margin: 1em;
+		border: 1px solid silver;
+		padding-bottom: 1em;
+	}
+	.matchedReg h2{ 
+		margin-top:0px; 
+		text-align:center; 
+		background: #ddf7fa;
+	}
+	.redeemAlert{
+		flex:1;
+		margin:0px 1em;
+		padding:3px 1em
+	}
+	.matchedItem{ background: #dff0d8; }
+	.matchedExtra{
+		box-shadow: 0px 0px 14px -4px rgba(0,128,0,0.75);
+		-webkit-box-shadow: 0px 0px 14px -4px rgba(0,128,0,0.75);
+		-moz-box-shadow: 0px 0px 14px -4px rgba(0,128,0,0.75);
+		border-radius: 6px;
+	}
+</style>

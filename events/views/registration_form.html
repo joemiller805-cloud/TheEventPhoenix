@@ -1,0 +1,84 @@
+<event-reg-tabs></event-reg-tabs>
+<div class="col-md-11">
+	<span ng-if="haveCoreFields">
+		<h3>Default Registration Fields</h3><hr/>
+	</span>
+	<ul class="bold" style="list-style-type:none">
+		<li ng-repeat="field in coreFields">
+			<input style="margin-right:1em" class="form-check-input" type="checkbox"
+				ng-model="field.include">
+			{{field.label}}
+		</li>
+	</ul>
+
+	<span ng-if="haveAcctFields">
+		<h3>Account Registration Fields</h3><hr/>
+	</span>
+	<ul class="bold" style="list-style-type:none">
+		<li ng-repeat="field in acct_fields | orderObjectBy:'sortorder'">
+			<input style="margin-right:1em" class="form-check-input" type="checkbox"
+				ng-model="field.include">
+			{{field.label}}
+		</li>
+	</ul>
+
+	<h3>Event-Specific Registration Fields</h3><hr/>
+	<table id="registration_fields" class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>Sort</th>
+				<th>Required</th>
+				<th>Label</th>
+				<th>Type</th>
+				<th>Options</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody id="regFieldsTbody">
+			<tr ng-repeat="field in reg_fields | orderObjectBy:'sortorder':false" 
+				ng-show="field.accountField == 'false'">
+				<td>
+					<span class="handle pointer">&#9776;</span>
+				</td>
+				<td>
+					<input type="checkbox" ng-model="field.required" class="form-check-input"
+						ng-true-value="1" ng-false-value="0" ng-disabled="['c','l'].includes(field.type)"/>
+				</td>
+				<td>
+					<input type="text" class="form-control" ng-model="field.label"/>
+				</td>
+				<td>
+					<select ng-model="field.type" class="form-select" ng-change="checkRequired(field)">
+						<option value="t">Text Box</option>
+						<option value="e">Email Input</option>
+						<option value="s">Drop-Down</option>
+						<option value="r">Radio Button</option>
+						<option value="c">Checkbox</option>
+						<option value="a">Agree To Terms (Checkbox)</option>
+						<option value="l" selected="">Label</option>
+					</select>
+				</td>
+				<td>
+					<textarea cols='30' class="form-control" rows='5' ng-model="field.options"
+						ng-hide="['t','e'].includes(field.type)"
+						placeHolder="{{optionMsgs[field.type]}}"></textarea>
+				</td>
+				<td>
+					<button class="btn btn-danger btn-sm" ng-click="remove(field)" title="Remove">
+						<span class="bi bi-trash"></span>
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="button-row" style="margin-top:1em">
+		<button type="button" class="btn btn-success" ng-click="addRow()">
+			Add a new field
+			<span class="badge"><i class="bi bi-plus-circle"></i></span>
+		</button>
+		<button type="submit" class="btn btn-primary" ng-click="saveChanges()">Save</button>
+		<a href="#!event_details">
+			<button type="button" class="btn btn-primary">Cancel</button>
+		</a>
+	</div>
+</div>

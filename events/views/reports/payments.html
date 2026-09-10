@@ -1,0 +1,44 @@
+<div style="font-size:16pt;font-weight:bold;margin-right:2em">Payments Report</div>
+
+<div style="margin-bottom:8px" class="center">
+	<button class="btn btn-primary exportResultsBtn readOnly" data-table-id="paymentsTable"
+		data-file-name="Payments" style="float:left;margin-left:1em">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	<span class="bold"  style="margin-right:100px">Total Payments: {{totalPayments | currency}}</span>
+	<input ng-model="quickSearchValue" style="display:inline-block;width:20em" class="form-control"
+		ng-keyup="quickSearch()" placeholder="Quick Search" />
+</div>
+<table class="table scrollable striped" style="font-size:9pt" id="paymentsTable">
+	<thead>
+		<tr>
+			<th>Confirmation</th>
+			<th>Email</th>
+			<th>Registrant</th>
+			<th>Business</th>
+			<th>Amount</th>
+			<th>Pymt Type</th>
+			<th>Date</th>
+			<th>Reg Type</th>
+			<th>Ref Nbr</th>
+			<th>Note</th>
+			<th>Entered By</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="payment in payments | orderBy:'sortDate'" class="paymentRow"
+			ng-if="payment.include">
+			<td>{{payment.confirmation}}</td>
+			<td>{{payment.email}}</td>
+			<td>{{payment.last_name}}, {{payment.first_name}}</td>
+			<td>{{payment.business}}</td>
+			<td>{{payment.amount}}</td>
+			<td>{{payment.payment_type}}</td>
+			<td>{{payment.entered_date}}</td>
+			<td>{{payment.regType}}</td>
+			<td>{{payment.ref_nbr}}</td>
+			<td>{{payment.note}}</td>
+			<td>{{payment.entered_by}}</td>
+		</tr>
+	</tbody>
+</table>

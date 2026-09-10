@@ -1,0 +1,65 @@
+<div class="col-md-12" style="padding-top:1em" ng-show="!showRegTypes">
+	<H2>{{eventName}} - Dashboard</H2>
+	<H3 ng-show="daysUntilEvt > 0">Starts in {{daysUntilEvt}} Days</H3>
+	<H3 ng-show="daysUntilEvt < 0">Started {{daysUntilEvt * -1}} Days Ago</H3>
+	<h3>Attendee Registrations</h3>
+	<table class="table scrollable striped">
+		<thead>
+			<th>Type</th>
+			<th style="width:10em">Count</th>
+			<th style="width:10em">Charged</th>
+			<th style="width:10em">Discount</th>
+			<th style="width:10em">Paid</th>
+			<th style="width:10em">Due</th>
+		</thead>
+		<tbody>
+			<tr ng-repeat="type in attendeeRegistrations | orderBy:'sortorder'">
+				<td>{{type.name}}</td>
+				<td>{{type.signups}}</td>
+				<td>{{type.charged | currency}}</td>
+				<td>{{type.discount | currency}}</td>
+				<td>{{type.paid | currency}}</td>
+				<td>{{type.due | currency}}</td>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr class="bold" style="background:#cfcbcb">
+				<td>Total</td>
+				<td>{{totalAttendeeSignups}}</td>
+				<td>{{totalAttendeeCharged | currency}}</td>
+				<td>{{totalAttendeeDiscount | currency}}</td>
+				<td>{{totalAttendeePaid | currency}}</td>
+				<td>{{totalAttendeeDue | currency}}</td>
+			</tr>
+		</tfoot>
+	</table>
+	
+	<h3>Vendor Registrations</h3>
+	<table class="table scrollable striped">
+		<thead>
+			<th>Type</th>
+			<th style="width:10em">Count</th>
+			<th style="width:10em">Charged</th>
+			<th style="width:10em">Paid</th>
+			<th style="width:10em">Due</th>
+		</thead>
+		<tbody>
+			<tr ng-repeat="type in vendorRegistrations">
+				<td>{{type.name}}</td>
+				<td>{{type.signups}}</td>
+				<td>{{type.charged | currency}}</td>
+				<td>{{type.paid | currency}}</td>
+				<td>{{type.due | currency}}</td>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr class="bold" style="background:#cfcbcb">
+				<td>Total</td>
+				<td>{{totalVendorSignups}}</td>
+				<td>{{totalVendorCharged | currency}}</td>
+				<td>{{totalVendorPaid | currency}}</td>
+				<td>{{totalVendorDue | currency}}</td>
+			</tr>
+		</tfoot>
+	</table>		
+</div>

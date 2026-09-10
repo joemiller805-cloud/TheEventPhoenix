@@ -1,0 +1,15 @@
+payTest.php
+ftp-kr.json
+*.code-snippets
+*.sync.cache.json
+.vscode/*
+/img/
+/videos/*
+/documents/*
+img/
+node_modules/
+playwright-report/
+test-results/
+.env.playwright.local
+temp_cookie.txt
+debug.log

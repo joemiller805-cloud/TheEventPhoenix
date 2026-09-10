@@ -1,0 +1,158 @@
+<div class="row">
+	<div class="col-lg-12">
+		<p style="font-size:16pt;font-weight:bold">Session Report</p>
+	</div>
+	<divstyle="margin-bottom:8px">
+		<button class="btn btn-primary exportResultsBtn readOnly" data-table-id="sessionTable"
+			data-file-name="Sessions" style="float:left;margin-left:2em">
+			<span class="bi bi-floppy"></span> Export To CSV
+		</button>
+		<button class="btn btn-primary exportResultsBtn readOnly" data-table-id="yappTbl"
+			data-file-name="Sessions" style="float:left;margin-left:2em"
+			ng-show="accountid == '1000'">
+			<span class="bi bi-floppy"></span> Get Yapp Export
+		</button>
+		<button ng-click="columnFilter()" class="btn btn-primary colDisplayBtn readOnly"
+			style="float:left">
+			Edit displayed columns
+		</button>
+		<input ng-model="quickSearchValue" placeholder="Quick Search" 
+			ng-keyup="quickSearch()" class="form-control" 
+			style="display:inline;width:30em;margin-left:5em"/>
+	</div>
+	<table id="sessionTable" class="table scrollable striped" data-width="98%">
+		<thead>
+			<tr>
+				<th data-sort="course"><sort-arrows></sort-arrows>Course</th>
+				<th data-sort="session"><sort-arrows></sort-arrows>Session</th>
+				<th data-sort="date" data-sort-type="date">
+					<sort-arrows></sort-arrows>	Date
+				</th>
+				<th data-sort="starttime"><sort-arrows></sort-arrows>Start</th>
+				<th data-sort="endtime"><sort-arrows></sort-arrows>End</th>
+				<th data-sort="capacity" data-sort-type="integer">
+					<sort-arrows></sort-arrows>	Capacity
+				</th>
+				<th data-sort="signupcount" data-sort-type="integer">
+					<sort-arrows></sort-arrows> Attendees
+				</th>
+				<th data-sort="room"><sort-arrows></sort-arrows>Room</th>
+				<th data-sort="description" style="width:30em"><sort-arrows>
+				</sort-arrows>Description</th>
+				<th data-sort="presenter"><sort-arrows></sort-arrows>
+					Presenters
+				</th>
+				<th data-sort="presenterEmails"><sort-arrows></sort-arrows>
+					Presenter Emails
+				</th>
+				<th data-sort="is_virtual"><sort-arrows></sort-arrows>
+					Virtual
+				</th>
+				<th data-sort="web_link"><sort-arrows></sort-arrows>
+					Video/Webinar Link
+				</th>
+				<th data-sort="web_link2"><sort-arrows></sort-arrows>
+					Meeting ID
+				</th>
+				<th data-sort="web_pass"><sort-arrows></sort-arrows>
+					Meeting Passcode
+				</th>
+				<th data-sort="exclude_att_limit"><sort-arrows></sort-arrows>
+					Excluded from Section Limit
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="session in sessions | orderBy:sortVal:sortDesc" 
+				ng-if="session.include">
+				<td>{{session.course}}</td>
+				<td>{{session.session}}</td>
+				<td>{{session.date}}</td>
+				<td>{{session.starttime}}</td>
+				<td>{{session.endtime}}</td>
+				<td>{{session.capacity}}</td>
+				<td>
+					<a ng-click="getAttendees(session)" class="pointer"
+						ng-show="session.signupcount != '0'">
+						{{session.signupcount}}
+					</a>
+					<span ng-show="session.signupcount == '0'">0</span>
+				</td>
+				<td>{{session.room}}</td>
+				<td>{{session.description}}</td>
+				<td>{{session.presenter}}</td>
+				<td>{{session.presenterEmails}}</td>
+				<td>
+					<span ng-show="session.is_virtual == '1'">Yes</span>
+					<span ng-show="session.is_virtual == '0'">No</span>
+				</td>
+				<td>
+					<a target="_blank" href="{{session.web_link}}">
+						{{session.web_link.replace('https://','')}}
+					</a>
+				</td>
+				<td>{{session.web_link2}}</td>
+				<td>{{session.web_pass}}</td>
+				<td class="center">
+					<span ng-show="session.exclude_att_limit == '1'">&#10004;</span>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<!-- Yapp Table -->
+	<table id="yappTbl" class="table striped" data-width="98%" style="visibility:collapse;">
+		<thead>
+			<tr>
+				<th>Track</th>
+				<th>Title</th>
+				<th>Date</th>
+				<th>Start Time</th>
+				<th>End Time</th>
+				<th>Location</th>
+				<th>Address</th>
+				<th>Description</th>
+				<th>People IDs</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="session in sessions | orderBy:sortVal:sortDesc" 
+				ng-if="session.include">
+				<td>{{session.tracks}}</td>
+				<td>{{session.course}}</td>
+				<td>{{session.date}}</td>
+				<td>{{session.starttime}}</td>
+				<td>{{session.endtime}}</td>
+				<td>{{session.room}}</td>
+				<td></td>
+				<td>{{session.description}}</td>
+				<td>{{getAttendeeConfirmations(session)}}</td>
+			</tr>
+		</tbody>
+	</table>
+</div> <!-- End Row -->
+
+<div id="attendeeDialog" class="dialogRight">
+	<div class="dialogTitle">{{attendeeDialogTitle}}</div>
+	<div class="dialogContents">
+		<table class="table scrollable">
+			<thead>
+				<tr class="headerRow sticky noPad">
+					<th>Name</th>
+					<th>Email</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="attendee in sectionAttendees | orderBy:'last_name'">
+					<td>{{attendee.last_name}}, {{attendee.first_name}}</td>
+					<td>{{attendee.email}}</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Close
+			</button>
+		</div>
+	</div>
+</div> <!-- End Attendee Dialog -->

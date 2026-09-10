@@ -1,0 +1,98 @@
+<style>
+	#attendeeLoginDiv{
+		-webkit-border-radius: 5px;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+		width:25em;
+		max-width: 100%;
+		margin:auto;
+		-webkit-box-shadow: 10px 10px 20px -2px rgba(148,140,148,1);
+		-moz-box-shadow: 10px 10px 20px -2px rgba(148,140,148,1);
+		box-shadow: 10px 10px 20px -2px rgba(148,140,148,1);
+		margin-top:.5em;
+		border:1px solid silver;
+		padding:.5em;
+	}
+</style>
+<div class="hidden-print evtSidebar">
+	<div class="sidebarEventName">{{eventData.eventName}}</div>
+	<img ng-src="{{eventData.logo}}" ng-if="eventData.logo"
+		style="max-height:100px;max-width:250px;display:block;margin:auto"/>
+	<div ng-show="showLogin" class="center" id="attendeeLoginDiv" ng-cloak>
+		<b style="font-size:larger;">Already Ordered?</b><br/>
+		<input ng-model="loginConfirmation"	placeholder="Confirmation Number" style="width:11em"/>
+		<button class="btn btn-primary btn-xs" ng-click="login()">Login</button>
+		<div> <a href="recover">I don't know my confirmation number</a>	</div>
+		<div class='alert alert-danger bold center' role='alert' ng-show="invalidRegNum" 
+			style="margin-top:.5em">
+			Confirmation Not Found
+		</div>
+	</div>
+
+	<div ng-show="sessionData.attendee_first">
+		<span style="font-size:13pt;margin-left:5px">
+			Welcome <b>{{sessionData.attendee_first}} {{sessionData.attendee_last}}</b> 
+		</span>
+		<button class="btn btn-primary btn-xs" ng-click="logout()" style="margin-left:1em;">
+			Logout
+		</button>
+	</div>
+	<div class="list-group bold" style="margin-top:1em">
+		<a ng-href='/e/{{eventData.slug}}' class='list-group-item' 
+			ng-show="showItem('Event Home') && eventData.pages.length > 0 && eventHasHome()">
+			{{getLabel('Event Home')}}
+		</a>
+		<a ng-href='/e/{{eventData.slug}}/contact' class='list-group-item' ng-show="showItem('Contact')">
+			{{getLabel('Contact')}}
+		</a>
+		<a ng-if="eventData.registrationvisible == '1'" ng-href='/e/{{eventData.slug}}/register'
+			class='list-group-item'>
+			<span ng-show="sessionData.confirmation && showItem('Manage Registration')">
+				{{getLabel('Manage Registration')}}
+			</span>
+			<span ng-show="!sessionData.confirmation && showItem('Register')">
+				{{getLabel('Register')}}
+			</span>
+		</a>
+		<a ng-if="eventData.showMasterSched == '1' && showItem('Event Program')" 
+			ng-href='/e/{{eventData.slug}}/master_schedule' class='list-group-item'>
+			{{getLabel('Event Program')}}
+		</a>
+		<a ng-href='/e/{{eventData.slug}}/attendee_schedule' class='list-group-item' 
+			ng-show="(sessionData.sections_allowed || '0') != '0' && showItem('My Schedule')">
+			{{getLabel('My Schedule')}}
+		</a>
+		<a ng-href='/e/{{eventData.slug}}/order_summary' class='list-group-item' 
+			ng-show="sessionData.confirmation && showItem('Event Tickets')">
+			{{getLabel('Event Tickets')}}
+		</a>
+		<a ng-href='/events/invoice.php?confirmation={{sessionData.confirmation}}&eventid={{eventData.eventid}}' 
+			class='list-group-item' ng-show="sessionData.confirmation && eventData.kioskinvoice == '1'" target="_blank">
+			Invoice
+		</a>
+		<a ng-href='/e/{{eventData.slug}}/attendee_sponsor_info' class='list-group-item' 
+			ng-if="sessionData.sponsor_staff && showItem('My Vendor Info')">
+			{{getLabel('My Vendor Info')}}
+		</a>
+		<a ng-if="eventData.hasCourseList && showItem('Courses Offered')" 
+			ng-href='/e/{{eventData.slug}}/course_catalog' class='list-group-item'>
+			{{getLabel('Courses Offered')}}
+		</a>
+		<a ng-if="eventData.showdocumentation == '1' && showItem('Documents')" 
+			ng-href='/e/{{eventData.slug}}/event_docs'	class='list-group-item'>
+			{{getLabel('Documents')}}
+		</a>
+		<a ng-repeat="page in eventData.pages | orderBy:'name'"
+			ng-if="page.home != '1' && (page.show_registrants != '1' || sessionData.confirmation)"
+			ng-href='/e/{{eventData.slug}}/{{page.slug}}' class='list-group-item'>
+			{{page.name}}
+		</a>
+	</div>
+	<div class="list-group" 
+		ng-if="sessionData.master || (sessionData.eventAccess && sessionData.securityAccess)">
+		<a href="/admin.php#!/event_details/{{eventData.eventid}}" class="list-group-item list-group-item-danger">
+			Administer this event
+		</a>
+	</div>
+</div>
+

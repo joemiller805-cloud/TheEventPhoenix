@@ -1,0 +1,80 @@
+<div class="col-md-12" style="margin-top:1em">
+	<table class="table striped scrollable">
+		<thead>
+			<tr>
+				<th>Feature</th>
+				<th>Description</th>
+				<th>Enable</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-if="acctType != 'ticketing'">
+				<td>Attendee Surveys</td>
+				<td>
+					Create surveys for event attendees.
+				</td>
+				<td><input type="checkbox" ng-model="account.enable_survey" class="form-check-input"/></td>
+			</tr>
+			<tr ng-if="acctType != 'ticketing'">
+				<td>Document Management</td>
+				<td>
+					Associate documents with the account, events, and courses.
+					These documents will be made available to event attendees.
+				</td>
+				<td><input type="checkbox" ng-model="account.enable_docs" class="form-check-input"/></td>
+			</tr>
+			<tr ng-if="acctType != 'ticketing'">
+				<td>Inventory Management</td>
+				<td>
+					Track inventory (A.V. equipment, office equipment, signage, etc...)
+				</td>
+				<td><input type="checkbox" ng-model="account.enable_inventory" class="form-check-input"/></td>
+			</tr>
+			<tr>
+				<td>Season Passes</td>
+				<td>
+					Create season passes for admission to multiple events
+				</td>
+				<td><input type="checkbox" ng-model="account.enable_season_pass" class="form-check-input"/></td>
+			</tr>
+			<tr ng-if="acctType != 'ticketing'">
+				<td>Staff Course Proposals</td>
+				<td>
+					Allow staff to submit course proposals.
+				</td>
+				<td><input type="checkbox" ng-model="account.enable_course_proposals" class="form-check-input"/></td>
+			</tr>
+			<tr>
+				<td>Staff Event Participation Requests</td>
+				<td>
+					Allow staff to submit requests to attend events.
+				</td>
+				<td><input type="checkbox" ng-model="account.enable_evt_requests" class="form-check-input"/></td>
+			</tr>
+			<tr ng-if="acctType != 'ticketing'">
+				<td>Staff Expense Management</td>
+				<td>
+					Allow staff to submit event expenses for reimbursement.
+				</td>
+				<td><input type="checkbox" ng-model="account.enable_staff_expense" class="form-check-input"/></td>
+			</tr>
+			<tr>
+				<td>Vendor Management</td>
+				<td>
+					Allow vendors to create accounts and purchase sponsorship options.
+				</td>
+				<td><input type="checkbox" class="form-check-input" ng-model="account.sponsors_enabled" /></td>
+			</tr>
+			<tr ng-if="acctType != 'ticketing'">
+				<td>Video Management</td>
+				<td>
+					Upload videos for pre-recorded sessions.
+				</td>
+				<td><input type="checkbox" class="form-check-input" ng-model="account.enable_videos" /></td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="save()">Save</button>
+	</div>
+</div>

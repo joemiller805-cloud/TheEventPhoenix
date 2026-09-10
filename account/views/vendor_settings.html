@@ -1,0 +1,121 @@
+<div class="row">
+<div class="col-md-11">
+	<H4>Vendor Invoice Message</H4>	
+	<p>The following message will appear on all vendor invoices.</p>	
+	<textarea cols="70" rows="5" class="form-control" ng-model="sponsor_invoice_msg"></textarea>
+	<!---------------------- END INVOICE MESSAGE ---------------------->
+
+	<H4>Vendor Categories</H4>	
+	<div class='button-row'>
+		<button ng-click="addCategory()" class="btn btn-primary">Add Category</button>
+	</div>
+	<div ng-repeat="cat in categorySettings.categories track by $index">
+		<b>{{$index + 1}}</b>
+		<input type="text" class="form-control" ng-model="categorySettings.categories[$index]" 
+			style="width:35em;margin-top: 5px;display: inline-block;" />
+		<button class="btn btn-danger btn-sm" ng-click="deleteCategory($index)">
+			<span class="bi bi-trash"></span>
+		</button>
+	</div>
+	<label style="margin:1em;font-weight: normal;">
+		Allow vendors to select "Other" and enter any desired category name
+		<input type="checkbox" class="form-check-input" ng-model="categorySettings.allowOther"
+			style="display:inline-block" />
+	</label>
+	<!---------------------- END CATEGORIES ---------------------->
+
+	<H4>Vendor Discounts</H4>
+	<H3>Purchase Total Discounts</H3>
+	<div class='button-row'>
+		<button ng-click="addThreshold()" class="btn btn-primary">Add Discount</button>
+	</div>
+	<table class="table">
+		<tr>
+			<th>Minimum Purchase</th>
+			<th>Calculation Method</th>
+			<th>Discount</th>
+			<th></th>
+		</tr>
+		<tr ng-repeat="val in thresholds">
+			<td>
+				<input type="number" style="width:7em" ng-model="val.val" class="form-control"/>
+			</td>
+			<td>
+				<select ng-model="val.method" class="form-select" style="width:10em">
+					<option value="percent">Percent</option>
+					<option value="amount">Amount</option>
+				</select>
+			</td>
+			<td>
+				<input type="number" style="width:7em" ng-model="val.discount" class="form-control"/>
+			</td>
+			<td>
+				<button class="btn btn-danger btn-sm" ng-click="deleteThreshold(val)">
+					<span class="bi bi-trash"></span>
+				</button>
+			</td>
+		</tr>
+	</table>
+	<hr/>
+	<H3>Discount Codes</H3>
+	<div class='button-row'>
+		<button ng-click="addDicountCode()" class="btn btn-primary">Add Discount Code</button>
+	</div>
+	<table class="table">
+		<tr>
+			<th>Discount Code</th>
+			<th>Calculation Method</th>
+			<th>Discount</th>
+			<th>Sunrise</th>
+			<th>Sunset</th>
+			<th>Frequency</th>
+			<th></th>
+		</tr>
+		<tr ng-repeat="code in discountCodes">
+			<td>
+				<input type="text" style="width:12em" ng-model="code.code" class="form-control"/>
+			</td>
+			<td>
+				<select ng-model="code.method" class="form-select" style="width:10em">
+					<option value="percent">Percent</option>
+					<option value="amount">Amount</option>
+				</select>
+			</td>
+			<td>
+				<input type="number" style="width:7em" ng-model="code.discount" class="form-control"
+					string-to-number />
+			</td>
+			<td>
+				<input type="text" class="datepicker form-control" ng-model="code.sunrise" 
+					style="width:11em"/>
+			</td>
+			<td>
+				<input type="text" class="datepicker form-control" ng-model="code.sunset" 
+					style="width:11em"/>
+			</td>
+			<td>
+				<select ng-model="code.frequency" class="form-select">
+					<option value="oneTime">One Time Only</option>
+					<option value="oncePerVendor">One Time Per Vendor</option>
+				</select>
+			</td>
+			<td>
+				<button class="btn btn-danger btn-sm" ng-click="deleteCode(code)">
+					<span class="bi bi-trash"></span>
+				</button>
+			</td>
+		</tr>
+	</table>
+	<div class='button-row'>
+		<button ng-click="save()" class="btn btn-primary">Save</button>
+	</div>
+</div>
+</div>
+
+<style>
+	h4{
+		color: white;
+		background: var(--header);
+		padding: 5px 10px;
+	}
+</style> 

@@ -1,0 +1,49 @@
+<div style="font-size:16pt;font-weight:bold;margin-right:2em">Order Summary</div>
+
+<div style="margin-bottom:8px" class="center">
+	<button class="btn btn-primary exportResultsBtn readOnly" data-table-id="orderTbl"
+		data-file-name="Order Summary" style="float:left;margin-left:1em">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	
+	<input ng-model="quickSearchValue" style="display:inline-block;width:20em" class="form-control"
+		ng-keyup="quickSearch()" placeholder="Quick Search" />
+</div>
+<table class="table scrollable striped" style="font-size:9pt" id="orderTbl">
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Confirmation</th>
+			<th>Email</th>
+			<th ng-show="acctType != 'ticketing'">Registration Type</th>
+			<th ng-repeat="xtra in extras" style="position:sticky; top:-1px; z-index:900">{{xtra.label}}</th>
+			<th class="right">Order Total</th>
+			<th class="right">Service Fee</th>
+			<th class="right">Payments</th>
+			<th class="right">Balance</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="reg in registrations | orderObjectBy:'last_name'" ng-if="reg.include">
+			<td>{{reg.last_name}}, {{reg.first_name}}</td>
+			<td>{{reg.confirmation}}</td>
+			<td>{{reg.email}}</td>
+			<td ng-show="acctType != 'ticketing'">{{reg.registration_type}}</td>
+			<td ng-repeat="xtra in extras">
+				{{reg.orders[xtra.id]}}
+			</td>
+			<td class="right">{{reg.price | currency}}</td>
+			<td class="right">{{reg.serviceFee | currency}}</td>
+			<td class="right">{{reg.payments | currency}}</td>
+			<td class="right">{{reg.balance | currency}}</td>
+		</tr>
+	</tbody>
+	<tfoot>
+		<td colspan="{{acctType == 'ticketing' ? 3 : 4}}">Totals</td>
+		<td ng-repeat="xtra in extras">{{totals.extras[xtra.id]}}</td>
+		<td class="right">{{totals.price | currency}}</td>
+		<td class="right">{{totals.serviceFee | currency}}</td>
+		<td class="right">{{totals.payments | currency}}</td>
+		<td class="right">{{totals.balance | currency}}</td>
+	</tfoot>
+</table>

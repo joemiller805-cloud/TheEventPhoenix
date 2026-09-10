@@ -1,0 +1,36 @@
+<div class="col-md-12" style="margin-top:1em">
+	<div class="flex-row">
+		<p style="font-size:16pt;font-weight:bold">Event Registrations</p>
+	</div>
+	<div
+		er-grid-widget
+		data-data="filteredRecs"
+		data-columns="columns"
+		items-per-pg="50"
+		export-name="Event Registrations">
+	</div>
+</div>
+
+<div id="eventDialog" class="dialogRight">
+	<div class="dialogTitle">Events</div>
+	<div class="dialogContents">
+		<div>
+			<div class="center bold" style="margin:1em 0em">
+				All Events
+				<input type="checkbox" ng-change="setAllEvents()" ng-model="allEvents" />
+			</div>
+			<div style="column-count:2">
+				<label ng-repeat="event in events | orderObjectBy:'startdate':true"
+					style="display:block">
+					<input type="checkbox" ng-model="event.show" ng-change="filterRecs()"/>
+						{{event.name}}
+				</label>
+			</div>
+		</div>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Done
+			</button>
+		</div>
+	</div>
+</div>

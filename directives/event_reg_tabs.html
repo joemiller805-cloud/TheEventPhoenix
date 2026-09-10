@@ -1,0 +1,20 @@
+<div class="col-md-12" style="margin-bottom:1em">
+	<h3>Event Registration Settings</h3>
+	<ul class="nav nav-tabs">
+		<li class="nav-link active" ng-if="hasPageAccess('registration_form')">
+			<a href="/admin.php#!/registration_form">Registration Form</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('registration_types') && acctType != 'ticketing'">
+			<a href="/admin.php#!/registration_types">Registration Types</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('registration_extras')">
+			<a href="/admin.php#!/registration_extras">Extras/Tickets</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('registration_messages')">
+			<a href="/admin.php#!/registration_messages">Registration Messages</a>
+		</li>
+		<li class="nav-link" ng-if="hasPageAccess('registration_discounts')">
+			<a href="/admin.php#!/registration_discounts">Discount Codes</a>
+		</li>
+	</ul>
+</div>

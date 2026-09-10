@@ -1,0 +1,39 @@
+<div class="row tab-pane active" id="courseRequests" ng-cloak>
+	<div class="col-sm-11">
+		<form class="form-horizontal" role="form" name="courseRequestForm">
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label"></label>
+				<H4 class='col-sm-7'><u>Propose a New Course</u></H4>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Title</label>
+				<span class='col-sm-7'>
+					<input type='text' ng-model="newCourse.title" class='form-control' required>
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Description</label>
+				<span class='col-sm-7'>
+					<textarea ng-model="newCourse.description" class='form-control' required
+						rows="5">
+					</textarea>
+				</span>
+			</div>
+			<div class="mb-2 row">
+				<label class="col-2 col-form-label">Staff Who Can Teach</label>
+				<span class='col-sm-7' style="columns:2">
+					<div ng-repeat="member in vendor.staff | orderBy:'last_name'" >
+						<label>
+							<input class="form-check-input" type="checkbox" ng-model="member.selected" />
+							{{member.first_name}}
+							{{member.last_name}}
+						</label>
+					</div>
+				</span>
+			</div>
+		</form>
+		<div class="button-row col-sm-9">
+			<button class="btn btn-primary" ng-click="submitProposal()">Submit Proposal</button>
+		</div>
+	</div>
+</div> <!-- End Course Request -->

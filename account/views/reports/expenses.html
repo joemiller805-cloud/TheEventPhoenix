@@ -1,0 +1,165 @@
+<div class="col-md-12">
+<div style="margin:1em 0px">
+	<table style="width:100%">
+		<thead>
+			<tr>
+				<th ng-show="acct">Event(s)</th>
+				<th>Staff</th>
+				<th>Due</th>
+				<th>Show Details</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td ng-show="acct">
+					<select ng-model="selectedEvent" ng-change="getExpenses()" 
+						class="form-select"
+						style='width:20em;display:inline-block;'>
+						<optgroup label="Multiple Events">
+							<option value="upcoming">Upcoming Events</option>
+							<option value="recent">Recent Events (Last 365 Days)</option>
+							<option value="upcomingAndRecent">Upcoming and Recent Events</option>
+							<option value="">All Events</option>
+						</optgroup>
+						<optgroup label="Specific Event">
+							<option ng-repeat="event in events | orderObjectBy:'startdate':true" 
+								value="{{event.id}}">
+								{{event.name}}
+							</option>
+						</optgroup>
+					</select>
+				</td>
+				<td>
+					<select ng-model="staffFilter" class='form-select' 
+						style="width:10em" ng-change="filterExpenses()">
+						<option value="all">All</option>
+						<option ng-repeat="staff in staff | orderObjectBy:'last_name'" 
+							value="{{staff.id}}">
+							{{staff.last_name}}, {{staff.first_name}}
+						</option>
+					</select>
+				</td>
+				<td>
+					<select ng-model="paidFilter" class="form-select"
+						style="width:7em" ng-change="filterExpenses()">
+						<option value="all">All</option>
+						<option value="paid">Fully Paid </option>
+						<option value="unpaid">Unpaid/Partially Paid</option>
+					</select>
+				</td>
+				<td>
+					<input class="form-check-input" type="checkbox" ng-model="showDetails" />
+				</td>
+			</tr>
+		</tbody>
+	</table>		
+</div>
+
+<table class="table scrollable striped">
+	<thead>
+		<tr class="headerRow sticky noPad">
+			<th>Name</th>
+			<th style="width:9em" class="right">Expenses</th>
+			<th style="width:9em" class="right">Approved</th>
+			<th style="width:9em" class="right">Paid</th>
+			<th style="width:9em" class="right">Due</th>
+		</tr>
+	</thead>
+	<tbody ng-repeat="staff in staff | orderObjectBy:'last_name'" ng-show="staff.ttlExpenses > 0">
+		<tr>
+			<td>{{staff.last_name}} {{staff.first_name}}</td>
+			<td class="right">{{staff.ttlExpenses | currency}}</td>
+			<td class="right">{{staff.approved | currency}}</td>
+			<td class="right">{{staff.paid | currency}}</td>
+			<td class="right">{{staff.due | currency}}</td>
+		</tr>
+		<tr ng-show="showDetails">
+			<td colspan="20">
+				<table class="table detailsTbl" style="margin-right:3em">
+					<tr>
+						<th style="width:19em">Event</th>
+						<th style="width:9em">Category</th>
+						<th>Description</th>
+						<th style="width:9em">Receipt</th>
+						<th class="right" style="width:9em">Amount</th>
+						<th class="right" style="width:9em">Approved</th>
+						<th class="right" style="width:9em">Paid</th>
+						<th class="right" style="width:9em">Due</th>
+					</tr>
+					<tr ng-repeat="exp in staff.expenses | orderBy:'event_name'">
+						<td>{{exp.event_name}}</td>
+						<td>{{exp.category}}</td>
+						<td>{{exp.description}}</td>
+						<td>
+							<span ng-show="!exp.receipt">No Receipt</span>
+							<span ng-show="exp.receipt">
+								<button class="btn btn-primary btn-sm readOnly" 
+									ng-click="showReceipt(exp)"
+									style="margin-left:1em;padding:1px 5px">
+									<span class="bi bi-eye"></span>
+								</button>
+							</span>
+						</td>
+						<td class="right">{{exp.amount | currency}}</td>
+						<td class="right">{{exp.approved_amt | currency}}</td>
+						<td class="right">{{exp.totalPaid | currency}}</td>
+						<td class="right">{{exp.due | currency}}</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</tbody>
+</table>
+</div>
+
+<div id="receiptDialog">
+	<div id="receiptHeader">
+		Receipt
+		<button class="btn btn-primary btn-xs readOnly" ng-click="hideReceipt()">x</button>
+	</div>
+	<iframe></iframe>
+	<img />
+</div>
+
+<style>
+	table.detailsTbl tr th{
+		background: silver;
+		padding:4px;
+	}
+	.detailsTbl{ border:1px solid silver; }
+	table.detailsTbl tr td{ padding:4px; }
+	#receiptDialog{
+		position: fixed;
+		top:8vh;
+		left:25vw;
+		width:50vw;
+		height:85vh;
+		z-index:1300;
+		display:none;
+		background:white;
+		-webkit-box-shadow: 5px 5px 15px 5px #000000; 
+		box-shadow: 5px 5px 15px 5px #000000;
+	}
+	#receiptDialog img{
+		display:block;
+		margin:auto;
+		max-width:95%;
+		max-height:95%;
+	}
+	#receiptDialog iframe{
+		width:100%;
+		height:100%;
+	}
+	#receiptHeader{
+		background:var(--header);
+		color:white;
+		padding:3px;
+		margin-bottom:3px;
+		font-weight: bold;
+		padding-left:1em;
+	}
+	#receiptHeader button{
+		float:right;
+		margin-right:1em;
+	}
+</style>

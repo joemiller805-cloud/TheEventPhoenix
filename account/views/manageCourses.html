@@ -1,0 +1,262 @@
+<div class="col-lg-12">
+	<h3>Manage Courses</h3>
+	<div class="button-row">
+		<a href="/admin.php#!rpt_course_history">
+			<button class='btn btn-primary readOnly'>
+				Course History Report
+			</button>
+		</a>
+		<button class="btn btn-success exportResultsBtn readOnly" 
+			data-table-id="courses" data-file-name="Courses">
+			<span class="ph-floppy-disk"></span> Export To CSV
+		</button>
+		<!-- <button class='btn btn-success select' ng-click="import()">
+			Import Courses <span class="badge"><i class="bi bi-upload"></i></span>
+		</button> -->
+		<button class='btn btn-success select' ng-click="addCoruse()">
+			New Course <i class="bi bi-plus-circle"></i>
+		</button>
+	</div>
+
+	<div id="filters">
+		<b style="margin-right:2em">Filters</b>
+		<input type="text" class="form-control" ng-model="quickSearch" 
+			placeholder="Quick Search" />
+		<select ng-model="statusFilter" class="form-select">
+			<option value="0">Active Courses</option>
+			<option value="1">Archived Courses</option>
+		</select>
+		<select ng-model="trackFilter" class="form-select">
+			<option value="all">All Tracks</option>
+			<option ng-repeat="track in tracks | orderObjectBy:'name'" 
+				value="{{track.id}}">
+				{{track.name}}
+			</option>
+		</select>
+		<select ng-model="sponsorFilter" class="form-select">
+			<option value="all">All Vendors</option>
+			<option ng-repeat="sponsor in sponsors | orderObjectBy:'name'" 
+				value="{{sponsor.id}}">
+				{{sponsor.name}}
+			</option>
+		</select>
+	</div>
+	
+	<table class="table scrollable striped" id="courses">
+		<thead>
+			<tr class="headerRow sticky noPad">
+				<th></th>
+				<th style="width:20%">Course Name</th>
+				<th>Abbreviation</th>
+				<th>Created</th>
+				<th>Last Event</th>
+				<th style="width:23%">Tracks</th>
+				<th>Color</th>
+				<th>Course Description</th>
+				<th>Vendor</th>
+				<th>Documentation</th>
+				<th>Presenters<br/>Preferred</th>
+				<th>Presenters<br/>Able</th>
+				<th>Videos</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="course in courses | orderObjectBy:'name'"
+				ng-if="showCourse(course)">
+				<td>
+					<button class="btn btn-primary" ng-click="editCourse(course)">
+						<i class="bi bi-pencil"></i>
+					</button>
+				</td>
+				<td>{{course.name}}</td>
+				<td>{{course.abbreviation}}</td>
+				<td>
+					<span ng-if="course.created_time">{{course.created_time | mySqlToLocalDate}}</span>
+					<span ng-if="!course.created_time" class="text-muted">Unknown</span>
+				</td>
+				<td>
+					<span ng-if="course.last_event_date">{{course.last_event_date | mySqlToLocalDate}}</span>
+					<div ng-if="course.last_event_name" class="text-muted small">{{course.last_event_name}}</div>
+					<span ng-if="!course.last_event_date" class="text-muted">Never</span>
+				</td>
+				<td>{{getTrackNames(course)}}</td>
+				<td>
+					<div ng-if="course.color" style="width:3em;background:{{course.color}}">&nbsp;</div> 
+				</td>
+				<td style="white-space: pre-line;">{{course.description}}</td>
+				<td>{{sponsors[course.sponsorid].name}}</td>
+				<td>
+					<span ng-if="course.excludefromdocs == '1'">No</span>
+					<span ng-if="course.excludefromdocs == '0'">Yes</span>
+				</td>
+				<td>
+					<div ng-repeat="presenter in coursePresenterMap[course.id].preferred track by $index">
+						{{presenter}}
+					</div>
+				</td>
+				<td>
+					<div ng-repeat="presenter in coursePresenterMap[course.id].able track by $index">
+						{{presenter}}
+					</div>
+				</td>
+				<td>
+					<div ng-repeat="video in courseVideoMap[course.id] track by $index">
+						<a target="_blank" href="/{{video.filepath}}">
+							{{video.display_name || video.name}}
+						</a>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div id="editDiv" class="dialogRight">
+	<div class="dialogTitle">Edit Course</div>
+	<div class="dialogContents">
+		<table>
+			<tr>
+				<td class="bold">Name</td>
+				<td>
+					<input type="text" size="60" ng-model="selectedCourse.name" 
+						class="form-control"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Abbreviation</td>
+				<td>
+					<input type="text" size="60" ng-model="selectedCourse.abbreviation" 
+						class="form-control"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Description</td>
+				<td>
+					<textarea rows="10" cols="60" ng-model="selectedCourse.description"
+						class="form-control">
+					</textarea>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Tracks</td>
+				<td>
+					<select multiple ng-model="selectedCourse.tracks" size="8"
+						ng-options="track.id as track.name for track in tracks | orderObjectBy:'name'" class="form-select">
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Color</td>
+				<td>
+					<input type="color" list="color-options" ng-model="selectedCourse.color">
+                    <datalist id="color-options">
+                        <option value="#FFC0CB"></option>
+                        <option value="#FF69B4"></option>
+                        <option value="#E6E6FA"></option>
+                        <option value="#EE82EE"></option>
+                        <option value="#FFA07A"></option>
+                        <option value="#FFFF00"></option>
+                        <option value="#F0E68C"></option>
+                        <option value="#ADFF2F"></option>
+                        <option value="#98FB98"></option>
+                        <option value="#00FA9A"></option>
+                        <option value="#7FFFD4"></option>
+                        <option value="#B0C4DE"></option>
+                        <option value="#87CEFA"></option>
+                        <option value="#00BFFF"></option>
+                        <option value="#D2B48C"></option>
+                        <option value="#FAEBD7"></option>
+                        <option value="#D3D3D3"></option>
+                    </datalist>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Vendor Association</td>
+				<td>
+					<select ng-model="selectedCourse.sponsorid" class="form-select"
+						ng-options="s.id as s.name for s in sponsors | orderObjectBy:'name'">
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Exclude From Attendee Schedule</td>
+				<td>
+					<input type="checkbox" ng-model="selectedCourse.excludefromschedule"
+						ng-true-value="1" ng-false-value="0" class="form-check-input"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">No Documentation</td>
+				<td>
+					<input type="checkbox" ng-model="selectedCourse.excludefromdocs"
+						ng-true-value="1" ng-false-value="0" class="form-check-input" />
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Archived</td>
+				<td>
+					<input type="checkbox" ng-model="selectedCourse.archived"
+						ng-true-value="1" ng-false-value="0" class="form-check-input" />
+				</td>
+			</tr>
+		</table>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary" ng-click="closeRightDialog()">Cancel</button>
+			<button type="button" class="btn btn-primary" ng-click="saveEdits()">Save</button>
+		</div>
+	</div>
+</div> <!-- End Edit Dialog -->
+
+<!-- Import Dialog -->
+<div id="importDiv" class="dialogRight">
+	<div class="dialogTitle">Import Courses</div>
+	<div class="dialogContents">
+		<p>
+			First row of file is treated as header and not imported.<br/>
+			Import file must be in csv format.<br/>
+			<br/>
+			Fields
+			<ul>
+				<li>Name *</li>
+				<li>Abbreviation</li>
+				<li>Description</li>
+			</ul>
+			* - Required Field<br/>
+		</p>
+		<input type="file" id="fileInput" custom-on-change="validateImport"/><br/>
+
+		<table ng-show="importData">
+			<tr class="bold">
+				<th style="width:4em">Col #</th>
+				<th>Header Value</th>
+				<th>Target Field</th>
+			</tr>
+			<tr ng-repeat="fld in importMap">
+				<td>{{$index + 1}}</td>
+				<td>{{fld.example}}</td>
+				<td>
+					<select ng-model="fld.field">
+						<option value=""></option>
+						<option ng-repeat="field in importFields" value="{{field.field}}">{{field.label}}</option>
+					</select>
+				</td>
+			</tr>
+		</table>
+		<div class="button-row">
+			<button type="button" class="btn btn-primary" ng-click="closeRightDialog()">Cancel</button>
+			<button ng-show="fieldsMapped()" class="btn btn-primary" ng-click="processImport()">Import File</button>
+		</div>
+	</div>
+</div> <!-- End Import Dialog -->
+
+<style>
+	#filters .form-control, #filters .form-select{
+		display:inline;
+		width:auto;
+		margin-right:2em;
+	}
+	#filters { 
+		text-align: center; 
+		margin:1em;
+	}
+</style>

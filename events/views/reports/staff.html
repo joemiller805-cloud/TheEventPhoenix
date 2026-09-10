@@ -1,0 +1,93 @@
+<div class="row">
+	<div class="col-lg-12">
+		<span style="font-size:16pt;font-weight:bold;margin-right:2em">Staff Report</span>
+	</div>
+</div>
+<div style="margin-bottom:8px">
+	<button class="btn btn-primary exportResultsBtn readOnly" data-table-id="staffTable"
+		data-file-name="Event Staff" style="float:left;margin-left:1em">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	<button ng-click="columnFilter()" class="btn btn-primary colDisplayBtn readOnly"
+		style="margin-right:5em">
+		Edit displayed columns
+	</button>
+	<input ng-model="quickSearchValue" ng-keyup="quickSearch()" class="form-control"
+		placeholder="Quick Search" style="display:inline;width:30em"/>
+</div>
+<table id="staffTable" class="table scrollable striped">
+	<thead>
+		<tr>
+			<th>Photo</th>
+			<th>Last Name</th>
+			<th>First Name</th>
+			<th>Phone</th>
+			<th>Travel Method</th>
+			<th>Arrival Date</th>
+			<th>Arrival Time</th>
+			<th>Arrival Airline</th>
+			<th>Arrival Flight #</th>
+			<th>Departure Date</th>
+			<th>Departure Time</th>
+			<th>Departure Airline</th>
+			<th>Departure Flight #</th>
+			<th>Registered</th>
+			<th>Requests</th>
+			<th>Request Notes</th>
+			<th>Hotel</th>
+			<th>Notes</th>
+			<th>Shirts Needed</th>
+			<th>Shirt Gender</th>
+			<th>Shirt Size</th>
+			<th>Sched Signoff</th>
+			<th>Sched Notes</th>
+			<th>Courses Preferred</th>
+			<th>Courses Able</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="staff in staff | orderObjectBy:'last_name':false" 
+			ng-if="staff.include">
+			<td><img ng-src="{{staff.photo}}" height="50" /></td>
+			<td>{{staff.last_name}}</td>
+			<td>{{staff.first_name}}</td>
+			<td>{{staff.phone}}</td>
+			<td>{{staff.travel_method}}</td>
+			<td>{{staff.arrival_date | mySqlToLocalDate}}</td>
+			<td>{{staff.arrival_time}}</td>
+			<td>{{staff.arrival_airline}}</td>
+			<td>{{staff.arrival_flight_num}}</td>
+			<td>{{staff.departure_date | mySqlToLocalDate}}</td>
+			<td>{{staff.departure_time}}</td>
+			<td>{{staff.departure_airline}}</td>
+			<td>{{staff.departure_flight_num}}</td>
+			<td class="center">
+				<span ng-show="staff.registered >= '1'">&#10004;</span>
+			</td>
+			<td class="center">
+				<span ng-show="staff.request_participation == '1'">Req. Participation</span>
+				<span ng-show="staff.request_denied == '1'"> (Denied)</span>
+			</td>
+			<td>{{staff.request_notes}}</td>
+			<td>
+				{{staff.hotel_room_type}}
+				<span ng-show="staff.hotel_smoking != 'smoking'">Non-Smoking</span>
+				<span ng-show="staff.hotel_smoking == 'smoking'">Smoking</span>
+			</td>
+			<td>{{staff.notes}}</td>
+			<td class="center">{{staff.shirt_quantity}}</td>
+			<td class="center">{{staff.shirt_gender}}</td>
+			<td class="center">{{staff.shirt_size | uppercase}}</td>
+			<td class="center">
+				<span ng-show="staff.sched_signoff >= '1'">&#10004;</span>
+			</td>
+			<td>{{staff.sched_notes}}</td>
+			<td>
+				<div ng-repeat="crs in staff.courses_preferred track by $index">{{crs}}</div>
+			</td>
+			<td>
+				<div ng-repeat="crs in staff.courses_able track by $index">{{crs}}</div>
+			</td>
+		</tr>
+	</tbody>
+</table>

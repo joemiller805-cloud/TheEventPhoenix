@@ -1,0 +1,39 @@
+<div class="col-sm-11 form-horizontal" style="margin-top:.5em" ng-cloak>
+	<table ng-repeat="event in evtData  | orderObjectBy:'startdate':true" class="table eventTable" ng-if="event.orderDetails.vendorType">
+		<thead>
+			<tr>
+				<th colspan="20">
+					{{event.name}}
+					<span style="margin-left:3em">
+						{{event.startdate | mySqlToLocalDate}} - {{event.enddate | mySqlToLocalDate}}
+					</span>
+					<span style="margin-left:3em">
+						{{event.city}}, {{event.state}}
+					</span>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<b>{{event.staffAllowance}}</b> Staff Allowed &nbsp;&nbsp;
+					<label class="staffLabel" ng-repeat="staff in vendor.staff | orderObjectBy:'last_name'"
+						ng-show="staff.archived != '1' || staffAttendingEvt(event, staff)">
+						<input type="checkbox" ng-checked="staffAttendingEvt(event, staff)" 
+							ng-click="changeStaffAtt(event, staff)" ng-disabled="disableStaffCheck(event,staff)" />
+						{{staff.last_name}}, {{staff.first_name}}
+					</label>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div> 
+
+<style>
+	.staffLabel{
+		display:inline-block;
+		padding: 4px 10px;
+		margin: 3px 25px 3px 0px;
+		font-weight: normal;
+	}
+</style>

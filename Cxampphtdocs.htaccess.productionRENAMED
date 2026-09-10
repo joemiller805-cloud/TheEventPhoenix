@@ -1,0 +1,59 @@
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
+
+RewriteRule ^e/([0-9]+)/(.*)/contact$ /contact.php?accountid=$1&slug=$2 [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/register$ /register.php?accountid=$1&slug=$2 [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/master_schedule$ /master_schedule.php?accountid=$1&slug=$2 [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/attendee_schedule/?(.*)$ /attendee/attendee_schedule.php?accountid=$1&slug=$2&confirmation=$3 [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/order_summary/?(.*)$ /attendee/order_summary.php?accountid=$1&slug=$2 [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/attendee_sponsor_info/?(.*)$ /attendee/attendee_sponsor_info.php?accountid=$1&slug=$2&confirmation=$3 [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/signup$ /attendee/signup.php?accountid=$1&slug=$2 [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/signup/(.*)$ /attendee/signup.php?accountid=$1&slug=$2&confirmation=$3  [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/event_docs$ /attendee/event_docs.php?accountid=$1&slug=$2  [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/course_catalog$ /attendee/course_catalog.php?accountid=$1&slug=$2  [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/register/(.*)$ /register.php?accountid=$1&slug=$2&confirmation=$3  [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/paymentOptions/(.*)$ /paymentOptions.php?accountid=$1&slug=$2&confirmation=$3  [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)/kiosk/?(.*)$ /kiosk.php?accountid=$1&slug=$2&confirmation=$3 [QSA,L]
+
+RewriteRule ^e/(.*)/register$ /register.php?slug=$1 [QSA,L]
+RewriteRule ^e/(.*)/contact$ /contact.php?slug=$1 [QSA,L]
+RewriteRule ^e/(.*)/master_schedule$ /master_schedule.php?slug=$1 [QSA,L]
+RewriteRule ^e/(.*)/attendee_schedule/?(.*)$ /attendee/attendee_schedule.php?slug=$1&confirmation=$2 [QSA,L]
+RewriteRule ^e/(.*)/order_summary/?(.*)$ /attendee/order_summary.php?slug=$1 [QSA,L]
+RewriteRule ^e/(.*)/attendee_sponsor_info/?(.*)$ /attendee/attendee_sponsor_info.php?slug=$1&confirmation=$2 [QSA,L]
+RewriteRule ^e/(.*)/signup$ /attendee/signup.php?slug=$1 [QSA,L]
+RewriteRule ^e/(.*)/signup/(.*)$ /attendee/signup.php?slug=$1&confirmation=$2  [QSA,L]
+RewriteRule ^e/(.*)/event_docs$ /attendee/event_docs.php?slug=$1  [QSA,L]
+RewriteRule ^e/(.*)/course_catalog$ /attendee/course_catalog.php?slug=$1  [QSA,L]
+RewriteRule ^e/(.*)/register/(.*)$ /register.php?slug=$1&confirmation=$2  [QSA,L]
+RewriteRule ^e/(.*)/paymentOptions/(.*)$ /paymentOptions.php?slug=$1&confirmation=$2  [QSA,L]
+RewriteRule ^e/(.*)/kiosk/?(.*)$ /kiosk.php?slug=$1&confirmation=$2 [QSA,L]
+RewriteRule ^e/(.*)/recover/?$ /recover.php?slug=$1 [QSA,L]
+RewriteRule ^confirmVendor/(.*)$ /confirmVendor.php?id=$1 [QSA,L]
+RewriteRule ^vendorConfirm/(.*)$ /confirmVendor.php?id=$1 [QSA,L]
+
+RewriteRule ^e/([0-9]+)/(.*)/(.*)$ /page.php?accountid=$1&slug=$2&page=$3 [QSA,L]
+RewriteRule ^e/([0-9]+)/(.*)$ /event.php?accountid=$1&slug=$2 [QSA,L]
+RewriteRule ^e/(.*)/(.*)$ /page.php?slug=$1&page=$2 [QSA,L]
+
+RewriteRule ^e/(.*)$ /event.php?slug=$1 [QSA,L]
+RewriteRule ^s$ /station.php [QSA,L]
+RewriteRule ^S$ /station.php [QSA,L]
+RewriteRule ^psugevents$ /index.php?accountid=1000 [QSA,L]
+RewriteRule ^mba$ /index.php?accountid=1001 [QSA,L]
+RewriteRule ^mi-sky$ /index.php?accountid=1002 [QSA,L]
+RewriteRule ^demo$ /index.php?accountid=1003 [QSA,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^[A-Za-z0-9_-]+$ /index.php [QSA,L]
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+ErrorDocument 404 /404.php
+
+RewriteCond %{HTTP_REFERER} !^https?://(www\.)?easyregpro\.com(:[0-9]+)?(/|$) [NC]
+RewriteCond %{HTTP_REFERER} !^https?://(www\.)?dev\.easyregpro\.com(:[0-9]+)?(/|$) [NC]
+RewriteCond %{HTTP_REFERER} !^https?://(www\.)?psugevents\.com(:[0-9]+)?(/|$) [NC]
+RewriteCond %{HTTP_REFERER} !^https?://(www\.)?dev\.psugevents\.com(:[0-9]+)?(/|$) [NC]
+RewriteCond %{HTTP_REFERER} !^https?://(www\.)?localhost(:[0-9]+)?(/|$) [NC]
+RewriteCond %{HTTP_REFERER} !^https?://127\.0\.0\.1(:[0-9]+)?(/|$) [NC]
+RewriteRule \.(jpg|jpeg|png|gif|pdf|docx|pptx|zip|mp4)$ http://easyregpro.com/index.php [NC,R,L]

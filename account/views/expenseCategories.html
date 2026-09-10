@@ -1,0 +1,89 @@
+<div class="col-md-11">
+	<H3>Expense Categories</H3>
+	<div style="text-align:right;margin-bottom:1em">
+		<label class="pointer">
+			Active 
+			<input type="radio" name="arch" ng-model="archiveFilter" value="0" 
+				style="height:1em"/>
+		</label>
+		<label style="margin-left:1em" class="pointer">
+			Archived 
+			<input type="radio" name="arch" ng-model="archiveFilter" value="1" 
+				style="height:1em"/>
+		</label>
+		<button class='btn btn-success' ng-click="newCat()" style="margin-left:2em">
+			<i class="bi bi-plus-circle"></i>
+			New Expense Category 
+		</button>
+	</div>
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>&nbsp;</th>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Reimbursement Cap</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="cat in categories | orderObjectBy:'name'"
+				ng-if="cat.archived == archiveFilter">
+				<td>
+					<button class='btn btn-primary' ng-click="editCategory(cat)">
+						<i class="bi bi-pencil"></i>
+					</button>
+				</td>
+				<td>{{cat.name}}</td>
+				<td>{{cat.description}}</td>
+				<td>{{cat.max | currency}}</td>
+			</tr>
+		</tbody>
+	</table>
+</div> <!-- End Column -->
+
+<div id="catDialog" class="dialogRight">
+	<div class="dialogTitle">
+		<span ng-show="editCat.id">Edit</span>
+		<span ng-show="!editCat.id">New</span>
+		Category
+	</div>
+	<div class="dialogContents">
+		<table>
+			<tr>
+				<td class="bold">Name</td>
+				<td>
+					<input type="text" class="form-control" ng-model="editCat.name" />
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Description</td>
+				<td>
+					<textarea class="form-control" ng-model="editCat.description" 
+						cols="40" rows="4"></textarea>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Reimbursement Cap</td>
+				<td>
+					<input type="number" class="form-control" ng-model="editCat.max" 
+						string-to-number/>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Archived</td>
+				<td>
+					<input type="checkbox" ng-model="editCat.archived" class="form-check-input"
+						ng-true-value="1" ng-false-value="0" />
+				</td>
+			</tr>
+		</table>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="saveCat()">
+				<span class="bi bi-check-lg"></span> Save
+			</button>
+		</div>
+	</div>
+</div>

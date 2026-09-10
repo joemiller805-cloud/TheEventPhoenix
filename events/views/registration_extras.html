@@ -1,0 +1,96 @@
+<event-reg-tabs></event-reg-tabs>
+<div class="col-md-12">
+	<div class="row successMessage">
+	<div class="alert alert-success">Updates Saved</div>
+	</div>
+	<input type="hidden" name="eventid" value="<?=$inputs['eventid']?>" />
+	<table id="registration_types" class="table scrollable striped">
+		<thead>
+			<tr>
+				<th class="border-top-left-round">Sort</th>
+				<th>Name / Description</th>
+				<th>Price</th>
+				<th>Sunrise/Sunset</th>
+				<th>Min<br/> Orders</th>
+				<th>
+					Max Orders<br/>
+					<i style="color:#c6bdbd;font-weight:normal">(0 = Unlimited)</i>
+				</th>
+				<th>Counts Toward<br/>Event Max</th>
+				<th ng-show="acctType != 'ticketing'">Reg Types</th>
+				<th>Account Code</th>
+				<th class="border-top-right-round"></th>
+			</tr>
+		</thead>
+		<tbody id="xtrasTbody">
+			<tr ng-repeat="xtra in regOptions | orderObjectBy:'sortorder':false">
+				<td>
+					<span class="handle pointer">&#9776;</span>
+				</td>
+				<td>
+					<input type='text' class="form-control" ng-model="xtra.label" placeholder="Name"/>
+					<textarea  class="form-control" ng-model="xtra.description" row="4" cols="20"
+						placeholder="Description" style="margin-top: 3px;">
+					</textarea>
+				</td>
+				<td>
+					<input type='text' class="form-control" ng-model="xtra.price" size="6"
+						style="width:6em" ng-disabled="xtra.ordered" 
+						title="{{xtra.ordered ? 'Orders placed. Cannot update price.' : ''}}" />
+				</td>
+				<td>
+					<input type='text' class="form-control" ng-model="xtra.sunrise" size="10" datepicker 
+						style="position: relative; z-index: 100000;" />
+					<input type='text' class="form-control" ng-model="xtra.sunset" size="10" datepicker 
+						style="position: relative; z-index: 100000;margin-top:3px" />
+				</td>
+				<td>
+					<input type="number" class="form-control" min="0" ng-model="xtra.min_orders" 
+						string-to-number style="width:6em;display:inline-block"/>
+				</td>
+				<td>
+					<div style="white-space: nowrap;">
+						<input type="number" class="form-control" min="0" ng-model="xtra.capacity_reg" 
+							string-to-number style="width:6em;display:inline-block"/>
+						<i style="color:grey">Per Reg</i>
+					</div>
+					<div style="white-space: nowrap;">
+						<input type="number" class="form-control" min="0" ng-model="xtra.capacity_evt" 
+							string-to-number style="width:6em;display:inline-block;margin-top:3px"/>
+						<i style="color:grey">Per Evt</i>
+					</div>
+				</td>
+				<td>
+					<input type="checkbox" class="form-check-input" style="margin-left:1rem" 
+						ng-model="xtra.factor_evt_cap" ng-true-value="1" ng-false-value="0"/>
+				</td>
+				<td ng-if="acctType != 'ticketing'">
+					<select multiple class="form-select" ng-model="xtra.registration_types" style="min-width:5em;"
+						ng-options="r.id as r.name for r in registration_types">
+					</select>
+				</td>
+				<td>
+					<input type="text" class="form-control" ng-model="xtra.acct_code" maxlength="30" />
+				</td>
+				<td>
+					<button class="btn btn-danger" ng-click="deleteConfirm(xtra)"
+						ng-if="xtra.purchases == '0'">
+						<span class="bi bi-trash"></span>
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</tbody>
+	</table>
+
+	<div class="text-center">
+		<button type="button" class="btn btn-primary" ng-click="addNew()">
+			<i class="bi bi-plus-circle"></i> Add a new option
+		</button>
+		<button ng-click="saveTypes()" class="btn btn-success">Save</button>
+		<button type="button" class="btn btn-danger" ng-click="reload()">Cancel</button>
+	</div>
+</div>
+<style>
+	[datepicker]{ width: 8em; }
+</style>

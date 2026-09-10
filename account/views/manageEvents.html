@@ -1,0 +1,194 @@
+<div class="col-md-11">
+	<h3>Manage Events</h3>
+	<div style="text-align:right;margin-bottom:1em">
+		<label class="pointer">
+			Active 
+			<input type="radio" name="arch" ng-model="archiveFilter" value="0" 
+				style="height:1em"/>
+		</label>
+		<label style="margin-left:1em" class="pointer">
+			Archived 
+			<input type="radio" name="arch" ng-model="archiveFilter" value="1" 
+				style="height:1em"/>
+		</label>
+		<a href="#!/event_details/-1" style="margin-left:2em" ng-if="modAccess">
+			<button class='btn btn-success'>
+				New Event &nbsp;
+				<span class="badge"><i class="bi bi-plus-circle"></i></span>
+			</button>
+		</a>
+	</div>
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>Event</th>
+				<th>Location</th>
+				<th>Dates</th>
+				<th>Visible</th>
+				<!-- <th ng-show="acctType != 'ticketing'">Session Signup Active</th> -->
+				<th>Registration Window</th>
+				<th>Total Registrations</th>
+				<th ng-if="modAccess"></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="event in events | orderBy:'startdate':true"
+				ng-if="event.archived == archiveFilter">
+				<td>
+					<a class="pointer" href="#!/registrations/{{event.id}}" ng-show="acctType != 'ticketing'"
+						ng-click="setEvent(event)">
+						{{event.name}}
+					</a>
+					<a class="pointer" href="#!/registrations/{{event.id}}" ng-show="acctType == 'ticketing'"
+						ng-click="setEvent(event)">
+						{{event.name}}
+					</a>
+				</td>
+				<td>{{event.city}}, {{event.state}}</td>
+				<td>
+					{{event.startdate | mySqlToLocalDate}} - 
+					{{event.enddate | mySqlToLocalDate}}
+				</td>
+				<td class="center">
+					<i class="bi bi-check-lg green" ng-show="event.visible == '1'"></i>
+					<i class="bi bi-x-lg red" ng-show="event.visible != '1'"></i>
+				</td>
+				<td>
+					{{event.registrationstartdate | mySqlToLocalDate}} - 
+					{{event.registrationenddate | mySqlToLocalDate}}
+				</td>
+				<td>{{event.registrationCount}}</td>
+				<td ng-if="modAccess">
+					<button class="btn btn-primary btn-sm" ng-click="copyEvent(event)">Copy</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div> <!-- End Column -->
+
+<div id="copyEventDialog" class="dialogRight" ng-if="modAccess">
+	<div class="dialogTitle">Copy Event - {{originalEvent.name}}</div>
+	<div class="dialogContents">
+		<table>
+			<tr>
+				<td class="bold">Name</td>
+				<td>
+					<input type="text" class="form-control" ng-model="newEvent.name" />
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Slug</td>
+				<td>
+					<input type="text" class="form-control" ng-model="newEvent.slug" />
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Event Dates</td>
+				<td>
+					<input type="text" class="form-control datepicker" ng-model="newEvent.startdate" /> - 
+					<input type="text" class="form-control datepicker" ng-model="newEvent.enddate" />
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Registration Dates</td>
+				<td>
+					<input type="text" class="form-control datepicker" ng-model="newEvent.registrationstartdate" /> - 
+					<input type="text" class="form-control datepicker" ng-model="newEvent.registrationenddate" />
+				</td>
+			</tr>
+			<tr ng-show="acctType == 'ticketing'">
+				<td class="bold">Start Time</td>
+				<td>
+					<input type="text" class="form-control" ng-model="newEvent.start_time" />
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Short Description</td>
+				<td>
+					<textarea class="form-control" ng-model="newEvent.blurb"></textarea>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Registration Prefix</td>
+				<td>
+					<input type="text" class="form-control" ng-model="newEvent.prefix" />
+				</td>
+			</tr>
+			<tr ng-show="acctType != 'ticketing'">
+				<td class="bold">Registration Types</td>
+				<td>
+					<input type="checkbox" ng-model="newEvent.includeRegTypes" />
+					Copy Registration Types
+					<table ng-show="newEvent.includeRegTypes" style="margin-top:1em">
+						<tr class="bold">
+							<td></td>
+							<td>Registration</td>
+							<td>Section Signup</td>
+							<td ng-show="newEvent.has_virtual == '1'">View Videos</td>
+						</tr>
+						<tr ng-repeat="rt in regTypes">
+							<td>{{rt.name}}</td>
+							<td style="white-space: nowrap;">
+								<input type="text" class="form-control datepicker" ng-model="rt.sunrise"
+								 ng-change="chooseSetAll($index, 'regTypes','sunrise','Registration Start')"> - 
+								<input type="text" class="form-control datepicker" ng-model="rt.sunset"
+								 ng-change="chooseSetAll($index, 'regTypes','sunset','Registration End')">
+							</td>
+							<td style="white-space: nowrap;">
+								<input type="text" class="form-control datepicker" ng-model="rt.reg_start_dt"
+								 ng-change="chooseSetAll($index, 'regTypes','reg_start_dt','Signup Start')"> -
+								<input type="text" class="form-control datepicker" ng-model="rt.reg_end_dt"
+								 ng-change="chooseSetAll($index, 'regTypes','reg_end_dt','Signup End')">
+							</td>
+							<td style="white-space: nowrap;" ng-show="newEvent.has_virtual == '1'">
+								<input type="text" class="form-control datepicker" ng-model="rt.video_start_dt"
+								 ng-change="chooseSetAll($index, 'regTypes','video_start_dt','Video Start')"> -
+								<input type="text" class="form-control datepicker" ng-model="rt.video_end_dt"
+								 ng-change="chooseSetAll($index, 'regTypes','video_end_dt','Video End')">
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr ng-show="newEvent.includeRegTypes && tickets.length">
+				<td class="bold">Event Tickets/Extras</td>
+				<td>
+					<input type="checkbox" ng-model="newEvent.includeTix" />
+					Copy Tickets/Extras
+					<table ng-show="newEvent.includeTix" style="margin-top:1em">
+						<tr class="bold">
+							<td></td>
+							<td>Sunrise/Sunset</td>
+						</tr>
+						<tr ng-repeat="ticket in tickets">
+							<td>{{ticket.label}}</td>
+							<td style="white-space: nowrap;">
+								<input type="text" class="form-control datepicker" ng-model="ticket.sunrise"
+								 ng-change="chooseSetAll($index, 'tickets','sunrise','ticket sunrise')"> - 
+								<input type="text" class="form-control datepicker" ng-model="ticket.sunset"
+								 ng-change="chooseSetAll($index, 'tickets','sunset','ticket sunset')">
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			
+		</table>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="saveCopy()">
+				<span class="bi bi-check-lg"></span> Save
+			</button>
+		</div>
+	</div>
+</div>
+<style>
+	.green{ color:green; }
+	.red{ color:red; }
+	.dialogRight .datepicker{
+		display: inline-block;
+		width:9em;
+	}
+</style>

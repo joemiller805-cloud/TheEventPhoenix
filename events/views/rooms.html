@@ -1,0 +1,64 @@
+<sched-mgmt-tabs></sched-mgmt-tabs>
+<div class="col-md-11">
+	<h2 style="float:left;margin-top:0px">Manage Rooms</h2>
+	<div class="button-row" style='margin-bottom:1em;float:right'>
+		<button type="button" class="btn btn-success" ng-click="addRoom()">
+			<i class="bi bi-plus-circle"></i>New Room
+		</button>
+	</div>
+
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th style="width:3em"></th>
+				<th>Name</th>
+				<th>Sub Name</th>
+				<th>Area</th>
+				<th>Capacity</th>
+				<th>Sort Order</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="room in rooms | orderBy:'sortorder'">
+				<td>
+					<button class="btn btn-danger btn-sm" ng-click="deleteRoom(room)">
+						<span class="bi bi-x-circle" aria-hidden="true"></span>
+					</button>
+				</td>
+				<td>
+					<input class="form-control" type="text" ng-model="room.name" />
+				</td>
+				<td>
+					<input class="form-control" type="text" ng-model="room.subname" />
+				</td>
+				<td>
+					<input class="form-control" type="text" ng-model="room.area" />
+				</td>
+				<td>
+					<input string-to-number class="form-control" type="number" 
+						style="width:6em" ng-model="room.capacity" 
+						ng-blur="addRoom()"/>
+				</td>
+				<td>
+					<input string-to-number class="form-control" type="number" 
+						ng-change="checkSort()"
+						style="width:6em" ng-model="room.sortorder" />
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<table style="width:98%">
+		<tr>
+			<td style="width:80%">
+				<div ng-show="changesSaved" class='alert alert-success' role='alert'>
+					Changes Saved
+				</div>
+			</td>
+			<td style="vertical-align:top">
+				<div class="button-row">
+					<button class="btn btn-success" ng-click="saveRooms()">Save</button>
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>

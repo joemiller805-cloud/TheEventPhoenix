@@ -1,0 +1,67 @@
+<div class="row">
+	<div class="col-lg-12">
+		<section class="page-header" style="margin-top:10px;margin-bottom:2px;padding-bottom:10px">
+			<span class="bold">
+				<button class="toggle-btn btn btn-primary btn-sm" id="toggleBtn">☰</button>
+				Administration Panel <span ng-show="curEventName && !acctPage">- {{curEventName}}</span>
+			</span>
+
+			<button class="btn btn-primary btn-xs" ng-click="createTicket()" style="float:right" 
+				title="Report Issue / Suggest Feature" ng-if="masterUser">
+				<span class="bi bi-chat-fill"></span>
+			</button>
+			<select style="float:right;margin-right:1em;display:inline-block;width:10em;height:auto;padding:0px"
+				class="form-select" ng-show="!$root.acctPage" ng-model="selectedEvt" ng-change="changeEvent()">
+				<option value="">--Switch Event--</option>
+				<optgroup label="Upcoming Events">
+					<option ng-repeat="evt in events.future" value="{{evt.id}}">{{evt.name}}</option>
+				</optgroup>
+				<optgroup label="Recent Events">
+					<option ng-repeat="evt in events.recent" value="{{evt.id}}">{{evt.name}}</option>
+				</optgroup>
+			</select>
+		</section>
+	</div>
+</div>
+
+<div id="ticketDialog" class="dialogRight">
+	<div class="dialogTitle">Report Issue / Suggest Feature</div>
+	<div class="dialogContents">
+		<div class="bold" style="margin-bottom:.5em">I Would Like To </div>
+		<select ng-model="newTicket.type" class="form-select">
+			<option value="feature">Suggest a Feature</option>
+			<option value="issue">Report an Issue</option>
+		</select>
+
+		<div class="bold" style="margin-bottom:.5em;margin-top:2em">Please Describe</div>
+		<textarea class="form-control" cols="50" rows="15" ng-model="newTicket.description"></textarea>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="submitTicket()">
+				<span class="bi bi-check-lg"></span> Submit
+			</button>
+		</div>
+	</div>
+</div>
+
+<script>
+	$(function(){
+		const toggleBtn = document.getElementById('toggleBtn');
+		const sidebar = document.getElementById('sidebar');
+		const mainContent = document.getElementById('main-content');
+		// Sidebar toggle functionality (collapses in full screen & mobile)
+		if(toggleBtn){
+			toggleBtn.addEventListener('click', () => {
+				if (window.innerWidth > 768) {
+					sidebar.classList.toggle('collapsed');
+					mainContent.classList.toggle('full');
+				} else {
+					sidebar.classList.toggle('active');
+				}
+			});
+		}
+
+	});
+</script>

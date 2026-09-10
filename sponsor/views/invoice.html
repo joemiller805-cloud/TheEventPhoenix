@@ -1,0 +1,143 @@
+<style>
+	.page table, .page div{	width:98%; }
+	.page table, .page div div{	width:100%;	}
+	.page .table tbody tr td, .page .table tbody, .page .table tfoot tr td { border-top: none; }
+	.page .table { font-size:8pt; }
+	.totalSpan{
+		width:6em;
+		display:inline-block;
+	}
+	.pymtSpan{
+		display:inline-block;
+		width:8em;
+		margin-left:1em;
+	}
+	#orderTable tbody, #pkgTable{ font-size:8pt; }
+	@media print{ 
+		a { display:none };
+	}
+</style>
+<div class="row tab-pane active" id="sponsorProfile" ng-cloak>
+	<div class="col-sm-11">
+		<div class="page">
+			<table style="font-size: smaller;">
+				<tr>
+					<td>
+						<img src="{{logoSrc}}" style="height:40px; border:none;"
+							alt="Easy Reg Logo" ng-show="logoSrc"/>
+					</td>
+					<td class="bold center" style="font-size:larger">Conference Invoice</td>
+					<td class="right"><b>Invoice Date:</b> {{today | date:'MM/dd/yyyy'}}<br/></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:top;padding-top:.5em">
+						<b>Phone:</b> {{contact.contact_phone}} <br/>
+						<b>Fax:</b> {{contact.contact_fax}}<br/>
+						<b>Email:</b> {{contact.contact_email}}<br/>
+					</td>
+					<td class="center" style="padding-top: .5em">
+						<div ng-bind="contact.name"></div>
+						<div ng-bind="contact.contact_add1"></div>
+						<div ng-bind="contact.contact_add2" ng-if="contact.contact_add2"></div>
+						<div>{{contact.contact_city}}, {{contact.contact_state}} {{contact.contact_zip}}</div>
+					</td>
+					<td class="right" style="vertical-align: top;padding-top:.5em">
+						<span>
+							<b>{{vendor.name}}</b><br/>
+							{{vendor.address1}} <span ng-if="vendor.address2">{{vendor.address2}}</span><br/>
+							{{vendor.city}}, {{vendor.state}} {{vendor.zip}}
+						</span>
+					</td>
+				</tr>
+			</table>
+			<hr style="margin-top:10px;margin-bottom:10px"/>
+
+			<table class="table invoiceOrderTbl" ng-repeat="order in orders  | orderBy:'created_time'">
+				<thead>
+					<tr class="bold">
+						<td colspan="8" style="border-bottom:1px solid silver;font-size:10pt">
+							Order # {{('000000000' + order.id).slice(-6)}}
+							<span style="margin-left:2em">
+								{{order.created_time | mySqlToLocalDate}}
+							</span>
+						</td>
+					</tr>
+				</thead>
+				<tbody ng-repeat="event in order.events | orderObjectBy:'startDate'">
+					<tr ng-if="event.vendorTypeOrder.name">
+						<td>{{event.name}}</td>
+						<td>{{event.vendorTypeOrder.name}}</td>
+						<td class='right'>{{event.vendorTypeOrder.unit_price | currency}}</td>
+					</tr>
+					<tr ng-if="event.extraStaffOrder.id">
+						<td>{{event.name}}</td>
+						<td>
+							Extra Staff 
+							({{event.extraStaffOrder.quantity}} @ {{event.extraStaffOrder.unit_price | currency}})
+						</td>
+						<td class='right'>
+							{{(event.extraStaffOrder.unit_price * event.extraStaffOrder.quantity) | currency}}
+						</td>
+					</tr>
+					<tr ng-repeat="xtra in event.eventExtraOrders">
+						<td style="width:35%">{{event.name}}</td>
+						<td>{{xtra.name}}</td>
+						<td class='right' style="width:7em">{{xtra.unit_price | currency}}</td>
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr ng-show="order.payments.length > 0">
+						<td colspan="3" style="border-top:1px solid silver" class="bold">Payments Received</td>
+					</tr>
+					<tr ng-repeat="payment in order.payments">
+						<td>{{payment.payment_date | mySqlToLocalDate}}</td>
+						<td>
+							<span>{{payment.method}}</span>
+							<span style="margin-left:2em">
+								{{payment.check_po_number || payment.cc_confirmation_number}}
+							</span>
+							<span style="margin-left:2em">{{payment.note}}</span>
+						</td>
+						<td class="right">{{payment.amount | currency}}</td>
+					</tr>
+					<tr>
+						<td colspan="3" class="right bold" style="border-top:1px solid silver">
+							<span style="margin-right:2em">Order Total</span>
+							<span style="width:7em;display:inline-block">{{order.total | currency}}</span>
+						</td>
+					</tr>
+					<tr ng-show="order.discount != '0'">
+						<td colspan="3" class="right bold">
+							<span style="margin-right:2em">Discount</span>
+							<span style="width:7em;display:inline-block">{{order.discount | currency}}</span>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3" class="right bold">
+							<span style="margin-right:2em">Total Payments</span>
+							<span style="width:7em;display:inline-block">{{order.totalPaid | currency}}</span>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3" class="right bold">
+							<span style="margin-right:2em">Due</span>
+							<span style="width:7em;display:inline-block">{{order.due | currency}}</span>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+
+			<div class="right" style="margin-top:1em" ng-show="orders.length > 1">
+				<b>Purchases:</b> <span class="totalSpan"> {{totalPurchases | currency}}</span><br/>
+				<b>Payments:</b> <span class="totalSpan"> {{totalPayments | currency}}</span><br/>
+				<b>Due:</b> <span class="totalSpan"> {{totalDue | currency}} </span>
+			</div>
+
+			<div ng-show="orders.length == 0">There are no orders with an outstanding balance at this time</div>
+
+			<div ng-bind-html="contact.sponsor_invoice_msg | trustHtml" style="margin-top:1em"
+				ng-show="orders.length > 0">
+			</div>
+		</div> <!-- End Page -->
+	</div> <!-- End Column -->
+</div>

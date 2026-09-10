@@ -1,0 +1,129 @@
+<style>
+	.datepicker{
+		width:10em;
+		display:inline-block;
+	}
+	.cancelledOrder td{
+		background-color:#f8d7da !important;
+		color:#842029;
+	}
+	.cancelledOrder .cancelledStatus{
+		font-weight:bold;
+	}
+</style>
+<div class="row">
+	<div class="col-sm-4">
+		<p style="font-size:16pt;font-weight:bold">
+			Vendor Order Report
+		</p>
+	</div>
+</div>
+<div class="row">
+	<div class="col-sm-10">
+		<span ng-show="orders.length">
+			<button class="btn btn-primary exportResultsBtn readOnly"
+				data-table-id="sponsorTable" data-file-name="Orders">
+				<span class="bi bi-floppy"></span> Export To CSV
+			</button>
+			<button ng-click="columnFilter()" class="btn btn-primary colDisplayBtn readOnly"
+				style="float:none">
+				Edit displayed columns
+			</button>
+		</span>
+	</div>
+</div>
+<div class="row" style="margin-top:10px;margin-bottom:1em">
+	<div class="col-sm-5">
+		<label>Date Range</label>
+		<input type="text" class="datepicker form-control inline" ng-model="startDt"
+			placeholder="MM/DD/YYYY" /> -
+		<input type="text" class="datepicker form-control inline" ng-model="endDt"
+				placeholder="MM/DD/YYYY" />
+		<button class="btn btn-primary readOnly" ng-click="getOders()">Get Orders</button>
+	</div>
+	<div class="col-sm-5" ng-show="orders.length">
+		<input ng-model="quickSearchValue" ng-keyup="quickSearch()" class="form-control"
+			placeholder="Quick Search" style="width:20em;display:inline-block;"/>
+	</div>
+</div>
+<table id="sponsorTable" class="table scrollable striped" ng-show="orders.length">
+	<thead>
+		<tr>
+			<th class="pointer" ng-click="changeSort('created_time')">
+				<sort-arrows></sort-arrows>Order Date
+			</th>
+			<th class="pointer" ng-click="changeSort('vendor')">
+				<sort-arrows></sort-arrows>Vendor
+			</th>
+			<th class="pointer" ng-click="changeSort('orderid')">
+				<sort-arrows></sort-arrows>Order #
+			</th>
+			<th class="pointer" ng-click="changeSort('status')">
+				<sort-arrows></sort-arrows>Status
+			</th>
+			<th class="pointer" ng-click="changeSort('total')">
+				<sort-arrows></sort-arrows>Order Total
+			</th>
+			<th class="pointer" ng-click="changeSort('discount')">
+				<sort-arrows></sort-arrows>Discount
+			</th>
+			<th class="pointer" ng-click="changeSort('payments')">
+				<sort-arrows></sort-arrows>Payments
+			</th>
+			<th class="pointer" ng-click="changeSort('due')">
+				<sort-arrows></sort-arrows>Due
+			</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="order in orders | orderBy:sortField:sortReverse"
+			ng-show="order.include" data-id="{{order.orderid}}" class="orderRow"
+			ng-class="{cancelledOrder: order.isCancelled}">
+			<td>{{order.displayDate}}</td>
+			<td>{{order.vendor}}</td>
+			<td>{{order.orderid}}</td>
+			<td ng-class="{cancelledStatus: order.isCancelled}">{{order.status}}</td>
+			<td>{{order.total | currency}}</td>
+			<td>{{order.discount | currency}}</td>
+			<td>{{order.payments | currency}}</td>
+			<td>{{order.due | currency}}</td>
+			<td>
+				<button class="btn btn-primary readOnly" ng-click="viewDetails(order)">
+					View Details
+				</button>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<div style="display:none">
+	<div  id="orderDetailsDiv">
+		<table class="table striped scrollable">
+			<thead>
+				<tr>
+					<th>Event</th>
+					<th>Item Type</th>
+					<th>Name</th>
+					<th>Price</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="item in selectedOrderDetails">
+					<td>{{item.event}}</td>
+					<td>{{item.type}}</td>
+					<td>{{item.name}}</td>
+					<td>
+						{{item.total | currency}}
+						<span ng-show="item.quantity > 1">
+							 ({{item.quantity}} @ {{item.unit_price | currency}})
+						</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row">
+			<button class="btn btn-primary readOnly" ng-click="closeDialog()">Close</button>
+		</div>
+	</div>
+</div>

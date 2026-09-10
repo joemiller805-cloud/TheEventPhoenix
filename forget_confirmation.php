@@ -1,0 +1,12 @@
+<?php
+	include("common_functions.php");
+	require_csrf_request();
+	unset($_SESSION['confirmation']);
+	unset($_SESSION['attendee_first']);
+	unset($_SESSION['attendee_last']);
+	unset($_SESSION['registrationid']);
+	unset($_SESSION['sections_allowed']);
+	unset($_SESSION['sponsor_staff']);
+	unset($_SESSION['sponsors_enabled']);
+	unset($_SESSION['userid']);
+?>

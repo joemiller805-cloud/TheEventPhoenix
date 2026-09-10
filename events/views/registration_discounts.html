@@ -1,0 +1,54 @@
+<event-reg-tabs></event-reg-tabs>
+<div class="col-md-11">
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="addCode()">Add Discount Code</button>
+	</div>
+
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Discount Code</th>
+				<th>Calculation Method</th>
+				<th>Discount</th>
+				<th>Sunrise</th>
+				<th>Sunset</th>
+				<th>Frequency</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="code in codes">
+				<td><input type="text" ng-model="code.code" class="form-control"/></td>
+				<td>
+					<select ng-model="code.method" class="form-select">
+						<option value="percent">Percent</option>
+						<option value="amount">Amount</option>
+					</select>
+				</td>
+				<td>
+					<input type="number" ng-model="code.discount" class="form-control"
+						string-to-number/>
+				</td>
+				<td>
+					<input type="text" datepicker ng-model="code.sunrise" />
+				</td>
+				<td>
+					<input type="text" datepicker ng-model="code.sunset" />
+				</td>
+				<td>
+					<select ng-model="code.frequency" class="form-select">
+						<option value="oneTime" selected="selected">One Time Only</option>
+						<option value="oncePerUser">One Time Per User</option>
+					</select>
+				</td>
+				<td>
+					<button class="btn btn-primary btn-sm" ng-click="deleteCode(code)">
+						<span class="bi bi-trash"></span>
+					</button>
+				</td>
+			</tr>
+	</table>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="save()">Save</button>
+	</div>
+</div>

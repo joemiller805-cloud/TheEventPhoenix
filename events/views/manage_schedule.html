@@ -1,0 +1,471 @@
+<style>
+	.ghost{ opacity:.3; }
+	table td.hoveredOver, table td.ui-droppable-hover{
+		-webkit-box-shadow: inset 0px 0px 22px 5px rgba(247,247,13,1);
+		-moz-box-shadow: inset 0px 0px 22px 5px rgba(247,247,13,1);
+		box-shadow: inset 0px 0px 22px 5px rgba(247,247,13,1);
+	}
+	.sectionDiv[draggable="true"]{ cursor: grab; }
+	.sectionDiv + .sectionDiv ~ .sectionDiv{ border-top:1px solid silver; }
+	.sectionDiv{ line-height: 1.1; }
+	#schedTbl{ width:98%; }
+	#schedTbl th{
+		min-width:8em;
+		max-width:8em;
+		background: #d9534f;
+		font-weight: normal;
+		padding:3px;
+		font-size: .85em;
+	}
+	#schedTbl tr td{
+		padding:1px;
+		border: 1px solid darkgray;
+		font-size: .75em;
+	}
+	#schedTbl .roomCell{ background-color: #5bc0de; }
+	div#buttons {
+		position:absolute;
+		margin-top:200px;
+		margin-left:-100px;
+		width:150px;
+	}
+	#schedTbl tr td div.highlight{ background: yellow !important; }
+	#schedTbl tr td.dull{ background: gray !important; }
+	#editViewDialog label{ width:8em; }
+	.optionsRow td{ vertical-align:text-top; }
+	.optionsRow td label{ font-weight: normal; }
+	.optionsRow td option{ padding:1px 10px; }
+	.sticky-col {
+		position: sticky;
+		background-color: #fff; 
+		z-index: 15;
+	}
+	.first-col { left: 0; }
+	.dropdown-menu a {cursor: pointer;}
+</style>
+<sched-mgmt-tabs></sched-mgmt-tabs>
+<div class="container-fluid">
+<div class="row">
+	<h3 class="page-header" style="margin-left:2%">Manage Schedule - {{eventName}}</h3>
+</div>
+
+<div class="row" style="padding-bottom:1em">
+<div class="col-lg-12" style="margin-left:1em">
+
+	<button class="btn btn-primary btn-sm" ng-click="showViewSettings()">
+		<span class="bi bi-eye"></span>
+		Display Settings
+	</button>
+	<span style="margin-left:2em">
+		<input type="checkbox" id="presenterReveiwChk" ng-click="updateStaffReview()"/>
+		Ready for presenter review
+	</span>
+
+	<div class="btn-group btn-tracks" style="margin-left:3em">
+		<button type="button" class="btn btn-primary btn-sm">Tracks</button>
+		<button type="button" class="btn btn-primary btn-sm btn-smdropdown-toggle"
+			data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+			ng-show="highlightField != 'tracks'">
+			<span class="caret"></span>
+			<span class="visually-hidden">Toggle Dropdown</span>
+		</button>
+		<button type="button" class="btn btn-primary btn-sm btn-smdropdown-toggle"
+			ng-show="highlightField == 'tracks'" ng-click="highlightField = ''">
+			<span class="bi bi-ban"></span>
+			<span class="visually-hidden">Clear Highlights</span>
+		</button>
+		<ul class="dropdown-menu">
+			<li ng-repeat="track in tracks | orderBy:track">
+				<a ng-click="set_highlight('tracks',track)">{{track}}</a>
+			</li>
+		</ul>
+	</div>
+
+	<div class="btn-group btn-courses">
+		<button type="button" class="btn btn-primary btn-sm">Courses</button>
+		<button type="button" class="btn btn-primary btn-sm dropdown-toggle"
+			data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+			ng-show="highlightField != 'courses'">
+			<span class="caret"></span>
+			<span class="visually-hidden">Toggle Dropdown</span>
+		</button>
+		<button type="button" class="btn btn-primary btn-sm dropdown-toggle"
+			ng-show="highlightField == 'courses'" ng-click="highlightField = ''">
+			<span class="bi bi-ban"></span>
+			<span class="visually-hidden">Clear Highlights</span>
+		</button>
+		<ul class="dropdown-menu">
+			<li ng-repeat="course in courses | orderObjectBy:'name'">
+			<a ng-click="set_highlight('courses',course.id)">{{course.name}}</a>
+			</li>
+		</ul>
+	</div>
+
+	<div class="btn-group btn-presenters">
+		<button type="button" class="btn btn-primary btn-sm">Presenters</button>
+		<button type="button" class="btn btn-primary btn-sm dropdown-toggle"
+			data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+			ng-show="highlightField != 'presenters'">
+			<span class="caret"></span>
+			<span class="visually-hidden">Toggle Dropdown</span>
+		</button>
+		<button type="button" class="btn btn-primary btn-sm dropdown-toggle"
+			ng-show="highlightField == 'presenters'" ng-click="highlightField = ''">
+			<span class="bi bi-ban"></span>
+			<span class="visually-hidden">Clear Highlights</span>
+		</button>
+		<ul class="dropdown-menu">
+			<li>
+				<a ng-click="set_highlight('presenters',0)">
+					* No Presenter
+				</a>
+			</li>
+			<li ng-repeat="presenter in presenters | orderObjectBy:'last_name'">
+				<a ng-click="set_highlight('presenters',presenter.userid)">
+					{{presenter.last_name}}, {{presenter.first_name}}
+				</a>
+			</li>
+		</ul>
+	</div>
+	<span style="margin-left:3em;font-size:8pt"> (**) - Excluded from Attendee Schedules</span>
+</div>
+</div>
+
+<!---------- SESSION GRID ---------->
+<div class="row" style="margin-left:1em">
+<table id="schedTbl" class="table scrollable">
+	<thead>
+		<tr class="headerRow sticky noPad">
+			<th class="sticky-col first-col"></th>
+			<th ng-repeat="session in sessions | orderObjectBy:'starttime'" class="center"
+				ng-show="showSession(session.id)">
+				<div class="bold" ng-show="view.sessionName" ng-bind="session.name"></div>
+				<div ng-show="view.sessionDate" ng-bind="session.dt"></div>
+				<div ng-show="view.sessionTime">
+					{{session.start}} - {{session.end}}
+				</div>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="room in rooms | orderObjectBy:'sortorder'" ng-show="showRoom(room)">
+			<td class="roomCell sticky-col first-col">
+				<div class="bold" ng-show="view.roomName" ng-bind="room.name"></div>
+				<div ng-show="view.roomCapacity">Cap: {{room.capacity}}</div>
+				<div ng-show="view.roomArea" ng-bind="room.area"></div>
+				<div ng-show="view.roomSub" ng-bind="room.subname"></div>
+			</td>
+			<td ng-repeat="sectionList in room.schedule | orderObjectBy:'starttime'"
+				class="center droppable" droppable-area
+				style="background-color:{{getColor(sectionList)}}"
+				ng-dblclick="tdEdit(sectionList, room, sectionList.sessionid)"
+				ng-show="showSession(sectionList.sessionid)"
+				room="room" sessionid="sectionList.sessionid"
+				>
+				<div ng-repeat="section in sectionList.sections | orderBy:'coursename'"
+					class="sectionDiv {{highlighted(section)}}"
+					ng-class="{'editable': sectionEditable(section)}"
+					ng-show="section.sectionid" draggable-element
+					draggable="{{sectionEditable(section)}}"
+					ng-dblclick="editSectionInit(section, room)"
+					style="background-color:{{section.color}};padding:3px 0px">
+					<div class="button-row" style="margin-right:2px">
+						<button class="btn btn-primary btn-xs" ng-show="$index == 0"
+							ng-click="editSectionInit({},room,section.sessionid)" >
+							+
+						</button>
+						<button class="btn btn-primary btn-xs" ng-click="editSectionInit(section)"
+							ng-show="sectionEditable(section) && view.editBtn == '1'">
+							<span class="bi bi-pencil-fill"></span>
+						</button>
+					</div>
+					<div ng-show="view.secCrs" style="margin-bottom:.5em">
+						{{section.coursename}}
+						<span ng-show="section.excludefromschedule == '1'" style="font-weight: bold">
+							**
+						</span>
+					</div>
+					<div ng-show="view.secPres" ng-bind="section.presenternames"></div>
+					<div ng-show="view.secTrack" ng-bind="section.tracknames" class="italic"></div>
+				</div>
+				<div ng-show="sectionList.sections.length == 1" style="color:#777777"
+						ng-dblclick="editSectionInit(sectionList.sections[0], room, sectionList.sessionid)">
+					{{sessions[sectionList.sessionid].name}}<br/>
+					{{room.name}}<br/>
+					<button class="btn btn-primary btn-sm" ng-show="view.editBtn == '1'"
+						ng-click="editSectionInit(sectionList.sections[0], room, sectionList.sessionid)"> +
+					</button>
+				</div>
+			</td>
+		</tr>
+	<tbody>
+</table>
+</div>
+
+<!---------- EDIT DIALOG ---------->
+<div id="editSectionDialog" class="dialogRight">
+<div class="dialogTitle">Edit Section</div>
+<div class="dialogContents">
+	<table>
+		<tr>
+			<td class="bold">Course</td>
+			<td style="width:40em">
+				<select class="form-select" ng-model="editSection.courseid" ng-change="
+					getPresenters();getEditSectionColor()">
+					<option ng-repeat="course in courses | orderObjectBy:'name'" ng-value='{{course.id}}'>
+						{{course.name}}
+					</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Color</td>
+			<td>
+				<input type="color" ng-model="editSection.color">
+				<span ng-show="!editSection.color" style="font-style:italic">Unset</span>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Presenters</td>
+			<td>
+				<select multiple size="10" class="form-select"
+					ng-model="editSection.presenterids">
+					<optgroup label="Preferred Presenters" ng-show="preferPresenters.length">
+						<option ng-repeat="p in preferPresenters | orderBy:'last_name'"
+							value="{{p.userid}}">{{p.last_name}}, {{p.first_name}}</option>
+					</optgroup>
+					<optgroup label="Able Presenters" ng-show="ablePresenters.length">
+						<option ng-repeat="p in ablePresenters | orderBy:'last_name'"
+							value="{{p.userid}}">{{p.last_name}}, {{p.first_name}}</option>
+					</optgroup>
+					<optgroup label="Event Presenters" ng-show="otherPresenters.length">
+						<option ng-repeat="p in otherPresenters | orderBy:'last_name'"
+							value="{{p.userid}}">{{p.last_name}}, {{p.first_name}}</option>
+					</optgroup>
+					<optgroup label="Vendor Staff" ng-show="sponsorStaff.length">
+						<option ng-repeat="p in sponsorStaff | orderBy:'last_name'"
+							value="{{p.userid}}">{{p.last_name}}, {{p.first_name}}</option>
+					</optgroup>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Additional Sessions</td>
+			<td>
+				<select multiple size="10" class="form-select"
+					ng-model="editSection.additionalsessions">
+					<option ng-repeat="session in sessions | orderObjectBy:'starttime'"
+						value="{{session.id}}" ng-show="additionalSessionAvailable(session)">
+						{{session.name}}
+					</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Capacity</td>
+			<td>
+				<label style="width:15em">
+					<input type="radio" name="capacity" ng-click="editSection.capacity = -1"
+						ng-checked="editSection.capacity == -1">
+					 Room capacity
+				</label>
+				<label style="width:15em">
+					<input type="radio" name="capacity" ng-click="editSection.capacity = -2"
+						ng-checked="editSection.capacity == -2">
+					 Zero - Signups Not Allowed
+				</label><br/>
+				<label style="width:15em">
+					<input type="radio" name="capacity" ng-click="editSection.capacity = '0'"
+						ng-checked="editSection.capacity == '0'">
+					 Unlimited
+				</label>
+				<label style="width:15em">
+					<input type="radio" name="capacity" ng-click="editSection.capacity = 1"
+						ng-checked="editSection.capacity > 0 || editSection.capacity == ''">
+					Other
+					<span ng-show="editSection.capacity > 0 || editSection.capacity == ''">
+						<input ng-model="editSection.capacity" size="4"/>
+					</span>
+				</label>
+			</td>
+		</tr>
+		<tr ng-if="hasVirtual">
+			<td class="bold">Virtual/Recorded</td>
+			<td>
+				<input type="checkbox" ng-model="editSection.is_virtual"
+					ng-true-value="1" ng-false-value="0" />
+			</td>
+		</tr>
+		<tr ng-show="editSection.is_virtual == '1'">
+			<td class="bold">Video/Webinar Link</td>
+			<td>
+				<span ng-show="courses[editSection.courseid].videos.length">
+					Select a video from the dropdown if the video is uploaded to EasyRegPro<br/>
+					Type the location in the text box if the video is hosted elsewhere
+					<select ng-model="editSection.web_link" class="form-select"
+						style="margin-bottom:5px">
+						<option value="">-- Select Video --</option>
+						<option ng-repeat="video in courses[editSection.courseid].videos" 
+							value="https://{{domain}}/{{video.filepath}}">
+							{{video.name}}
+						</option>
+					</select>
+				</span>
+				<input type="text" ng-model="editSection.web_link" class="form-control" 
+					placeholder="https://myVideoLocation"/>
+			</td>
+		</tr>
+		<tr ng-show="editSection.is_virtual == '1'">
+			<td class="bold"></td>
+			<td>
+				<input type="checkbox" ng-model="editSection.web_link_external" 
+					ng-true-value="1" ng-false-value="0" />
+				Launch above link in a separate browser tab
+			</td>
+		</tr>
+		<!-- <tr ng-show="editSection.is_virtual == '1'">
+			<td class="bold">Zoom Meeting ID</td>
+			<td>
+				<input type="text" ng-model="editSection.web_link2" class="form-control" />
+			</td>
+		</tr>
+		<tr ng-show="editSection.is_virtual == '1'">
+			<td class="bold">Zoom Meeting Passcode</td>
+			<td>
+				<input type="text" ng-model="editSection.web_pass" class="form-control" />
+			</td>
+		</tr> -->
+		<tr>
+			<td class="bold">Not Factored in Section Limit</td>
+			<td>
+				<input type="checkbox" ng-model="editSection.exclude_att_limit"
+					ng-true-value="1" ng-false-value="0" />
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Exclude from Attendee Sched</td>
+			<td>
+				<select class="form-select" ng-model="editSection.excludefromschedule">
+					<option value="">Same as course</option>
+					<option ng-value="0">No</option>
+					<option ng-value="1">Yes</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="closeRightDialog()">
+			<span class="bi bi-chevron-left"></span> Cancel
+		</button>
+		<button class="btn btn-danger" ng-click="confirmDelete()" 
+				ng-show="editSection.sectionid && !sectionSignups[editSection.sectionid]">
+			<span class="bi bi-trash"></span> Delete
+		</button>
+		<button class="btn btn-danger" ng-click="confirmDelete()" 
+				ng-show="editSection.sectionid && sectionSignups[editSection.sectionid]">
+			<span class="bi bi-trash"></span> Delete Section and Alert Attendees 
+			({{sectionSignups[editSection.sectionid].length}} Attendees)
+		</button>
+		<button class="btn btn-success" ng-click="saveSection()">
+			<span class="bi bi-check-lg"></span> Save
+		</button>
+	</div>
+</div>
+</div><!---------- END EDIT DIALOG ---------->
+
+<!-- Edit View -->
+<div id="editViewDialog" class="dialogRight">
+<div class="dialogTitle">Display Settings</div>
+<div class="dialogContents">
+	<table style="width:95%">
+		<tr>
+			<td class="bold">Session Fields</td>
+			<td class="bold">Room Fields</td>
+			<td class="bold">Section Fields</td>
+			<td class="bold">Section Edit Mode</td>
+		</tr>
+		<tr class="optionsRow">
+			<td>
+				<label><input type="checkbox" ng-model="view.sessionName" /> Name</label><br/>
+				<label><input type="checkbox" ng-model="view.sessionDate" /> Date</label><br/>
+				<label><input type="checkbox" ng-model="view.sessionTime" /> Time</label>
+			</td>
+			<td>
+				<label><input type="checkbox" ng-model="view.roomName" /> Name</label><br/>
+				<label><input type="checkbox" ng-model="view.roomCapacity" /> Capacity</label><br/>
+				<label><input type="checkbox" ng-model="view.roomArea" /> Area</label><br/>
+				<label><input type="checkbox" ng-model="view.roomSub" /> Sub-name</label>
+			</td>
+			<td>
+				<label><input type="checkbox" ng-model="view.secCrs" /> Course</label><br/>
+				<label><input type="checkbox" ng-model="view.secPres" /> Presenters</label><br/>
+				<label><input type="checkbox" ng-model="view.secTrack" /> Tracks</label>
+			</td>
+			<td>
+				<label style="width:13em">
+					<input type="radio" name="editBtn" ng-model="view.editBtn" value="1">
+					Show Edit Buttons
+				</label><br/>
+				<label style="width:13em">
+					<input type="radio" name="editBtn" ng-model="view.editBtn" value="0">
+					Double-Click to Edit
+				</label>
+			</td>
+		</tr>
+		<tr class="optionsRow">
+			<td colspan="2" class="center">
+				<b>Visible Sessions</b><br/>
+				<select multiple ng-model="view.sessions" size="12">
+					<option value="all"> --All Sessions --</option>
+					<option ng-repeat="session in sessions  | orderObjectBy:'starttime'"
+						value="{{session.id}}">
+						{{session.name}}
+					</option>
+				</select>
+			</td>
+			<td colspan="2" class="center">
+				<b>Visible Rooms</b><br/>
+				<select multiple ng-model="view.rooms" size="12">
+					<option value="all"> --All Rooms --</option>
+					<option ng-repeat="room in rooms  | orderObjectBy:'sortorder'"
+						value="{{room.id}}">
+						{{room.name}}
+					</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="saveDisplayPrefs()">
+			<span class="bi bi-chevron-left"></span> Done
+		</button>
+	</div>
+</div>
+</div> <!-- END EDIT VIEW DIALOG-->
+
+<!-- SECTION CANCELLATION EMAIL DIALOG -->
+<div id="cancellationEmailDialog" class="dialogRight">
+<div class="dialogTitle">Section Cancellation Email</div>
+<div class="dialogContents">
+	<div>
+		The section has been deleted.
+		Complete this form to email all previously scheduled attendees.
+	</div>
+	<div style="margin-top:1em">
+		<b>Subject</b>
+		<input class="form-control" type="text" ng-model="emailSubject" 
+			style="margin-bottom:1em"/>
+		<b>Body</b>
+		<textarea class="form-control" rows="12" ng-model="emailBody"></textarea>
+	</div>
+	<div class="button-row" style="margin-top:1em">
+		<button class="btn btn-danger" ng-click="closeRightDialog()">
+			<span class="bi bi-trash"></span> Cancel (No Email)
+		</button>
+		<button class="btn btn-success" ng-click="sendEmail()">
+			<span class="bi bi-check-lg"></span> Send
+		</button>
+	</div>
+</div>
+</div> <!-- END SECTION CANCELLATION EMAIL DIALOG -->
+</div>

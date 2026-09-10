@@ -1,0 +1,96 @@
+<style>
+	.form-control{
+		font-weight: normal;
+	}
+</style>
+<div class="col-md-11">
+	<!-- Additional Staff Price  -->
+	<div class="row">
+		<H3>Additional Staff <i style="font-size:14px">(Leave blank if additional staff are not allowed)</i></H3>
+
+		<div class="row">
+			<label class="col-sm-3">
+				Price &nbsp;
+				$<input type="text"  ng-model="extraStaff.price" class="form-control" style="display:inline;width:7em"/>
+			</label>
+			<label class="col-sm-3">
+				Sunrise &nbsp;
+				<input type="text" ng-model="extraStaff.sunrise" datepicker
+					class="form-control" style="display:inline;width:7em"/>
+			</label>
+			<label class="col-sm-3">
+				Sunset &nbsp;
+				<input type="text" ng-model="extraStaff.sunset" datepicker
+					class="form-control" style="display:inline;width:7em"/>
+			</label>
+		</div>
+	</div>
+	<hr/>
+
+	<!-- Additional Purchase Options -->
+	<div class="row">
+		<H3>Additional Vendor Purchase Options</H3>
+		<div class="button-row">
+			<button type="button" class="btn btn-success" ng-click="newOption('event extra')">
+				Add Purchase Option <span class="badge"><i class="bi bi-plus-circle"></i></span>
+			</button>
+		</div>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Price</th>
+					<th>Sunrise</th>
+					<th>Sunset</th>
+					<th># Available</th>
+					<th>Description</th>
+					<th>Available For</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="type in sponsorTypes | filter:{'type':'event extra'}">
+					<td><input type='text' class="form-control" ng-model="type.name" /></td>
+					<td>
+						$<input type='text' ng-model="type.price" class="form-control"
+							style="width:7em;display:inline"/>
+					</td>
+					<td>
+						<input type='text' ng-model="type.sunrise" datepicker class="form-control"
+							style="width:7em;display:inline"/>
+					</td>
+					<td>
+						<input type='text' ng-model="type.sunset" datepicker class="form-control"
+							style="width:7em;display:inline"/>
+					</td>
+					<td>
+						<input type='text' ng-model="type.num_available" class="form-control"
+							style="width:6em;display:inline"/>
+						<br/><i>0 = unlimited</i>
+					</td>
+					<td>
+						<textarea ng-model="type.description" class="form-control" rows="5" cols="35"></textarea>
+					</td>
+					<td>
+						<select multiple ng-model="type.vendor_type_restrictions" class="form-select">
+							<option value="">-- Any Vendor Type --</option>
+							<option ng-repeat="vendorType in vendorTypes" value="{{vendorType.id}}"> 
+								{{vendorType.name}}
+							</option>
+						</select>
+					</td>
+					<td>
+						<button class="btn btn-primary ng-scope" ng-click="deleteConfirm(type)">
+							<span class="bi bi-trash"></span>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="button-row" style="margin-bottom:1em">
+		<button ng-click="saveTypes()" class="btn btn-primary">Save</button>
+		<button type="button" class="btn btn-primary" ng-click="reload()">Cancel</button>
+	</div>
+	<div class="row successMessage"><div class='alert alert-success'>Updates Saved</div></div>
+</div>  <!-- End col -->

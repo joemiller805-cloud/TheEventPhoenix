@@ -1,0 +1,15 @@
+<div style="font-size:16pt;font-weight:bold;margin-right:2em">Event Roster</div>
+<H4 class="exportHeader">
+	{{eventData.name}}<br/>
+	{{eventData.site}}<br/>
+	{{eventData.startdate}} - {{eventData.enddate}}<br/>
+	{{eventData.start_time}}
+</H4>
+
+<div 
+	er-grid-widget 
+	data-data="registrations"
+	data-columns="columns"
+	enable-selection="true"
+	export-name="Roster">
+</div>

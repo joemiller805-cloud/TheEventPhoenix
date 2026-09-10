@@ -1,0 +1,437 @@
+<div class="row">
+	<div class="col-md-10" style="margin-bottom:10px">
+		<H3>Document Management</H3>
+		<ul class="nav nav-tabs">
+			<li ng-click="category = 'account'" ng-class="{'active':category=='account'}"
+				class="nav-link active">
+				<a data-bs-toggle="tab">
+					<span class="bi bi-folder2-open"></span>
+					&nbsp; Account Documents
+				</a>
+			</li>
+			<li  ng-click="category = 'event'" ng-class="{'active':category=='event'}"
+				class="nav-link">
+				<a data-bs-toggle="tab">
+					<span class="bi bi-folder2-open"></span>
+					&nbsp; Event Documents
+				</a>
+			</li>
+			<li  ng-click="category = 'course'" ng-class="{'active':category=='course'}"
+				class="nav-link">
+				<a data-bs-toggle="tab">
+					<span class="bi bi-folder2-open"></span>
+					&nbsp; Course Documents
+				</a>
+			</li>
+			<li  ng-click="category = 'sponsor'" ng-class="{'active':category=='sponsor'}"
+				class="nav-link">
+				<a data-bs-toggle="tab">
+					<span class="bi bi-folder2-open"></span>
+					&nbsp; Vendor Documents
+				</a>
+			</li>
+			<li  ng-click="category = 'video'" ng-class="{'active':category=='video'}"
+				class="nav-link">
+				<a data-bs-toggle="tab">
+					<span class="bi bi-folder2-open"></span>
+					&nbsp; Video Documents
+				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div class="col-md-12">
+		<div class='alert alert-info' role='alert' ng-show="category == 'account'" 
+			style="margin-right:1em">
+			These documents will be visible to attendees for all events.
+		</div>
+		<b>Status</b>
+		<label style="margin-left:1em;font-weight:normal">
+			<input type="radio" name="activeStatus" ng-model="docStatus" value="0" /> Active
+		</label>
+		<label style="margin-left:1em;font-weight:normal">
+			<input type="radio" name="activeStatus" ng-model="docStatus" value="1" /> Archived
+		</label>
+		<br/>
+		<label class="btn btn-primary btn-primary" id="newDocBtn">
+			<i class="bi bi-plus-circle"></i>
+			New Document
+			<input type="file" name="document" id="docInput" style="display:none"/>
+		</label>
+		<input type="text" class="form-control" readonly ng-model="newDoc.name"
+			style="width:200px;display:inline-block;">
+		<div ng-show="newDoc.name">
+			<table class="table">
+				<tr>
+					<td class="bold" style="width:10em">Description</td>
+					<td>
+						<textarea rows="2" cols="50" ng-model="newDoc.description" class="form-control">
+						</textarea>
+					</td>
+				</tr>
+				<tr>
+					<td class="bold">Author</td>
+					<td>
+						<select ng-model="newDoc.upload_userid" class="form-select">
+							<option value=""></option>
+							<option ng-repeat="user in users | orderObjectBy:'last_name'" value="{{user.id}}"
+								ng-show="user.archived != '1'">
+								{{user.last_name}}, {{user.first_name}}
+							</option>
+						</select>
+					</td>
+				</tr>
+				<tr ng-show="!['course','video'].includes(category)">
+					<td class="bold">Classification</td>
+					<td>
+						<select ng-model="newDoc.classification" class="form-select">
+							<option value="1">Primary Presentation Document</option>
+							<option value="2">Supporting Document</option>
+						</select>
+					</td>
+				</tr>
+				<tr ng-show="category == 'course'">
+					<td class="bold">Course</td>
+					<td>
+						<select ng-model="newDoc.courseAssoc" class="form-select">
+							<option ng-repeat="course in courses | orderObjectBy:'name':false"
+								value="{{course.id}}" ng-show="course.archived != '1'">
+								{{course.name}}
+							</option>
+						</select>
+					</td>
+				</tr>
+				<tr ng-show="category == 'video'">
+					<td class="bold">Video</td>
+					<td>
+						<select ng-model="newDoc.videoAssoc" class="form-select">
+							<option ng-repeat="video in videos | orderObjectBy:'name':false"
+								value="{{video.id}}">
+								{{video.name}}
+							</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<label class="btn btn-danger" ng-click="cancelDoc()">
+							Cancel
+						</label>
+						<label class="btn btn-primary btn-success" ng-click="uploadDoc()"
+							ng-disabled="!newDoc.name">
+							Upload
+						</label>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div> <!-- End new document row -->
+
+	<div class="col-md-12 center" style="margin:1em 0px">
+		<input ng-model="docSearch" class="form-control" style="width:25em;display:inline"
+			placeholder="Document Search" />
+	</div>
+	<div class="col-md-12">
+		<table class="table scrollable striped" ng-show="!['course','video'].includes(category)">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th ng-show="['event','sponsor'].includes(category)">
+						Event Associations
+					</th>							
+					<th>Author</th>
+					<th>Date Uploaded</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="document in documents | orderObjectBy:'filepath'"
+					ng-show="showDoc(document)">
+					<td>
+						<span class="btn btn-primary btn-sm bi bi-pencil-fill"
+							ng-click="editDoc(document)" title="Edit">
+						</span>
+						<a href="/{{document.filepath}}" target="_blank">
+							{{document.name}}
+						</a>
+					</td>
+					<td>
+						<span ng-show="document.description">{{document.description}}</span>
+						<span ng-show="!document.description" style="color:red">
+							No Description
+						</span>
+					</td>
+					<td ng-show="['event','sponsor'].includes(category)">
+						<div class="btn btn-success btn-xs"
+							ng-click="addAssociation(document)">
+							<b>+</b> Add
+						</div>
+						<div ng-repeat="assoc in document.eventAssociations"
+							style="margin-top:2px">
+							 <span class="btn btn-danger btn-xs bi bi-x-circle"
+								ng-click="removeAssoc(document, assoc)" title="Remove">
+							</span>
+							{{events[assoc.eventid] ? events[assoc.eventid].name : 'Unknown Event'}}
+						</div>
+					</td>
+					<td>{{document.author}}</td>
+					<td>{{document.date_uploaded}}</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<table ng-show="category == 'course'" class="table scrollable striped">
+			<thead>
+				<tr>
+					<th>Course</th>
+					<th class="inlineDivs" style="width:70em"> 
+						<div style="width:15em">Document</div>
+						<div style="width:15em">Classification</div>
+						<div style="width:20em">Description</div>
+						<div style="width:10em">Author</div>
+						<div style="width:6em">Date Uploaded</div>
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="course in courses | orderObjectBy:'name'"
+					ng-if="showCourse(course)">
+					<td>{{course.name}}</td>
+					<td>
+						<div class="btn btn-success btn-xs" 
+							ng-click="addCourseDocument(course)">
+							<b>+</b> Add
+						</div>
+						<div ng-repeat="doc in course.documents" class="inlineDivs"
+							ng-show="doc.archived == docStatus">
+							<div style="width:15em">
+								<span class="btn btn-primary btn-sm bi bi-pencil-fill"
+									ng-click="editDoc(doc, course)" title="Edit">
+								</span>
+								<a href="/{{doc.filepath}}" target="_blank">
+									{{doc.name}}
+								</a>
+							</div>
+							<div style="width:15em">
+								<span ng-show="doc.classification == 1">
+									Primary Presentation Document
+								</span>
+								<span ng-show="doc.classification == 2">
+									Supporting Document
+								</span>
+							</div>
+							<div style="width:20em">{{doc.description}}</div>
+							<div style="width:10em">{{doc.author}}</div>
+							<div>{{doc.date_uploaded}}</div>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table> <!-- End Course Table -->
+
+		<table ng-show="category == 'video'" class="table scrollable striped">
+			<thead>
+				<tr>
+					<th>Video</th>
+					<th class="inlineDivs" style="width:70em"> 
+						<div style="width:15em">Document</div>
+						<div style="width:20em">Description</div>
+						<div style="width:10em">Author</div>
+						<div style="width:6em">Date Uploaded</div>
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="video in videos | orderObjectBy:'filepath'"
+					ng-if="showVideo(video)">
+					<td>{{video.name}}</td>
+					<td>
+						<div class="btn btn-success btn-xs" 
+							ng-click="addVideoDocument(video)">
+							<b>+</b> Add
+						</div>
+						<div ng-repeat="doc in video.documents" class="inlineDivs"
+							ng-show="doc.archived == docStatus">
+							<div style="width:15em">
+								<span class="btn btn-primary btn-sm bi bi-pencil-fill"
+									ng-click="editDoc(doc, video)" title="Edit">
+								</span>
+								<a href="/{{doc.filepath}}" target="_blank">
+									{{doc.name}}
+								</a>
+							</div>
+							<div style="width:20em">{{doc.description}}</div>
+							<div style="width:10em">{{doc.author}}</div>
+							<div>{{doc.date_uploaded}}</div>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table> <!-- End Video Table -->
+	</div> <!-- End Documents Div -->
+</div> <!-- END ROW -->
+
+<!-- Association Div -->
+<div style="display:none">
+	<div id="associationDiv">
+		<!-- Events -->
+		<div ng-show="['event','sponsor'].includes(category)">
+			<input type="text" ng-model="eventSearch" placeholder="Search Events">
+			<div ng-repeat="event in events | orderObjectBy:'sort':true"
+				ng-show="showEvent(event)" style="margin-bottom:2px">
+				<span class="btn btn-success btn-xs bi bi-plus-lg"
+					ng-click="addEvtAssociation(event)">
+				</span>
+				{{event.name}}
+			</div>
+		</div>
+	</div>
+</div> <!-- End Association Div -->
+
+<!-- Edit Document Dialog -->
+<div id="editDocDiv" class="dialogRight">
+	<div class="dialogTitle">{{dialogTitle}}</div>
+	<div class="dialogContents">
+		<table>
+			<tr>
+				<td class="bold">Description</td>
+				<td>
+					<textarea ng-model="tempDoc.description" rows="4" cols="20" class="form-control"></textarea>
+				</td>
+			</tr>
+			<tr ng-show="tempDoc.category == 'course'">
+				<td class="bold">Classification</td>
+				<td>
+					<select ng-model="tempDoc.classification" class="form-select">
+						<option value="1">Primary Presentation Document</option>
+						<option value="2">Supporting Document</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Author</td>
+				<td>
+					<select ng-model="tempDoc.upload_userid" class="form-select">
+						<option value=""></option>
+						<option ng-repeat="user in users | orderObjectBy:'last_name'" value="{{user.id}}"
+							ng-show="user.archived != '1'">
+							{{user.last_name}}, {{user.first_name}}
+						</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Archived</td>
+				<td>
+					<input type="checkbox" ng-model="tempDoc.archived" class="form-check-input"
+						ng-true-value="'1'" ng-false-value="'0'"/>
+				</td>
+			</tr>
+		</table>
+		<div class="button-row" style="margin-bottom:1em"
+			ng-show="!showMultiCourseDelete">
+
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-danger" ng-click="confirmDelete()">
+				<span class="bi bi-trash"></span> Delete
+			</button>
+			<button class="btn btn-success" ng-click="updateDoc()">
+				<span class="bi bi-check-lg"></span> Update
+			</button>
+		</div>
+
+		<div ng-show="showMultiCourseDelete" style="width:97%;margin:auto;margin-top:1em">
+			<div class='alert alert-warning' role='alert'>
+				This document is associated with multiple courses
+			</div>
+			<ul>
+				<li ng-repeat="crs in getCourseList(tempDoc)">
+					{{crs}}
+				</li>
+			</ul>
+			
+			If you would like to disassociate this document with this course but keep
+			the document associated with all other courses,<br/> 
+			choose the "Remove Course Association" option.
+			<br/><br/>
+			If you choose to delete the document, it will be removed from all courses.
+
+			<div class="button-row">
+				<button class="btn btn-primary" ng-click="closeRightDialog()">
+					<span class="bi bi-chevron-left"></span> Cancel
+				</button>
+				<button class="btn btn-primary" ng-click="removeAssoc(tempDoc)">
+					<span class="bi bi-x-circle"></span> Remove Course Association
+				</button>
+				<button class="btn btn-danger" ng-click="deleteDoc()">
+					<span class="bi bi-trash"></span> Delete Document
+				</button>
+			</div>
+		</div>
+	</div> <!-- End Dialog Contents -->
+</div> <!-- End Edit Document Dialog -->
+
+<!-- New Course Doc Dialog -->
+<div id="newCourseDocDialog" class="dialogRight">
+	<div class="dialogTitle">Add Course Document</div>
+	<div class="dialogContents">
+		<H3>{{selectedCourse.name}}</H3>
+		<button class="btn btn-primary btn-primary" ng-click="showNewDoc(selectedCourse)">
+			<i class="bi bi-plus-circle"></i>
+			Upload New Document
+		</button>
+		<H3 style="margin-top:2em">Associate Existing Document</H3>
+		<select ng-model="associationDoc" class="form-select"
+			ng-options="doc as doc.name for doc in documents  | orderObjectBy:'name'">
+		</select>
+		
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-primary btn-primary" 
+				ng-click="addCrsAssociation(selectedCourse)"
+				ng-disabled="!associationDoc">
+				<span class="bi bi-check-lg"></span>
+				Associate Selected Document
+			</button>
+		</div>
+	</div>
+</div> <!-- End newCourseDoc Dialog -->
+
+<!-- New Video Doc Dialog -->
+<div id="newVideoDocDialog" class="dialogRight">
+	<div class="dialogTitle">Add Video Document</div>
+	<div class="dialogContents">
+		<H3>{{selectedVideo.name}}</H3>
+		<button class="btn btn-primary btn-primary" ng-click="showNewDoc(selectedVideo)">
+			<i class="bi bi-plus-circle"></i>
+			Upload New Document
+		</button>
+		<H3 style="margin-top:2em">Associate Existing Document</H3>
+		<select ng-model="associationDoc" class="form-select"
+			ng-options="doc as doc.name for doc in documents  | orderObjectBy:'name'">
+		</select>
+		
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-primary btn-primary" 
+				ng-click="addVideoAssociation(selectedVideo)"
+				ng-disabled="!associationDoc">
+				<span class="bi bi-check-lg"></span>
+				Associate Selected Document
+			</button>
+		</div>
+	</div>
+</div> <!-- End newVideoDoc Dialog -->
+
+<style>
+	.inlineDivs div{ display: inline-block; }
+	.inlineDivs{ margin-bottom:.1em; }
+	.nav-tabs li{ cursor:pointer; }
+</style>

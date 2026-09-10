@@ -1,0 +1,91 @@
+<div class="col-md-12" style="margin-top:1em">
+	<H3>Default Registration Fields</H3>
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>Field</th>
+				<th>Label</th>
+				<th>Disable</th>
+				<th>Require</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="field in defaultConfig.fields">
+				<td>{{field.name}}</td>
+				<td><input type="text" class="form-control" ng-model="field.label"/></td>
+				<td>
+					<input type="checkbox" ng-model="field.hide" ng-if="!['Email','First Name','Last Name'].includes(field.name)">
+				</td>
+				<td>
+					<input type="checkbox" ng-model="field.require" ng-if="!['Email','First Name','Last Name'].includes(field.name)" ng-disabled="field.hide">
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<H3>{{accountName}} Registration Fields</H3>
+	<div class="button-row" style="margin-bottom:1em">
+		<button ng-click="showArchived = !showArchived" class="btn btn-primary">
+			{{showArchived ? 'Hide' : 'Show'}} Archived
+		</button>
+		<button type="button" class="btn btn-success" ng-click="addRow()" ng-disabled="!regFieldsReady">
+			Add a new field
+			<span class="badge"><i class="bi bi-plus-circle"></i></span>
+		</button>
+	</div>
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>Sort</th>
+				<th>Required</th>
+				<th>Label</th>
+				<th>Type</th>
+				<th>Options</th>
+				<th>Archived</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody id="regFieldsTbody">
+			<tr ng-repeat="field in reg_fields | orderObjectBy:'sortorder':false"
+				ng-if="field.archived == 0 || showArchived">
+				<td>
+					<span class="handle pointer">&#9776;</span>
+				</td>
+				<td>
+					<input type="checkbox" ng-model="field.required" class="form-check-input"
+						ng-true-value="'1'" ng-false-value="'0'"/>
+				</td>
+				<td>
+					<input type="text" class="form-control" ng-model="field.label"/>
+				</td>
+				<td>
+					<select ng-model="field.type" class="form-select">
+						<option value="t">Text Box</option>
+						<option value="e">Email Input</option>
+						<option value="s">Drop-Down</option>
+						<option value="r">Radio Button</option>
+						<option value="c">Checkbox</option>
+						<option value="a">Agree To Terms (Checkbox)</option>
+						<option value="l" selected="">Label</option>
+					</select>
+				</td>
+				<td>
+					<textarea cols='30' class="form-control" rows='5' ng-model="field.options"
+						ng-hide="['t','e'].includes(field.type)" 
+						placeHolder="{{optionMsgs[field.type]}}"></textarea>
+				</td>
+				<td>
+					<input type="checkbox" ng-model="field.archived" ng-change="setSort(field)" 
+						ng-true-value="'1'" ng-false-value="'0'"/>
+				</td>
+				<td>
+					<button class="btn btn-danger btn-sm" ng-click="remove(field)" title="Remove">
+						<span class="bi bi-trash"></span>
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="button-row" style="margin-top:1em">
+		<button type="submit" class="btn btn-primary" ng-click="saveChanges()">Save</button>
+	</div>
+</div>

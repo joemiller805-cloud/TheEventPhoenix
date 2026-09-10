@@ -1,0 +1,550 @@
+<h1 id="acme-powerschool">ACME PowerSchool</h1>
+<p>version 0.1</p>
+<p>The ACME PowerSchool module provides two interfaces for interacting with a PowerSchool instance: the REST API and an Oracle ODBC connection.</p>
+<h2 id="installation">Installation</h2>
+<ul>
+    <li>Copy the <code>acme_powerschool-0.1-py3-none-any.whl</code> file from the dist folder to any folder on your machine</li>
+    <li>
+        Issue the following command from a bash, command, or PowerShell prompt:<br />
+        <code>pip install acme_powerschool-0.1-py3-none-any.whl</code>
+    </li>
+    <li>All dependencies should be automatically downloaded and installed with the wheel file</li>
+</ul>
+<h2 id="rest-api">REST API</h2>
+<p>
+    This client provides a wrapper for the Python <a href="https://docs.python-requests.org/en/latest/">Requests</a> library with some PowerSchool-specific pieces abstracted out. It balances the familiarity of Requests, the challenges of
+    the <a href="https://support.powerschool.com/developer/#/page/general-usage">PowerSchool API</a>, and the flexibility of needing to perform both simple and complex tasks with the same library.
+</p>
+<h3 id="general-usage">General Usage</h3>
+<div class="sourceCode" id="cb1">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">import</span> acme_powerschool</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> ps <span class="op">=</span> acme_powerschool.api(<span class="st">&#39;applegrove.powerschool.com&#39;</span>, client_id<span class="op">=</span><span class="st">&#39;7ebf0a8e-f760-01fd-7812-37c81a3b0cf0&#39;</span>, client_secret<span class="op">=</span><span class="st">&#39;1f8c6f57-2ced-179b-664f-e227ae4dc312&#39;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.get(<span class="st">&#39;ws/v1/student/2&#39;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="op">&lt;</span>Response [<span class="dv">200</span>]<span class="op">&gt;</span></span></code></pre>
+</div>
+<p>Consider what this request would require without the library:</p>
+<div class="sourceCode" id="cb2">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">import</span> requests</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">import</span> base64</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">import</span> json</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> authorization <span class="op">=</span> (base64.b64encode((<span class="st">&#39;7ebf0a8e-f760-01fd-7812-37c81a3b0cf0:1f8c6f57-2ced-179b-664f-e227ae4dc312&#39;</span>).encode(<span class="st">&#39;utf-8&#39;</span>))).decode(<span class="st">&#39;utf-8&#39;</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> headers<span class="op">=</span>{<span class="st">&quot;Authorization&quot;</span>: <span class="ss">f&quot;Basic </span><span class="sc">{</span>authorization<span class="sc">}</span><span class="ss">&quot;</span>, <span class="st">&quot;Content-Type&quot;</span>: <span class="st">&quot;application/x-www-form-urlencoded;charset=UTF-8&quot;</span>}</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> requests.post(<span class="st">&#39;https://applegrove.powerschool.com/oauth/access_token&#39;</span>, data<span class="op">=</span><span class="st">&#39;grant_type=client_credentials&#39;</span>, headers<span class="op">=</span>headers)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> access_token <span class="op">=</span> json.loads(response.text)[<span class="st">&#39;access_token&#39;</span>]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> headers<span class="op">=</span>{<span class="st">&#39;Authorization&#39;</span>: <span class="ss">f&#39;Bearer </span><span class="sc">{</span>access_token<span class="sc">}</span><span class="ss">&#39;</span>, <span class="st">&#39;Content-Type&#39;</span>: <span class="st">&#39;application/json&#39;</span>}</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> requests.get(<span class="st">&#39;https://applegrove.powerschool.com/ws/v1/student/2&#39;</span>, headers<span class="op">=</span>headers)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a><span class="op">&lt;</span>Response [<span class="dv">200</span>]<span class="op">&gt;</span></span></code></pre>
+</div>
+<p>
+    The object returned by a request is actually a <a href="https://docs.python-requests.org/en/latest/api/#requests.Response"><code>Requests.response</code></a> object. This means that the following methods and attributes from Requests are
+    available:
+</p>
+<div class="sourceCode" id="cb3">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response.status_code</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="dv">200</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response.text</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="co">&#39;{&quot;student&quot;:{&quot;@expansions&quot;:&quot;demographics, addresses, alerts, phones, school_enrollment, ethnicity_race, contact, contact_info, initial_enrollment, schedule_setup, fees, lunch&quot;,&quot;@extensions&quot;:&quot;c_studentlocator,s_stu_crdc_x,s_stu_x,activities,u_tech,u_students_extension,s_stu_ncea_x,s_stu_edfi_x,studentcorefields&quot;,&quot;id&quot;:2,&quot;local_id&quot;:3,&quot;student_username&quot;:&quot;ag1student1&quot;,&quot;name&quot;:{&quot;first_name&quot;:&quot;Brandon&quot;,&quot;last_name&quot;:&quot;Adair&quot;</span><span class="re">}}}</span><span class="co">&#39;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response.json()</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>{<span class="st">&#39;student&#39;</span>: {<span class="st">&#39;@expansions&#39;</span>: <span class="st">&#39;demographics, addresses, alerts, phones, school_enrollment, ethnicity_race, contact, contact_info, initial_enrollment, schedule_setup, fees, lunch&#39;</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>  <span class="st">&#39;@extensions&#39;</span>: <span class="st">&#39;c_studentlocator,s_stu_crdc_x,s_stu_x,activities,u_tech,u_students_extension,s_stu_ncea_x,s_stu_edfi_x,studentcorefields&#39;</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>  <span class="st">&#39;id&#39;</span>: <span class="dv">2</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>  <span class="st">&#39;local_id&#39;</span>: <span class="dv">3</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a>  <span class="st">&#39;student_username&#39;</span>: <span class="st">&#39;ag1student1&#39;</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>  <span class="st">&#39;name&#39;</span>: {<span class="st">&#39;first_name&#39;</span>: <span class="st">&#39;Brandon&#39;</span>, <span class="st">&#39;last_name&#39;</span>: <span class="st">&#39;Adair&#39;</span>}}}</span></code></pre>
+</div>
+<h3 id="creating-a-powerschool-api-object">Creating a PowerSchool API Object</h3>
+<div class="sourceCode" id="cb4">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>ps <span class="op">=</span> acme_powerschool.api(base_url<span class="op">=</span><span class="va">None</span>, client_id<span class="op">=</span><span class="va">None</span>, client_secret<span class="op">=</span><span class="va">None</span>, access_token<span class="op">=</span><span class="va">None</span>, credential_file<span class="op">=</span><span class="va">None</span>, plugin<span class="op">=</span><span class="va">None</span>)</span></code></pre>
+</div>
+<p>There are four patterns available for creating an instance of a PowerSchool acme_powerschool.api. <code>base_url</code> (the first argument) is required regardless of pattern choice.</p>
+<h4 id="client_id-and-client_secret"><code>client_id</code> and <code>client_secret</code></h4>
+<p>This is the most likely scenario for a beginning developer. Supplying both the <code>client_id</code> and <code>client_secret</code> will automatically generate the bearer token when the first real request is made.</p>
+<div class="sourceCode" id="cb5">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> ps <span class="op">=</span> acme_powerschool.api(<span class="st">&#39;applegrove.powerschool.com&#39;</span>, client_id<span class="op">=</span><span class="st">&#39;7ebf0a8e-f760-01fd-7812-37c81a3b0cf0&#39;</span>, client_secret<span class="op">=</span><span class="st">&#39;1f8c6f57-2ced-179b-664f-e227ae4dc312&#39;</span>)</span></code></pre>
+</div>
+<h4 id="access_token"><code>access_token</code></h4>
+<p>During development, it might be handy to use a known bearer token to make requests. This is available for developers who understand OAuth well and are rapidly developing prototypes.</p>
+<div class="sourceCode" id="cb6">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> ps <span class="op">=</span> acme_powerschool.api(<span class="st">&#39;applegrove.powerschool.com&#39;</span>, access_token<span class="op">=</span><span class="st">&#39;65908f8c-c4ff-25fe-4770-7bcd3c1d095e&#39;</span>)</span></code></pre>
+</div>
+<h4 id="credential_file"><code>credential_file</code></h4>
+<p>
+    This pattern is intended to be used in production when the <code>client_id</code> and <code>client_secret</code> need to be abstracted out of the script itself, perhaps in a file or folder that are inaccessible to users other than the
+    script developer. This pattern serves the purpose of not only keeping these credentials outside the script but also allowing for automatic caching of the <code>access_token</code>.
+</p>
+<div class="sourceCode" id="cb7">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>ps <span class="op">=</span> acme_powerschool.api(<span class="st">&#39;applegrove.powerschool.com&#39;</span>, credential_file<span class="op">=</span><span class="st">&#39;../credentials.json&#39;</span>)</span></code></pre>
+</div>
+<p>The structure of a credential file is JSON:</p>
+<div class="sourceCode" id="cb8">
+    <pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>    <span class="dt">&quot;client_id&quot;</span><span class="fu">:</span> <span class="st">&quot;7ebf0a8e-f760-01fd-7812-37c81a3b0cf0&quot;</span><span class="fu">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>    <span class="dt">&quot;client_secret&quot;</span><span class="fu">:</span> <span class="st">&quot;1f8c6f57-2ced-179b-664f-e227ae4dc312&quot;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="fu">}</span></span></code></pre>
+</div>
+<p>
+    Using this pattern, when an <code>access_token</code> is retrieved from the PowerSchool server (either because one was not previously specified or it has expired), the <code>access_token</code> will automatically be saved in the
+    credential file:
+</p>
+<div class="sourceCode" id="cb9">
+    <pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>    <span class="dt">&quot;client_id&quot;</span><span class="fu">:</span> <span class="st">&quot;7ebf0a8e-f760-01fd-7812-37c81a3b0cf0&quot;</span><span class="fu">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>    <span class="dt">&quot;client_secret&quot;</span><span class="fu">:</span> <span class="st">&quot;1f8c6f57-2ced-179b-664f-e227ae4dc312&quot;</span><span class="fu">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>    <span class="dt">&quot;access_token&quot;</span><span class="fu">:</span> <span class="st">&quot;65908f8c-c4ff-25fe-4770-7bcd3c1d095e&quot;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="fu">}</span></span></code></pre>
+</div>
+<p>This allows subsequent calls of the script to continue using this <code>access_token</code> without re-requesting it, and until it expires.</p>
+<h4 id="plugin-keyring"><code>plugin</code> (keyring)</h4>
+<p>
+    This pattern is is the most secure way to store credentials and should be used whenever possible. It leverages <a href="https://pypi.org/project/keyring/">keyring</a>, which is a cross-platform Python library for interacting with the
+    system’s keyring service (Credential Locker on Windows, Keychain on MacOS). It requires the keyring library to be installed via shell:
+</p>
+<div class="sourceCode" id="cb10">
+    <pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>$ <span class="ex">pip</span> install keyring</span></code></pre>
+</div>
+<div class="sourceCode" id="cb11">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a>ps <span class="op">=</span> acme_powerschool.api(<span class="st">&#39;applegrove.powerschool.com&#39;</span>, plugin<span class="op">=</span><span class="st">&#39;My Plugin Name&#39;</span>)</span></code></pre>
+</div>
+<p>
+    The value of the <code>plugin</code> argument does <em>not</em> need to match the name of the plugin that has been installed to PowerSchool, but it is encouraged. When the <code>plugin</code> argument is used, the library will retreive
+    the <code>client_id</code>, <code>client_secret</code>, and current <code>access_token</code> (if available) from the system’s keyring. If either <code>client_id</code> or <code>client_secret</code> is blank, the library will prompt the
+    user to enter them via a call to <a href="https://docs.python.org/3/library/getpass.html"><code>getpass</code></a>. For this reason, it is recommended to run a production script from shell first before scheduling a task to run at a
+    specified time.
+</p>
+<p>
+    If the <code>client_id</code> and <code>client_secret</code> change (such as when a plugin is uninstalled and reinstalled), it will be necessary to flush these credentials out of the keyring service. This can be performed outside of the
+    script by issuing the following shell command:
+</p>
+<div class="sourceCode" id="cb12">
+    <pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>$ <span class="ex">python</span> -m keyring set [base_url] [plugin name]</span></code></pre>
+</div>
+<p>If the plugin name has spaces in it, use quotes to contain it:</p>
+<div class="sourceCode" id="cb13">
+    <pre
+        class="sourceCode bash"
+    ><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>$ <span class="ex">python</span> -m keyring set applegrove.powerschool.com <span class="st">&quot;My Plugin Name&quot;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="ex">Password</span> for <span class="st">&#39;My Plugin Name&#39;</span> in <span class="st">&#39;applegrove.powerschool.com&#39;</span>:</span></code></pre>
+</div>
+<p>Leave the password blank and hit Enter/Return to clear the value. The next execution of the script will prompt the user for a new <code>client_id</code> and <code>client_secret</code>.</p>
+<p>
+    Using this pattern, when an <code>access_token</code> is retrieved from the PowerSchool server (either because one was not previously specified or it has expired), the access_token will automatically be saved in the system’s keyring
+    service. This allows subsequent calls of the script to continue using this <code>access_token</code> without re-requesting it until it expires.
+</p>
+<h4 id="default-session-settings">Default Session Settings</h4>
+<p>
+    By default, the <a href="#markdown-header-session"><code>acme_powerschool.api.session</code></a> object will be configured to send and receive JSON data by setting the following headers:
+</p>
+<div class="sourceCode" id="cb14">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>acme_powerschool.api.session.headers <span class="op">=</span> {</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>    <span class="st">&#39;Content-Type&#39;</span>: <span class="st">&#39;application/json&#39;</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>    <span class="st">&#39;Accept&#39;</span>: <span class="st">&#39;application/json&#39;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>}</span></code></pre>
+</div>
+<p>
+    If you prefer to work in XML, this can be overridden by accessing the <code>headers</code> attribute in <a href="#markdown-header-session"><code>acme_powerschool.api.session</code></a>:
+</p>
+<div class="sourceCode" id="cb15">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a>acme_powerschool.api.session.headers[<span class="st">&#39;Accept&#39;</span>] <span class="op">=</span> <span class="st">&#39;application/xml&#39;</span></span></code></pre>
+</div>
+<p>Other session headers can be set using this same attribute.</p>
+<h3 id="high-level-methods-and-attributes-porcelain">High-Level Methods and Attributes (Porcelain)</h3>
+<h4 id="methods">Methods</h4>
+<p>
+    In general, developers will use these four methods to make PowerSchool API requests. These are provided as helper methods that call the <a href="#markdown-header-request"><code>acme_powerschool.api.request()</code></a> method with the
+    appropriate HTTP method passed as an argument.
+</p>
+<div class="sourceCode" id="cb16">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a>acme_powerschool.api.get(url, <span class="op">**</span>kwargs)</span></code></pre>
+</div>
+<div class="sourceCode" id="cb17">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a>acme_powerschool.api.post(url, <span class="op">**</span>kwargs)</span></code></pre>
+</div>
+<div class="sourceCode" id="cb18">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>acme_powerschool.api.put(url, <span class="op">**</span>kwargs)</span></code></pre>
+</div>
+<div class="sourceCode" id="cb19">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a>acme_powerschool.api.delete(url, <span class="op">**</span>kwargs)</span></code></pre>
+</div>
+<ul>
+    <li><code>url</code>: the PowerSchool API resource being requested</li>
+    <li>
+        <code>**kwargs</code>: keyword arguments that are passed to the generic <a href="#markdown-header-request"><code>acme_powerschool.api.request()</code></a> method, which are then passed to the
+        <a href="https://docs.python-requests.org/en/latest/api/#requests.Session.request"><code>Session.request()</code></a> method.
+    </li>
+</ul>
+<h5 id="request">Request</h5>
+<p>The generic, medium-level method used to make PowerSchool API requests.</p>
+<div class="sourceCode" id="cb20">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a>acme_powerschool.api.request(method, url, <span class="op">**</span>kwargs)</span></code></pre>
+</div>
+<ul>
+    <li>
+        <p><code>method</code>: any of the HTTP Methods (GET, POST, PUT, DELETE).</p>
+    </li>
+    <li>
+        <p><code>url</code>: the PowerSchool API resource being requested. If the URL begins with the base_url or a leading slash, it will be automatically trimmed. This means the following requests are all equivalent:</p>
+        <div class="sourceCode" id="cb21">
+            <pre
+                class="sourceCode python"
+            ><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.get(<span class="st">&#39;ws/v1/student/2&#39;</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.get(<span class="st">&#39;/ws/v1/student/2&#39;</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.get(<span class="st">&#39;https://applegrove.powerschool.com/ws/v1/student/2&#39;</span>)</span></code></pre>
+        </div>
+    </li>
+    <li>
+        <p>
+            <code>**kwargs</code>: keyword arguments that are passed to the Requests <a href="https://docs.python-requests.org/en/latest/api/#requests.Session.request"><code>Session.request()</code></a> method. This allows for any
+            <a href="https://requests.readthedocs.io/en/latest/api/#requests.request">Requests-compatible arguments</a> to be used when making a PowerSchool API request.
+        </p>
+    </li>
+</ul>
+<p>The <code>request</code> method automatically handles <a href="https://http.cat/401">401 Unauthorized</a> responses by requesting a new <code>access_token</code> and making the request again.</p>
+<p>
+    A failure to request a new token due to missing or bad credentials will raise a <b><code>RuntimeError</code></b>.
+</p>
+<p>
+    If the <a href="#markdown-header-credential_file"><code>credential_file</code></a> or <a href="markdown-header-#plugin"><code>plugin</code></a> method was used to create the client object, the new token will automatically be cached
+    using the corresponding method.
+</p>
+<p>Other response codes must be caught and handled by the developer. Common exceptions and their causes include:</p>
+<ul>
+    <li><a href="https://http.cat/400">400 Bad Request</a> - Sent a malformed request payload.</li>
+    <li><a href="https://http.cat/404">404 Not Found</a> - Requested a resource that does not exist.</li>
+    <li><a href="https://http.cat/405">405 Method Not Allowed</a> - Used GET instead of POST.</li>
+    <li><a href="https://http.cat/415">415 Unsupported Media Type</a> - Sent a <code>Content-Type: application/xml</code> header when only <code>application/json</code> is allowed.</li>
+    <li><a href="https://http.cat/500">500 Internal Server Error</a> - Something is wrong with the server.</li>
+</ul>
+<h4 id="attributes">Attributes</h4>
+<h5 id="session">Session</h5>
+<p>
+    <code>acme_powerschool.api.session</code> The Requests session object that is used for making every PowerSchool API request. It usually will not need to be accessed directly. Possible use cases include setting the default
+    <code>Accept</code> header to <code>application/xml</code> to override the default choice of <code>application/json</code>:
+</p>
+<div class="sourceCode" id="cb22">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a>ps.session.headers[<span class="st">&#39;Accept&#39;</span>] <span class="op">=</span> <span class="st">&#39;application/xml&#39;</span></span></code></pre>
+</div>
+<h3 id="low-level-methods-and-attributes-plumbing">Low-Level Methods and Attributes (Plumbing)</h3>
+<p>
+    The following methods and attributes are used internally by the library to perform various functions necessary to interact with the PowerSchool API. They should not be needed by most developers but are documented here for advanced usage
+    and exploration. #### Methods
+</p>
+<pre class="acme_powerschool.api._set_access_token(access_token)```"><code>Sets the access token and updates the Request Session&#39;s Authorization header
+
+```acme_powerschool.api._obtain_access_token()```
+Requests a bearer token from the server&#39;s ```/oauth/access_token``` URL.
+Raises a &lt;b&gt;`RuntimeError`&lt;/b&gt; if either a `client_id` or a `client_secret` is missing.
+Raises a &lt;b&gt;`RuntimeError`&lt;/b&gt; if an `access_token` cannot be retrieved using the provided `client_id` and `client_secret`.
+
+#### Attributes
+
+`acme_powerschool.api._base_url`
+The domain without the scheme or path.  Ex: `applegrove.powerschool.com`
+
+`acme_powerschool.api._client_id`
+The `client_id`. Ex: `7ebf0a8e-f760-01fd-7812-37c81a3b0cf0`
+
+`acme_powerschool.api._client_secret`
+The `client_secret`. Ex: `1f8c6f57-2ced-179b-664f-e227ae4dc312`
+
+`acme_powerschool.api._access_token`
+The `access_token`. Ex: `65908f8c-c4ff-25fe-4770-7bcd3c1d095e`
+
+`acme_powerschool.api._credential_file`
+The path of the credential file used to hold the `client_id`, `client_secret`, and `access_token`.
+
+`acme_powerschool.api._plugin`
+The name of the plugin to be referenced when accessing the system&#39;s keyring service.
+
+## Usage Examples
+
+### Basic student info
+```python
+&gt;&gt;&gt; response = ps.get(&#39;ws/v1/student/2&#39;)
+&gt;&gt;&gt; response.json()
+{&#39;student&#39;: {&#39;@expansions&#39;: &#39;demographics, addresses, alerts, phones, school_enrollment, ethnicity_race, contact, contact_info, initial_enrollment, schedule_setup, fees, lunch&#39;,
+  &#39;@extensions&#39;: &#39;s_il_stu_earlychildhood_x,s_il_stu_preid_x,s_il_stu_plan504_x,c_studentlocator,s_il_stu_homeless_x,s_il_stu_ell_x,s_stu_crdc_x,s_stu_x,activities,u_tech,u_students_extension,s_il_stu_x,s_il_stu_demographics_x,s_stu_ncea_x,s_il_stu_collegecareer_x,s_stu_edfi_x,s_il_stu_birthto3_x,studentcorefields&#39;,
+  &#39;id&#39;: 2,
+  &#39;local_id&#39;: 3,
+  &#39;student_username&#39;: &#39;ag1student1&#39;,
+  &#39;name&#39;: {&#39;first_name&#39;: &#39;Brandon&#39;, &#39;last_name&#39;: &#39;Adair&#39;}}}</code></pre>
+<h3 id="adding-the-contact_info-expansion">Adding the contact_info expansion</h3>
+<div class="sourceCode" id="cb24">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.get(<span class="st">&#39;ws/v1/student/2?expansions=contact_info&#39;</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response.json()</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a>{<span class="st">&#39;student&#39;</span>: {<span class="st">&#39;@expansions&#39;</span>: <span class="st">&#39;demographics, addresses, alerts, phones, school_enrollment, ethnicity_race, contact, contact_info, initial_enrollment, schedule_setup, fees, lunch&#39;</span>,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a>  <span class="st">&#39;@extensions&#39;</span>: <span class="st">&#39;c_studentlocator,s_stu_crdc_x,s_stu_x,activities,s_stu_ncea_x,s_stu_edfi_x,studentcorefields&#39;</span>,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a>  <span class="st">&#39;id&#39;</span>: <span class="dv">2</span>,</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true"></a>  <span class="st">&#39;local_id&#39;</span>: <span class="dv">3</span>,</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true"></a>  <span class="st">&#39;student_username&#39;</span>: <span class="st">&#39;ag1student1&#39;</span>,</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true"></a>  <span class="st">&#39;name&#39;</span>: {<span class="st">&#39;first_name&#39;</span>: <span class="st">&#39;Brandon&#39;</span>, <span class="st">&#39;last_name&#39;</span>: <span class="st">&#39;Adair&#39;</span>},</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true"></a>  <span class="st">&#39;contact_info&#39;</span>: {<span class="st">&#39;email&#39;</span>: <span class="st">&#39;Brandom.Adair@powerschool.com&#39;</span>}}}</span></code></pre>
+</div>
+<h3 id="updating-a-students-email-address">Updating a student’s email address</h3>
+<p>A POST body is passed as the <code>data</code> argument (see https://docs.python-requests.org/en/latest/api/#requests.post).</p>
+<p>
+    For the PowerSchool API, the value of a POST body needs to be a string representation of a JSON object. Wrap a Python dict in <a href="https://docs.python.org/3/library/json.html#json.dumps"><code>json.dumps()</code></a> to construct
+    this string:
+</p>
+<div class="sourceCode" id="cb25">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.post(</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a>    <span class="st">&#39;ws/v1/student&#39;</span>,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a>    data<span class="op">=</span>json.dumps({</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a>        <span class="st">&quot;students&quot;</span>:{</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a>            <span class="st">&quot;student&quot;</span>:[{</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true"></a>                <span class="st">&quot;id&quot;</span>: <span class="st">&quot;2&quot;</span>,</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true"></a>                <span class="st">&quot;client_uid&quot;</span>: <span class="st">&quot;2&quot;</span>,</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true"></a>                <span class="st">&quot;action&quot;</span>: <span class="st">&quot;UPDATE&quot;</span>,</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true"></a>                <span class="st">&quot;contact_info&quot;</span>: {</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true"></a>                    <span class="st">&quot;email&quot;</span>: <span class="st">&quot;foo@bar.com&#39;</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true"></a><span class="st">                }</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true"></a><span class="st">            }]</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true"></a><span class="st">        }</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true"></a><span class="st">    })</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true"></a><span class="st">)</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true"></a><span class="st">&gt;&gt;&gt; response.json()</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true"></a><span class="st">{&#39;results&#39;: {&#39;insert_count&#39;: 0,</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true"></a><span class="st">  &#39;update_count&#39;: 1,</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true"></a><span class="st">  &#39;delete_count&#39;: 0,</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true"></a><span class="st">  &#39;result&#39;: {&#39;client_uid&#39;: 2,</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true"></a><span class="st">   &#39;status&#39;: &#39;SUCCESS&#39;,</span></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true"></a><span class="st">   &#39;action&#39;: &#39;UPDATE&#39;,</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true"></a><span class="st">   &#39;success_message&#39;: {&#39;id&#39;: 2,</span></span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true"></a><span class="st">    &#39;ref&#39;: &#39;https://applegrove.powerschool.com/ws/v1/student/2&#39;</span><span class="sc">}}}}</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true"></a></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true"></a><span class="st"># Verify the update</span></span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true"></a><span class="st">&gt;&gt;&gt; response = ps.get(&#39;ws/v1/student/2?expansions=contact_info&#39;)</span></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true"></a><span class="st">&gt;&gt;&gt; response.json()</span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true"></a><span class="st">{&#39;student&#39;: {&#39;@expansions&#39;: &#39;demographics, addresses, alerts, phones, school_enrollment, ethnicity_race, contact, contact_info, initial_enrollment, schedule_setup, fees, lunch&#39;,</span></span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true"></a><span class="st">  &#39;@extensions&#39;: &#39;c_studentlocator,s_stu_crdc_x,s_stu_x,activities,s_stu_ncea_x,s_stu_edfi_x,studentcorefields&#39;,</span></span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true"></a><span class="st">  &#39;id&#39;: 2,</span></span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true"></a><span class="st">  &#39;local_id&#39;: 3,</span></span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true"></a><span class="st">  &#39;student_username&#39;: &#39;ag1student1&#39;,</span></span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true"></a><span class="st">  &#39;name&#39;: {&#39;first_name&#39;: &#39;Brandon&#39;, &#39;last_name&#39;: &#39;Adair&#39;},</span></span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true"></a><span class="st">  &#39;contact_info&#39;: {&#39;email&#39;: &#39;foo@bar.com&#39;</span><span class="sc">}}</span><span class="st">}</span></span></code></pre>
+</div>
+<h3 id="retrieving-school-information">Retrieving School Information</h3>
+<p>JSON (the default for this module):</p>
+<div class="sourceCode" id="cb26">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.get(<span class="st">&#39;ws/v1/district/school&#39;</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response.text</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="co">&#39;{&quot;schools&quot;:{&quot;@expansions&quot;:&quot;school_boundary, full_time_equivalencies, school_fees_setup&quot;,&quot;@extensions&#39;</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a> <span class="co"># ...snipped...</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a> <span class="co">&#39;,&quot;principal&quot;:{&quot;name&quot;:{&quot;first_name&quot;:&quot;Alex&quot;,&quot;middle_name&quot;:&quot;McQuaid&quot;},&quot;email&quot;:&quot;amcquaid@pssis.com&quot;}}]}}&#39;</span></span></code></pre>
+</div>
+<p>XML (temporary override for only this request):</p>
+<div class="sourceCode" id="cb27">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.get(<span class="st">&#39;ws/v1/district/school&#39;</span>, headers<span class="op">=</span>{<span class="st">&#39;Accept&#39;</span>: <span class="st">&#39;application/xml&#39;</span>})</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response.text</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="co">&#39;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;yes&quot;?&gt;&lt;schools expansions=&quot;school_boundary, full_ti&#39;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a> <span class="co"># ...snipped...&#39;</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a> <span class="co">&#39;le_name&gt;McQuaid&lt;/middle_name&gt;&lt;/name&gt;&lt;email&gt;amcquaid@pssis.com&lt;/email&gt;&lt;/principal&gt;&lt;/school&gt;&lt;/schools&gt;&#39;</span></span></code></pre>
+</div>
+<h3 id="advanced-usage">Advanced usage</h3>
+<h4 id="handling-missing-access_requests">Handling missing <code>access_requests</code></h4>
+<p>
+    A common PowerSchool API annoyance is the need to request access to every field referenced in a PowerQuery. If a field is missing from a plugin’s XML file, the API call will fail with a <code>status_code</code> of
+    <a href="https://http.cat/403">403 Forbidden</a>. In the body of the response, PowerSchool will provide a list of the missing fields. To facilitate PowerQuery development, when a 403 Forbidden error is encountered, this list of missing
+    fields is parsed, converted into a list of <code>&lt;access_request&gt;</code> tags, and raised as a warning to the developer. These tags are also returned as an attribute of the response object and can be accessed programatically via
+    <code>response.access_requests</code>:
+</p>
+<div class="sourceCode" id="cb28">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response <span class="op">=</span> ps.post(<span class="st">&#39;ws/schema/query/com.pearson.core.attendance.daily_attendance_template&#39;</span>, data<span class="op">=</span><span class="st">&#39;{&quot;studentid&quot;: &quot;2&quot;}&#39;</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="op">&lt;</span>Response [<span class="dv">403</span>]<span class="op">&gt;</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a>PowerSchoolWarning: No access to field. access_requests: <span class="op">&lt;</span>field table<span class="op">=</span><span class="st">&quot;attendance&quot;</span> field<span class="op">=</span><span class="st">&quot;studentid&quot;</span> access<span class="op">=</span><span class="st">&quot;ViewOnly&quot;</span> <span class="op">/&gt;</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> response.access_requests</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true"></a><span class="co">&#39;&lt;field table=&quot;attendance&quot; field=&quot;studentid&quot; access=&quot;ViewOnly&quot; /&gt;&#39;</span></span></code></pre>
+</div>
+<h2 id="oracle-odbc-connection">Oracle ODBC Connection</h2>
+<p>
+    This helper method simplifies making a connection to the Oracle database by wrapping a call to the <a href="https://python-oracledb.readthedocs.io/">python_oracledb</a> <code>connect()</code> method. It merely returns a
+    <code>oracledb.Connection</code> object that can be used to execute queries against the database. The primary benefit of this method is that it encourages good password practices by leveraging the <code>keyring</code> library for
+    credential storage and retrieval.
+</p>
+<p>
+    Making an Oracle connection over ODBC requires that the machine running the script has a route to the database server via the IP address or FQDN. This typically means access within a LAN or via a VPN connection. It also requires that
+    the Oracle port (usually 1521) is open on the firewall.
+</p>
+<h3 id="general-usage-1">General Usage</h3>
+<div class="sourceCode" id="cb29">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">import</span> acme_powerschool</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> <span class="cf">with</span> acme_powerschool.odbc( <span class="st">&quot;applegrove.powerschool.com&quot;</span>, <span class="st">&quot;oracle_readonly_account&quot;</span> ) <span class="im">as</span> ps:</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> cursor <span class="op">=</span> ps.cursor()</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> cursor.execute(<span class="st">&quot;select school_number, name from schools&quot;</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> ps.commit()</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> <span class="bu">print</span>( cursor.description )</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> <span class="cf">while</span> <span class="va">True</span>:</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span>     row <span class="op">=</span> cursor.fetchone()</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span>     <span class="cf">if</span> row <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span>         <span class="cf">break</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span>     <span class="bu">print</span>(row)</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true"></a>(<span class="dv">100</span>, <span class="st">&#39;Apple Grove High School&#39;</span>)</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true"></a>(<span class="dv">600</span>, <span class="st">&#39;Cherry Hill Middle School&#39;</span>)</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true"></a>(<span class="dv">700</span>, <span class="st">&#39;Washington Elementary&#39;</span>)</span></code></pre>
+</div>
+<p>The metadata about the query can be retrieved via the <code>cursor.description</code> object:</p>
+<div class="sourceCode" id="cb30">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> cursor.description</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a>[(<span class="st">&#39;SCHOOL_NUMBER&#39;</span>, <span class="op">&lt;</span>oracledb.DbType DB_TYPE_NUMBER<span class="op">&gt;</span>, <span class="dv">11</span>, <span class="va">None</span>, <span class="dv">10</span>, <span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a> (<span class="st">&#39;NAME&#39;</span>, <span class="op">&lt;</span>oracledb.DbType DB_TYPE_VARCHAR<span class="op">&gt;</span>, <span class="dv">60</span>, <span class="dv">240</span>, <span class="va">None</span>, <span class="va">None</span>, <span class="dv">1</span>)]</span></code></pre>
+</div>
+<p>
+    The built-in oracledb methods for creating a cursor, executing a query, and working with the results can be be somewhat cumbersome. The <a href="https://pypi.org/project/pandas/">Pandas</a> library provides an extremely powerful and
+    flexible interface for working with sets of data using a structure called a DataFrame and is the recommended approach.
+</p>
+<p>The oracledb connection object returned by this helper method can be passed as an argument to the <code>pandas.read_sql</code> method to execute a query and parse it as a DataFrame</p>
+<div class="sourceCode" id="cb31">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="im">import</span> acme_powerschool</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> ps <span class="op">=</span> acme_powerschool.odbc( <span class="st">&quot;applegrove.powerschool.com&quot;</span>, user<span class="op">=</span><span class="st">&quot;oracle_readonly_account&quot;</span> )</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> df <span class="op">=</span> pd.read_sql( <span class="st">&quot;select school_number, name from schools where school_number in (100, 600, 700)&quot;</span>, ps)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true"></a><span class="op">&gt;&gt;&gt;</span> df</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true"></a><span class="op">|</span>    <span class="op">|</span>   SCHOOL_NUMBER <span class="op">|</span> NAME                      <span class="op">|</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true"></a><span class="op">|---</span>:<span class="op">|----------------</span>:<span class="op">|</span>:<span class="op">--------------------------|</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true"></a><span class="op">|</span>  <span class="dv">0</span> <span class="op">|</span>             <span class="dv">100</span> <span class="op">|</span> Apple Grove High School   <span class="op">|</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true"></a><span class="op">|</span>  <span class="dv">1</span> <span class="op">|</span>             <span class="dv">600</span> <span class="op">|</span> Cherry Hill Middle School <span class="op">|</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true"></a><span class="op">|</span>  <span class="dv">2</span> <span class="op">|</span>             <span class="dv">700</span> <span class="op">|</span> Washington Elementary     <span class="op">|</span></span></code></pre>
+</div>
+<h3 id="creating-a-powerschool-odbc-connection-object">Creating a PowerSchool ODBC Connection Object</h3>
+<p>An ODBC connection requires five pieces of information:</p>
+<ul>
+    <li>user</li>
+    <li>password</li>
+    <li>server</li>
+    <li>port</li>
+    <li>database</li>
+</ul>
+<p>These five pieces can be passed to the constructor in one of two ways: 1) a complete connection string or 2) some or all of a connection string’s pieces passed as arguments.</p>
+<h4 id="complete-connection-string">Complete Connection String</h4>
+<p>A complete connection string follows this structure:</p>
+<div class="sourceCode" id="cb32">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="co"># General form:</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a>ps <span class="op">=</span> acme_powerchool.odbc( connectionstring<span class="op">=</span><span class="st">&quot;user/password@applegrove.powerschool.com:1521/psproddb&quot;</span> )</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true"></a><span class="co"># Real values:</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true"></a>ps <span class="op">=</span> acme_powerchool.odbc( connectionstring<span class="op">=</span><span class="st">&quot;oracle_readonly_account/password@server:port/database&quot;</span> )</span></code></pre>
+</div>
+<p>While this pattern can be used, it is intended more as an intermediate step in a script’s development process. This approach stores all of the connection details in plaintext, which is a security risk.</p>
+<h4 id="arguments">Arguments</h4>
+<p>The five parts can also be passed as arguments:</p>
+<div class="sourceCode" id="cb33">
+    <pre class="sourceCode python"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a><span class="co"># General form:</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a>ps <span class="op">=</span> acme_powerchool.odbc( server<span class="op">=</span><span class="st">&quot;server&quot;</span>, user<span class="op">=</span><span class="st">&quot;user&quot;</span>, password<span class="op">=</span><span class="st">&quot;password&quot;</span>, port<span class="op">=</span><span class="st">&quot;port&quot;</span>, database<span class="op">=</span><span class="st">&quot;database&quot;</span> )</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true"></a><span class="co"># Real values:</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true"></a>ps <span class="op">=</span> acme_powerchool.odbc( server<span class="op">=</span><span class="st">&quot;applegrove.powerschool.com&quot;</span>, user<span class="op">=</span><span class="st">&quot;oracle_readonly_account&quot;</span>, password<span class="op">=</span><span class="st">&quot;mypassword&quot;</span>, port<span class="op">=</span><span class="st">&quot;1521&quot;</span>, database<span class="op">=</span><span class="st">&quot;psproddb&quot;</span> )</span></code></pre>
+</div>
+<p>Only <code>server</code> and <code>user</code> are required. Not passing a <code>port</code> or <code>database</code> will result in the defaults of 1521 and psproddb being used, respectively.</p>
+<p>
+    The <code>password</code> argument is optional, but discouraged. Much as saving a complete connection string poses a security risk, so does passing it as a plaintext argument. Omitting the password argument will result in a value being
+    queried from the system’s keyring store. More information about <a href="#markdown-header-keyring">using keyring</a> can be found below. If the password argument is used, consider passing an environment variable or some other value
+    retrieved from another storage location.
+</p>
+<p>Incorporating these default values and suggested practices, usage of the ODBC method should generally follow this pattern:</p>
+<div class="sourceCode" id="cb34">
+    <pre
+        class="sourceCode python"
+    ><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a>ps <span class="op">=</span> acme_powerchool.odbc( server<span class="op">=</span><span class="st">&quot;applegrove.powerschool.com&quot;</span>, user<span class="op">=</span><span class="st">&quot;oracle_readonly_account&quot;</span> )</span></code></pre>
+</div>
+<ul>
+    <li><code>port</code> defaults to 1521</li>
+    <li><code>database</code> defaults to psproddb</li>
+    <li><code>password</code> is queried from the system’s <code>keyring</code> store, using the provided <code>server</code> and <code>user</code> values</li>
+</ul>
+<h4 id="keyring">Keyring</h4>
+<p>It is strongly encouraged to omit the <code>password</code> argument to allow the value to be queried from the sytem’s <code>keyring</code> store.</p>
+<p>On first execution, <code>keyring</code> will prompt the user for the Oracle account’s password on this server, cache it in the system’s <code>keyring</code> store, and use it on subsequent executions of the script.</p>
+<p>If the password for this Oracle account is changed, it will be necessary to flush this password out of the <code>keyring</code> service. This can be performed outside of the script by issuing the following shell command:</p>
+<div class="sourceCode" id="cb35">
+    <pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a>$ <span class="ex">python</span> -m keyring set [server] [user]</span></code></pre>
+</div>
+<p>An example:</p>
+<div class="sourceCode" id="cb36">
+    <pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a>$ <span class="ex">python</span> -m keyring set applegrove.powerschool.com oracle_readonly_account</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true"></a><span class="ex">Password</span> for <span class="st">&#39;oracle_readonly_account&#39;</span> in <span class="st">&#39;applegrove.powerschool.com&#39;</span>:</span></code></pre>
+</div>
+<p>Leave the password blank and hit Enter/Return to clear the value. The next execution of the script will prompt the user for a new password.</p>
+<h2 id="contributing">Contributing</h2>
+<p>This is a community project, and pull requests are welcome. We have three requests when making contributions:</p>
+<ol type="1">
+    <li>Please follow the <a href="https://www.atlassian.com/git/tutorials/comparing-workflows/forking-workflow">Forking Workflow</a>.</li>
+    <li>
+        If you would like to contribute a new helper method for a specific API endpoint, please leverage one of the existing <a href="#markdown-header-methods">verb methods</a> (or the generic
+        <a href="#markdown-header-request"><code>acme_powerschool.api.request()</code></a> method itself). This ensures that the low-level exception and access_token handling are used.
+    </li>
+    <li>Please ensure that all unit tests pass for both clients, and add new unit tests for new methods. Examples of running tests are found in the <a href="#markdown-header-tests">Tests</a> section.</li>
+</ol>
+<h2 id="tests">Tests</h2>
+<h3 id="api">API</h3>
+<div class="sourceCode" id="cb37">
+    <pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a>$ <span class="bu">cd</span> tests</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a>$ <span class="ex">python</span> api.py --base_url=<span class="st">&quot;applegrove.powerschool.com&quot;</span> --client_id=<span class="st">&quot;7ebf0a8e-f760-01fd-7812-37c81a3b0cf0&quot;</span> --client_secret=<span class="st">&quot;1f8c6f57-2ced-179b-664f-e227ae4dc312&quot;</span> --access_token=<span class="st">&quot;65908f8c-c4ff-25fe-4770-7bcd3c1d095e&quot;</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a><span class="ex">.............</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a><span class="ex">----------------------------------------------------------------------</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a><span class="ex">Ran</span> [X] tests in [Y]s</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true"></a><span class="ex">OK</span></span></code></pre>
+</div>
+<h3 id="odbc">ODBC</h3>
+<div class="sourceCode" id="cb38">
+    <pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true"></a>$ <span class="bu">cd</span> tests</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true"></a>$ <span class="ex">python</span> odbc.py --server=<span class="st">&quot;applegrove.powerschool.com&quot;</span> --user=<span class="st">&quot;user&quot;</span> --password=<span class="st">&quot;password&quot;</span> --port=<span class="st">&quot;12345&quot;</span> --db=<span class="st">&quot;databasename&quot;</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true"></a><span class="ex">.............</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true"></a><span class="ex">----------------------------------------------------------------------</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true"></a><span class="ex">Ran</span> [X] tests in [Y]s</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true"></a><span class="ex">OK</span></span></code></pre>
+</div>
+<h2 id="contact">Contact</h2>
+<p>Project Admin - Adam Larsen &lt;<a href="mailto:adam@auroraedtech.com">adam@auroraedtech.com</a>&gt;</p>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<ul>
+    <li>Mike Gerszewski</li>
+    <li>Vance Allen</li>
+    <li>Roger Sprik</li>
+    <li>Romy Backus</li>
+    <li>Steve Stinson</li>
+    <li>Tom Donovan</li>
+</ul>
+
+<style>
+	div.sourceCode{
+		background: lightgray;
+		padding: 1em;
+        overflow: auto;
+	}
+    body{
+        padding: 1em;
+    }
+</style>

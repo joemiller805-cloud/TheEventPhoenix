@@ -1,0 +1,225 @@
+<div class="col-md-12">
+<br/>
+<div style="float:left;width:33%">
+	<H3 style="margin:0px 0px 0px 5px">Inventory</H3>
+</div>
+<div style="float:left;width:33%" class="center">
+	<input class="form-control" placeholder="Quick Search" ng-model="quickSearch" style="width:25em"/>
+</div>
+<div style="float:left;width:33%" class="right">
+	<label style="margin-right:2em;font-weight: normal">
+		Show Retired <input type="checkbox" ng-model="showRetired" />
+	</label>
+	<button class="btn btn-success" ng-click="selectNewItemType()" style="float:right;margin-right:1em">
+		<i class="bi bi-plus-circle"></i>
+		New Inventory Item(s)
+	</button>
+</div>
+<table class="table scrollable striped" style="margin-top:.5em">
+	<thead>
+		<tr class="headerRow sticky noPad">
+			<th></th>
+			<th>Category</th>
+			<th>Type</th>
+			<th ng-show="usedProperties.includes('brand')">Brand</th>
+			<th ng-show="usedProperties.includes('model')">Model</th>
+			<th ng-show="usedProperties.includes('serial_number')">Serial Number</th>
+			<th ng-show="usedProperties.includes('item_condition')">Condition</th>
+			<th ng-show="usedProperties.includes('notes')">Notes</th>
+			<th ng-show="usedProperties.includes('purchase_price')">Purchase Price</th>
+			<th ng-show="usedProperties.includes('purchase_date')">Purchase Date</th>
+			<th ng-show="usedProperties.includes('location')">Location</th>
+			<th ng-show="showRetired">Retired</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="item in inventory  | orderObjectBy:'category'" ng-if="showItem(item)">
+			<td>
+				<button class="btn btn-primary" ng-click="openItemForEdit(item)">
+					<span class="bi bi-pencil-fill"></span>
+				</button>
+			</td>
+			<td>{{item.category}}</td>
+			<td>{{item.type}}</td>
+			<td ng-show="usedProperties.includes('brand')">{{item.brand}}</td>
+			<td ng-show="usedProperties.includes('model')">{{item.model}}</td>
+			<td ng-show="usedProperties.includes('serial_number')">{{item.serial_number}}</td>
+			<td ng-show="usedProperties.includes('item_condition')">{{item.item_condition}}</td>
+			<td ng-show="usedProperties.includes('notes')">{{item.notes}}</td>
+			<td ng-show="usedProperties.includes('purchase_price')">
+				<span ng-show="item.purchase_price != 0">{{item.purchase_price | currency}}</span>
+			</td>
+			<td ng-show="usedProperties.includes('purchase_date')">
+				<span ng-show="item.purchase_date != '00/00/0000'">{{item.purchase_date}}</span>
+			</td>
+			<td ng-show="usedProperties.includes('location')">{{item.location}}</td>
+			<td ng-show="showRetired" class="center">
+				<span ng-show="item.retired">&check;</span>
+			</td>
+		</tr>
+	</tbody>
+</table>
+<div id="newItemDialog" class="dialogRight">
+	<div class="dialogTitle">Add Inventory Item(s): {{newItemCategory.name}} - {{newItemType}}</div>
+	<div class="dialogContents">
+		<table>
+			<tr>
+				<th ng-show="newItemCategory.brand">Brand</th>
+				<th ng-show="newItemCategory.model">Model</th>
+				<th ng-show="newItemCategory.serial_number">Serial #</th>
+				<th ng-show="newItemCategory.notes">Notes</th>
+				<th ng-show="newItemCategory.item_condition">Condition</th>
+				<th ng-show="newItemCategory.purchase_date">Purchase Date</th>
+				<th ng-show="newItemCategory.purchase_price">Purchase $</th>
+				<th ng-show="newItemCategory.location">Location</th>
+			</tr>
+			<tr ng-repeat="item in newItems" class="newItemRow">
+				<td ng-show="newItemCategory.brand">
+					<input type="text" class="form-control" ng-model="item.brand" />
+				</td>
+				<td ng-show="newItemCategory.model">
+					<input type="text" class="form-control" ng-model="item.model" />
+				</td>
+				<td ng-show="newItemCategory.serial_number">
+					<input type="text" class="form-control" ng-model="item.serial_number" />
+				</td>
+				<td ng-show="newItemCategory.notes">
+					<input type="text" class="form-control" ng-model="item.notes" />
+				</td>
+				<td ng-show="newItemCategory.item_condition">
+					<select class="form-select" ng-model="item.item_condition" style="width:8em">
+						<option ng-repeat="con in conditions" value="{{con}}">{{con}}</option>
+					</select>
+				</td>
+				<td ng-show="newItemCategory.purchase_date">
+					<input type="text" class="form-control" datepicker ng-model="item.purchase_date" 
+						style="width:8em"/>
+				</td>
+				<td ng-show="newItemCategory.purchase_price">
+					<input type="number" class="form-control" string-to-number 
+						ng-model="item.purchase_price" />
+				</td>
+				<td ng-show="newItemCategory.location">
+					<select class="form-select" ng-model="item.location" style="width:8em">
+						<option ng-repeat="loc in locations" value="{{loc}}">{{loc}}</option>
+					</select>
+				</td>
+			</tr> 
+		</table>
+		<div class="button-row" style="margin-top:.5em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="saveNewItems()">
+				<span class="bi bi-check-lg"></span> Add Items
+			</button>
+		</div>
+	</div>
+</div>
+<div id="editItemDialog" class="dialogRight">
+	<div class="dialogTitle">Edit Inventory Item</div>
+	<div class="dialogContents">
+		<table>
+			<tr ng-show="editItemCategory.brand">
+				<td class="bold">Brand</td>
+				<td><input type="text" class="form-control" ng-model="editItem.brand" /></td>
+			</tr>
+			<tr ng-show="editItemCategory.model">
+				<td class="bold">Model</td>
+				<td><input type="text" class="form-control" ng-model="editItem.model" /></td>
+			</tr>
+			<tr ng-show="editItemCategory.serial_number">
+				<td class="bold">Serial #</td>
+				<td><input type="text" class="form-control" ng-model="editItem.serial_number" /></td>
+			</tr>
+			<tr ng-show="editItemCategory.notes">
+				<td class="bold">Notes</td>
+				<td><input type="text" class="form-control" ng-model="editItem.notes" /></td>
+			</tr>
+			<tr ng-show="editItemCategory.item_condition">
+				<td class="bold">Condition</td>
+				<td>
+					<select class="form-select" ng-model="editItem.item_condition" style="width:8em">
+						<option ng-repeat="con in conditions" value="{{con}}">{{con}}</option>
+					</select>
+				</td>
+			</tr>
+			<tr ng-show="editItemCategory.purchase_date">
+				<td class="bold">Purchase Date</td>
+				<td>
+					<input type="text" class="form-control" datepicker
+						ng-model="editItem.purchase_date" style="width:8em"/>
+				</td>
+			</tr>
+			<tr ng-show="editItemCategory.purchase_price">
+				<td class="bold">Purchase $</td>
+				<td>
+					<input type="number" class="form-control" string-to-number 
+						ng-model="editItem.purchase_price" />
+				</td>
+			</tr>
+			<tr ng-show="editItemCategory.location">
+				<td class="bold">Location</td>
+				<td>
+					<select class="form-select" ng-model="editItem.location" style="width:8em">
+						<option ng-repeat="loc in locations" value="{{loc}}">{{loc}}</option>
+					</select>
+				</td>
+			</tr>
+			<tr ng-show="editItemCategory.location">
+				<td class="bold">Retired</td>
+				<td>
+					<input type="checkbox" ng-model="editItem.retired" />
+				</td>
+			</tr>
+		</table>
+		<div class="button-row" style="margin-top:.5em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-danger" ng-click="confirmDelete()">
+				<span class="bi bi-trash"></span> Delete
+			</button>
+			<button class="btn btn-success" ng-click="saveEditItem()">
+				<span class="bi bi-check-lg"></span> Save
+			</button>
+		</div>
+	</div>
+</div>
+<div style="display:none">
+	<div id="typeSelectorDialog">
+		<table>
+			<tr>
+				<td class="bold">Category</td>
+				<td style="padding:5px 1em">
+					<select ng-model="newItemCategory" ng-options="cat.name for cat in categories"
+						class="form-select">
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Type</td>
+				<td style="padding:5px 1em">
+					<select ng-model="newItemType" ng-options="type for type in newItemCategory.types"
+						class="form-select">
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Quantity</td>
+				<td style="padding:5px 1em">
+					<input ng-model="newItemQty" type="number" class="form-control"/>
+				</td>
+			</tr>
+		</table>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="cancelNewItem()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="createNewItems()" ng-disabled="!newItemType">
+				<span class="bi bi-check-lg"></span> Continue
+			</button>
+		</div>
+	</div>
+</div>
+</div>

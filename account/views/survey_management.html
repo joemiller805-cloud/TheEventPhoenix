@@ -1,0 +1,156 @@
+<style>
+	td .form-control{ margin: 5px 0px; }
+	table.table tr td{ border-top:none; }
+	.qLabel{
+		font-weight:bold;
+		text-decoration:underline;
+	}
+	td.multiOptions .form-control{
+		display:inline-block;
+		width:88%;
+		margin-right:1em;
+	}
+</style>
+
+<div class="row">
+	<div class="col-md-9">
+		<h2>
+			<span style="width:10em;display:inline-block">Event Questions</span>
+			<button class="btn btn-primary" ng-click="newQuestion('Event')" title="Add Question">
+				<i class="bi bi-plus-circle"></i> Add Event Question
+			</button>
+		</h2>
+		<table class="table">
+			<thead>
+				<tr>
+					<th style="width:2em"></th>
+					<th style="width:60%">Question</th>
+					<th style="width:10em">Type</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody id="eventQuestionsTbody">
+				<tr ng-repeat="question in currentQuestions | orderObjectBy:'sortorder'" 
+					ng-if="question.assoc=='event'">
+					<td>
+						<span class="handle pointer">&#9776;</span>
+					</td>
+					<td class="{{question.type=='label' ? 'qLabel' : ''}}">{{question.text}}</td>
+					<td>{{question.type | typeFilter}}</td>
+					<td>
+						<button class="btn btn-primary btn-xs" ng-click="editQuestion(question)">
+							<span class="bi bi-pencil-fill"></span>
+						</button>
+						<button class="btn btn-danger btn-xs" ng-click="question.deleteClicked = true"
+							ng-show="!question.deleteClicked">
+							<span class="bi bi-trash"></span>
+						</button>
+						<button class="btn btn-success btn-xs" ng-show="question.deleteClicked"
+							ng-click="deleteQuestion(question)">
+							<span class="bi bi-check-lg"></span> Confirm Delete
+						</button>
+						<button class="btn btn-primary btn-xs" ng-click="question.deleteClicked = false"
+							ng-show="question.deleteClicked">
+							<span class="bi bi-chevron-left"></span> Cancel Delete
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<h2>
+			<span style="width:10em;display:inline-block">Section Questions</span>
+			<button class="btn btn-primary" ng-click="newQuestion('Section')" title="Add Question">
+				<i class="bi bi-plus-circle"></i> Add Section Question
+			</button>
+		</h2>
+		<table class="table">
+			<thead>
+				<tr>
+					<th style="width:2em"></th>
+					<th style="width:60%">Question</th>
+					<th style="width:10em">Type</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody id='sectionQuestionsTbody'>
+				<tr ng-repeat="question in currentQuestions | orderObjectBy:'sortorder'"
+					ng-if="question.assoc=='section'">
+					<td>
+						<span class="handle pointer">&#9776;</span>
+					</td>
+					<td class="{{question.type=='label' ? 'qLabel' : ''}}">{{question.text}}</td>
+					<td>{{question.type | typeFilter}}</td>
+					<td>
+						<button class="btn btn-primary btn-xs" ng-click="editQuestion(question)">
+							<span class="bi bi-pencil-fill"></span>
+						</button>
+						<button class="btn btn-danger btn-xs" ng-click="question.deleteClicked = true"
+							ng-show="!question.deleteClicked">
+							<span class="bi bi-trash"></span>
+						</button>
+						<button class="btn btn-success btn-xs" ng-show="question.deleteClicked"
+							ng-click="deleteQuestion(question)">
+							<span class="bi bi-check-lg"></span> Confirm Delete
+						</button>
+						<button class="btn btn-primary btn-xs" ng-click="question.deleteClicked = false"
+							ng-show="question.deleteClicked">
+							<span class="bi bi-chevron-left"></span> Cancel Delete
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div> <!-- END ROW: MAIN CONTENT -->
+
+<div id="questionDialog" class="dialogRight">
+	<div class="dialogTitle">{{dialogTitle}}</div>
+	<div class="dialogContents">
+		<table clas="table">
+			<tr>
+				<td class="bold">Question</td>
+				<td>
+					<textarea cols="30" rows="4"  class="form-control" ng-model="curQuestion.text">
+					</textarea>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Response Type</td>
+				<td>
+					<select ng-model="curQuestion.type" class="form-select" >
+						<option value="numeric">1-5</option>
+						<option value="freeForm">Free-Form Text Entry</option>
+						<option value="yesNo">Yes/No</option>
+						<option value="multipleChoice">Multiple Choice</option>
+						<option value="label">No Response (Label/Header)</option>
+					</select>
+				</td>
+			</tr>
+			<tr ng-show="curQuestion.type == 'multipleChoice'">
+				<td class="bold" style="vertical-align:top">Options</td>
+				<td class="multiOptions">
+					<div ng-repeat="option in curQuestion.optionList track by $index">
+						<input class="form-control" type="text"
+							ng-model="curQuestion.optionList[$index]"/>
+						<button class="btn btn-danger btn-sm"
+							ng-click="curQuestion.optionList.splice($index,1)">x</button>
+					</div>
+					<div class="button-row" style="margin-top:.5em;margin-bottom:.5em">
+						<button class="btn btn-primary btn-sm"
+							ng-click="curQuestion.optionList.push('')">
+								<i class="bi bi-plus-circle"></i> New Option
+						</button>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="updateQuestion()">
+				<span class="bi bi-check-lg"></span> Save
+			</button>
+		</div>
+	</div>
+</div> <!-- END QUESTION DIALOG -->

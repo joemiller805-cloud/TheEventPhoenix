@@ -1,0 +1,67 @@
+<div class="col-md-12">
+
+<div class="flex-row">
+	<p style="font-size:16pt;font-weight:bold">Season Pass Orders</p>
+	<button class="btn btn-primary" ng-click="exportResults()"
+		data-file-name="Season Pass Orders" style="margin-right:1em;vertical-align:super;">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	<button ng-click="columnFilter()" class="btn btn-primary colDisplayBtn readOnly"
+		style="float:none">
+		Edit displayed columns
+	</button>
+</div>
+
+<div class="center" style="margin-bottom: .5em;">
+	<select ng-model="passFilter" class="form-select" style="width:20em;display:inline-block" ng-change="filterRecs()" >
+		<option value="">All Passes</option>
+		<option ng-repeat="pass in passDetails" value="{{pass.id}}">{{pass.name}}</option>
+	</select>
+	<input ng-model="quickSearch" class="form-control" placeholder="Quick Search" 
+		style="width:20em;display:inline-block" ng-change="filterRecs()" />
+	<input ng-model="minDate" class="form-control" datepicker style="width:8em;display:inline-block" ng-change="filterRecs()" 
+		placeholder="Min Date" /> - 
+	<input ng-model="maxDate" class="form-control" datepicker style="width:8em;display:inline-block" ng-change="filterRecs()" 
+		placeholder="Max Date" />
+</div>
+
+<table class="table scrollable striped" style="margin-top:1em" id="ordersTable">
+	<thead>
+		<tr class="headerRow sticky noPad pointer">
+			<th ng-click="changeSort('last_name')">Last Name</th>
+			<th ng-click="changeSort('first_name')">First Name</th>
+			<th ng-click="changeSort('email')">Email</th>
+			<th ng-click="changeSort('created_time')">Date</th>
+			<th ng-click="changeSort('order_details')">Order Details</th>
+			<th ng-click="changeSort('amt_charged')" class="right">Amount</th>
+			<th ng-click="changeSort('cc_fee')" class="right">CC Fee</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="order in filteredOrders">
+			<td>{{order.last_name}}</td>
+			<td>{{order.first_name}}</td>
+			<td>{{order.email}}</td>
+			<td>{{order.created_time | mySqlToLocalDate}}</td>
+			<td>
+				<section ng-repeat="pass in order.order_details">
+					{{passDetails[pass.passId].name}} ({{pass.quantity}} @ {{pass.price | currency}})
+				</section>
+			</td>
+			<td class="right">{{order.amt_charged | currency}}</td>
+			<td class="right">{{order.cc_fee | currency}}</td>
+		</tr>
+	</tbody>
+	<tfooter>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td class="bold right">{{totolAmount | currency}}</td>
+			<td class="bold right">{{totolCcFee | currency}}</td>
+		</tr>
+	</tfooter>
+</table>
+</div>

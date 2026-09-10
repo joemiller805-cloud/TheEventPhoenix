@@ -1,0 +1,21 @@
+{
+  "name": "easyregpro-e2e",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:admin": "playwright test tests-e2e/admin tests-e2e/admin-event",
+    "test:e2e:admin:headed": "playwright test tests-e2e/admin tests-e2e/admin-event --headed",
+    "test:e2e:attendee": "playwright test tests-e2e/attendee",
+    "test:e2e:attendee:headed": "playwright test tests-e2e/attendee --headed",
+    "test:e2e:vendor": "playwright test tests-e2e/vendor",
+    "test:e2e:vendor:headed": "playwright test tests-e2e/vendor --headed",
+    "test:e2e:config": "playwright test tests-e2e/config",
+    "test:e2e:config:headed": "playwright test tests-e2e/config --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2"
+  }
+}

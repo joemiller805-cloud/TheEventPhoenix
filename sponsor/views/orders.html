@@ -1,0 +1,114 @@
+<div class="col-sm-11 form-horizontal" style="margin-top:.5em" ng-cloak>
+	<div class='alert alert-info' role='alert' ng-show="noOrders">
+		You do not have any orders.
+	</div>
+	<table class="table orderTable" ng-repeat="order in orders  | orderObjectBy:'created_time':true"
+		ng-if="order.cancelled != '1'">
+		<thead>
+			<tr>
+				<th colspan="8">
+					Order # {{('000000000' + order.id).slice(-6)}}
+					<span style="margin-left:2em">
+						{{order.created_time | mySqlToLocalDate}}
+					</span>
+				</th>
+			</tr>
+		</thead>
+		<tbody ng-repeat="event in order.events | orderObjectBy:'startDate'">
+			<tr>
+				<td class="bold" style="background:silver" colspan="8">{{event.name}}</td>
+			</tr>
+			<tr ng-if="event.vendorTypeOrder.name">
+				<td>
+					<span style="margin-left:1em">{{event.vendorTypeOrder.name}}</span>
+				</td>
+				<td class='right'>{{event.vendorTypeOrder.unit_price | currency}}</td>
+			</tr>
+			<tr ng-if="event.extraStaffOrder.id">
+				<td>
+					<span style="margin-left:1em">
+						Extra Staff 
+						({{event.extraStaffOrder.quantity}} @ {{event.extraStaffOrder.unit_price | currency}})
+					</span>
+				</td>
+				<td class='right'>
+					{{(event.extraStaffOrder.unit_price * event.extraStaffOrder.quantity) | currency}}
+				</td>
+			</tr>
+			<tr ng-repeat="xtra in event.eventExtraOrders">
+				<td>
+					<span style="margin-left:1em">
+						{{xtra.name}}
+					</span>
+				</td>
+				<td class='right'>
+					{{xtra.unit_price | currency}}
+				</td>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr ng-show="order.payments.length > 0">
+				<td colspan="2" style="border-top:1px solid silver" class="bold">Payments Received</td>
+			</tr>
+			<tr ng-repeat="payment in order.payments">
+				<td>
+					<span style="margin-left:1em">{{payment.payment_date | mySqlToLocalDate}}</span>
+					<span style="margin-left:2em">{{payment.method}}</span>
+					<span style="margin-left:2em">
+						{{payment.check_po_number || payment.cc_confirmation_number}}
+					</span>
+					<span style="margin-left:2em">{{payment.note}}</span>
+				</td>
+				<td class="right">{{payment.amount | currency}}</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="right bold" style="border-top:1px solid silver">
+					<span style="margin-right:2em">Order Total</span>
+					<span style="width:7em;display:inline-block">{{order.total | currency}}</span>
+				</td>
+			</tr>
+			<tr ng-show="order.discount != '03'">
+				<td colspan="2" class="right bold">
+					<span style="margin-right:2em">Discount</span>
+					<span style="width:7em;display:inline-block">{{order.discount | currency}}</span>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="right bold">
+					<span style="margin-right:2em">Total Payments</span>
+					<span style="width:7em;display:inline-block">{{order.totalPaid | currency}}</span>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="right bold">
+					<span style="margin-right:2em">Due</span>
+					<span style="width:7em;display:inline-block">{{order.due | currency}}</span>
+				</td>
+			</tr>
+			<tr ng-show="order.due > 0 && ccEnabled">
+				<td colspan="2" class="right">
+					<button class="btn btn-success" ng-click="openPayment(order)" style="margin:5px">
+						<span class="bi bi-credit-card"></span>
+						Submit Payment
+					</button>
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+</div> 
+
+<div id="paymentDialog" class="dialogRight" style="width:50%">
+	<div class="dialogTitle">Submit Payment</div>
+	<div class="dialogContents">
+		<events-payment-dialog></events-payment-dialog>
+
+		<div class='alert alert-success' role='alert' ng-show="ccConfirmation" style="margin:1em">
+			<H4>Thank You for Your Payment</H4>
+			Your payment has processed successfully.  <br/>
+			Confirmation Number: {{ccConfirmation}}
+		</div>
+		<div class='button-row' ng-show="ccConfirmation" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="finishPayment()">Close</button> 
+		</div>
+	</div>
+</div>

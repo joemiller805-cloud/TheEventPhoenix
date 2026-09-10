@@ -1,0 +1,239 @@
+<style>
+	td input, td button{
+		margin:3px 8px 3px 8px;
+	}
+</style>
+<sched-mgmt-tabs></sched-mgmt-tabs>
+<div>
+	<div class="row">
+	<div class="col-md-9" style="margin:auto">
+	<H3 class="toggle expanded" id="eventHeader">Select Event for Import</H3>
+	<div>
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th>Event</th>
+					<th>City</th>
+					<th>State</th>
+					<th>Start Date</th>
+					<th>End Date</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="event in events | orderObjectBy:'startdate':true" 
+					ng-show="event.id != currentEventId">
+					<td class="linkish" ng-click="getEventData(event.id)">{{event.name}}</td>
+					<td>{{event.city}}</td>
+					<td>{{event.state}}</td>
+					<td>{{event.startdate}}</td>
+					<td>{{event.enddate}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div><!-- End Events -->
+
+	<H3 class="toggle collapsed" id="roomHeader">Rooms</H3>
+	<div>
+		<div ng-show="hasRooms">Current Event Rooms</div>
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th ng-hide="hasRooms"></th>
+					<th>Name</th>
+					<th>Capacity</th>
+					<th>Sort Order</th>
+					<th>Area</th>
+					<th>Sub Name</th>
+					<th ng-show="hasRooms"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="room in targetEvent.rooms | orderObjectBy:'sortorder':false" 
+					ng-hide="hasRooms">
+					<td><input type="checkbox" ng-model="room.import" /></td>
+					<td><input ng-model="room.name" /></td>
+					<td><input ng-model="room.capacity" size="3"/></td>
+					<td><input ng-model="room.sortorder" size="3"/></td>
+					<td><input ng-model="room.area" /></td>
+					<td><input ng-model="room.subname" /></td>
+				</tr>
+				<tr ng-repeat="room in currentEvent.rooms | orderObjectBy:'sortorder':false">
+					<td><input ng-model="room.name" ng-disabled="!hasSections"/></td>
+					<td><input ng-model="room.capacity" size="3"/></td>
+					<td><input ng-model="room.sortorder" size="3"/></td>
+					<td><input ng-model="room.area" /></td>
+					<td><input ng-model="room.subname" /></td>
+					<td><button ng-click="updateRoom(room)">Update</button></td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="importRooms()" 
+				ng-hide="hasRooms || !targetEventSelected">
+				Import Rooms
+			</button>
+		</div>
+		
+	</div><!-- End Rooms -->
+
+	<H3 class="toggle collapsed" id="courseHeader">Courses</H3>
+	<div>
+		<div ng-show="hasCourses">Current Event Courses</div>
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th ng-hide="hasCourses"></th>
+					<th>Course</th>
+					<th ng-show="hasCourses"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="course in targetEvent.courses | orderObjectBy:'name':false" 
+					ng-hide="hasCourses">
+					<td><input type="checkbox" ng-model="course.import" /></td>
+					<td>{{course.name}}</td>
+				</tr>
+				<tr ng-repeat="course in currentEvent.courses | orderObjectBy:'name':false">
+					<td ng-hide="hasCourses"></td>
+					<td>{{course.name}}</td>
+					<td><button ng-click="removeCourse(course)">Remove</button></td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="importCourses()" 
+				ng-hide="hasCourses || !targetEventSelected">
+				Import Courses
+			</button>
+		</div>
+	</div><!-- End Courses -->
+
+	<H3 class="toggle collapsed" id="sessionHeader">Sessions</H3>
+	<div>
+		<div ng-show="hasSessions">Current Event Sessions</div>
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th ng-hide="hasSessions"></th>
+					<th>Session</th>
+					<th>Start</th>
+					<th>End</th>
+					<th ng-show="hasSessions"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="session in targetEvent.sessions | orderObjectBy:'starttime':false" 
+					ng-hide="hasSessions">
+					<td><input type="checkbox" ng-model="session.import" /></td>
+					<td>{{session.name}}</td>
+					<td>{{session.starttime}}</td>
+					<td>{{session.endtime}}</td>
+				</tr>
+				<tr ng-repeat="session in currentEvent.sessions | orderObjectBy:'starttime':false">
+					<td><input ng-model="session.name" /></td>
+					<td><input ng-model="session.starttime" /></td>
+					<td><input ng-model="session.endtime" /></td>
+					<td><button ng-click="updateSession(session)">Update</button></td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="importSessions()" 
+				ng-hide="hasSessions || !targetEventSelected">
+				Import Sessions
+			</button>
+		</div>
+	</div><!-- End Sessions -->
+
+	<H3 class="toggle collapsed" id="sectionHeader" ng-show="hasRooms && hasSessions && hasCourses">Sections</H3>
+	<div ng-show="hasRooms && hasSessions && hasCourses">
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th ng-hide="hasSections"></th>
+					<th>Session</th>
+					<th>Course</th>
+					<th>Room</th>
+					<th>Presenter</th>
+					<th>Virtual</th>
+					<th>Video/Webinar Link</th>
+					<th>Secondary Link</th>
+					<th>Not Factored in Section Limit</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="section in targetEvent.sections | orderObjectBy:'session':false" 
+					ng-hide="hasSections">
+					<td><input type="checkbox" ng-model="section.import" /></td>
+					<td>{{section.session}}</td>
+					<td>{{section.course}}</td>
+					<td>{{section.room}}</td>
+					<td>
+						<select ng-model="section.userid"
+							ng-options="presenter.id as presenter.last_name + ', ' + presenter.first_name for presenter in presenterArray | orderBy:'last_name'">
+						</select>
+					</td>
+					<td>
+						<span ng-show="section.is_virtual == '1'">&#10004;</span>
+						<span ng-show="section.is_virtual != '1'">&#10008;</span>
+					</td>
+					<td>{{section.web_link}}</td>
+					<td>{{section.web_link2}}</td>
+					<td>
+						<span ng-show="section.exclude_att_limit == '1'">&#10004;</span>
+						<span ng-show="section.exclude_att_limit != '1'">&#10008;</span>
+					</td>
+				</tr>
+				<tr ng-repeat="section in currentEvent.sections | orderObjectBy:'session':false">
+					<td ng-hide="hasSections"><input type="checkbox" ng-model="section.import" /></td>
+					<td>{{section.session}}</td>
+					<td>{{section.course}}</td>
+					<td>{{section.room}}</td>
+					<td>
+						<select ng-model="section.userid"
+							ng-options="presenter.id as presenter.last_name + ', ' + presenter.first_name for presenter in presenterArray | orderBy:'last_name'">
+						</select>
+					</td>
+					<td>
+						<span ng-show="section.is_virtual == '1'">&#10004;</span>
+						<span ng-show="section.is_virtual != '1'">&#10008;</span>
+					</td>
+					<td>{{section.web_link}}</td>
+					<td>{{section.web_link2}}</td>
+					<td>
+						<span ng-show="section.exclude_att_limit == '1'">&#10004;</span>
+						<span ng-show="section.exclude_att_limit != '1'">&#10008;</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="importSections()" 
+				ng-hide="hasSections || !targetEventSelected">
+				Import Sections
+			</button>
+		</div>
+	</div><!-- End Sections -->
+
+	<div ng-show="failedSectionImports.length">
+		<div class='alert alert-warning' role='alert' id="sectionImportFailureAlert">
+			Not all sections were imported.
+		</div>
+		<table class="table scrollable striped">
+			<thead>
+				<th>Course</th>
+				<th>Session</th>
+				<th>Reason</th>
+			</thead>
+			<tbody>
+				<tr ng-repeat="fail in failedSectionImports | orderObjectBy:'reason'">
+					<td>{{fail.section.course}}</td>
+					<td>{{fail.section.session}}</td>
+					<td>{{fail.reason}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	</div><!-- End col mod -->
+	</div><!-- End row -->
+</div>

@@ -1,0 +1,61 @@
+<div class="row">
+	<div class="col-lg-12">
+		<span style="font-size:16pt;font-weight:bold">Course History Report</span>
+	</div>
+</div>
+<div id="loadingSpan">Loading Course History<span class="loader"></span></div>
+<div class="center bold" style="margin-bottom:8px" ng-show="pageReady">
+	<button class="btn btn-primary exportResultsBtn readOnly" data-table-id="courseTable" 
+		data-file-name="Courses" style="float:left;margin:.5em">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	<input ng-model="quickSearchValue" ng-keyup="quickSearch()" placeholder="Quick Search" 
+		class="form-control" style="display:inline-block;width:20em"/>
+</div>		
+
+<table ng-show="pageReady" id="courseTable" class="table scrollable striped">
+	<thead>
+		<tr class="headerRow sticky noPad">
+			<th class="pointer" ng-click="changeSort('name')"><sort-arrows></sort-arrows>Course</th>
+			<th class="pointer" ng-click="changeSort('sessionCount')"><sort-arrows></sort-arrows>Total Sessions</th>
+			<th class="pointer" ng-click="changeSort('totalSignups')"><sort-arrows></sort-arrows>Total Attendees</th>
+			<th class="pointer" ng-click="changeSort('aveAttendance')"><sort-arrows></sort-arrows>Ave Attendees/Session</th>
+		</tr>
+	</thead>
+	<tdobdy>
+		<tr ng-repeat="course in courses | orderObjectBy:sortField:sortReverse" 
+			ng-if="course.include">
+			<td>{{course.name}}</td>
+			<td class="pointer center" style="color:blue" ng-click="showSessions(course)">{{course.sessionCount}}</span></td>
+			<td class="center">{{course.totalSignups}}</td>
+			<td class="center">{{course.aveAttendance | number : 2}}</td>
+		</tr>
+	</tdobdy>
+</table>
+
+<div id="dialogDiv" class="dialogRight">
+	<div class="dialogTitle">
+		Session Listing
+		<span class="pointer" style="float:right" ng-click="hideSessions()">x</span>
+	</div>
+	<div class="dialogContents">
+		<h3>{{selectedCourse.name}}</h3>
+		<table>
+			<tr>
+				<th>Event</th>
+				<th>Session</th>
+				<th>Attendees</th>
+				<th>Capacity</th>
+				<th>Presenter(s)</th>
+			</tr>
+			<tr ng-repeat="session in selectedCourse.sessions | orderObjectBy:'starttime':'true'">
+				<td>{{session.event}}</td>
+				<td>{{session.session}}</td>
+				<td>{{session.signupcount}}</td>
+				<td>{{session.capacity}}</td>
+				<td>{{session.presenters}}</td>
+			</tr>
+		</table>
+		<div class="button-row"><button ng-click="hideSessions()">Close</button></div>
+	</div>
+</div>

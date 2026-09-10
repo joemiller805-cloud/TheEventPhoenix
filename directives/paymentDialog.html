@@ -1,0 +1,114 @@
+<div id="paymentDialog" class="dialogRight">
+	<div class="dialogTitle">{{paymentDialogTitle}}</div>
+	<div class="dialogContents">
+		<h4>Payment Amount: {{paymentAmount || card.amount | currency}}</h4>
+		<form name="paymentForm" id="paymentForm">
+			<table class="table">
+				<tr>
+					<td style="width: 40%" class="bold" ng-if="!denyMethodSelect">
+						Payment Method
+						<select class="form-select" ng-model="$parent.payment_method" ng-required="true">
+							<option value="cc" ng-if="ccEnabled">Credit Card</option>
+							<option value="po">Purchase Order</option>
+							<option value="check">Check</option>
+						</select>
+					</td>
+					<td class="bold">
+						<span ng-show="payment_method == 'po' || payment_method == 'check'">
+							<span ng-show="payment_method == 'po'">PO Number</span>
+							<span ng-show="payment_method == 'check'">Check Number</span>
+							<input type="text" class="form-control" ng-model="payment_number" ng-required="payment_method == 'po' || payment_method == 'check'" />
+						</span>
+					</td>
+				</tr>
+			</table>
+
+			<!-- Credit Card Information -->
+			<table id="ccTable" class="table" 
+				ng-show="payment_method == 'cc' && ccEnabled && ccProvider == 'magicWrighter'">
+				<tr>
+					<td class="bold" style="border-bottom: 1px solid black" colspan="2">Card Information</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<i>
+							Maximum $5000.00. Larger payments must be made in part.<br />
+							Please allow 24 hours between payments to ensure proper processing.
+						</i>
+					</td>
+				</tr>
+				<tr>
+					<td class="bold right">Payment Amount</td>
+					<td>
+						<input type="number" ng-model="card.amount" class="form-control" ng-required="payment_method == 'cc' && ccEnabled" min="0.01" />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold right">Card Holder Name</td>
+					<td>
+						<input type="text" ng-model="card.name" class="form-control" ng-required="payment_method == 'cc' && ccEnabled" />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold right">Email</td>
+					<td>
+						<input type="email" ng-model="card.email" class="form-control" size="50" ng-required="payment_method == 'cc' && ccEnabled" />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold right">Street</td>
+					<td>
+						<input type="text" ng-model="card.street" class="form-control" ng-required="payment_method == 'cc' && ccEnabled" />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold right">City, State Zip</td>
+					<td>
+						<input type="text" ng-model="card.city" class="form-control" ng-required="payment_method == 'cc' && ccEnabled" style="display: inline; max-width: 15em" />
+						<select ng-model="card.state" class="form-select" ng-required="payment_method == 'cc' && ccEnabled" style="display: inline; max-width: 5em; margin: 0px 5px" ng-options="state as state for state in states" />
+
+						<input type="text" ng-model="card.zip" class="form-control" ng-required="payment_method == 'cc' && ccEnabled" style="display: inline; max-width: 5em" />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold right">Card Number</td>
+					<td>
+						<input type="text" ng-model="card.number" class="form-control" ng-required="payment_method == 'cc' && ccEnabled" />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold right">Expiration</td>
+					<td>
+						<select ng-model="card.expMonth" class="form-select" ng-options="month for month in months" ng-required="payment_method == 'cc' && ccEnabled" style="width: 20%; display: inline"></select>
+						<span style="margin-right: 10px">Month</span>
+						<select class="form-select" style="width: 20%; display: inline" ng-model="card.expYear" ng-required="payment_method == 'cc' && ccEnabled" ng-options="year for year in years"></select>
+						<span style="margin-right: 10px">Year</span>
+					</td>
+				</tr>
+				<tr>
+					<td class="bold right">Cvv</td>
+					<td>
+						<input type="text" ng-model="card.cvv" class="form-control" ng-required="payment_method == 'cc' && ccEnabled" style="width: 20%" />
+					</td>
+				</tr>
+			</table>
+		</form>
+
+		<div id="tokenizer-container" style="width:93%;margin:auto"
+			ng-show="payment_method == 'cc' && ccProvider == 'basys'">
+		</div>
+
+		<div class="button-row" ng-show="!ccConfirmation">
+			<button class="btn btn-danger" ng-click="closeRightDialog()">Cancel</button>
+			<button class="btn btn-primary" ng-click="submitPayment()">Submit Payment</button>
+		</div>
+
+		<div ng-show="paymentError" class="alert alert-danger" role="alert">
+			<h4>Error Processing Credit Card Payment</h4>
+			{{authMessage}}<br />
+			{{paymentMessage}}<br />
+			Please check the credit/debit card details you've submitted for accuracy.
+		</div>
+	</div>
+</div>

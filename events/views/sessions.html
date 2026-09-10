@@ -1,0 +1,89 @@
+<style>
+	input.inline{
+		width:40%;
+		display:inline;
+	}
+</style>
+<sched-mgmt-tabs></sched-mgmt-tabs>
+
+	<div class="col-md-11">
+		<h2 style="float:left;margin-top:0px">Manage Sessions</h2>
+		<div class="button-row" style="margin-bottom:1em;float:right">
+			<button class="btn btn-success" ng-click="newSession()">
+				New Session <i class="bi bi-plus-circle"></i>
+			</button>
+		</div>
+		<form name="sessionForm">
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Name</th>
+					<th>Start</th>
+					<th>End</th>
+					<th>Exclude Master Sched Cover Pg</th>
+					<th>Exclude Master Sched Daily Pgs & Room Schedules</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="sess in sessions | orderObjectBy:'starttime'">
+					<td>
+						<button class="btn btn-danger btn-sm" ng-click="removeSession(sess)">
+							<span class="bi bi-x-circle" aria-hidden="true"></span>
+						</button>
+					</td>
+					<td>
+						<input type="text" class="form-control sessionName"
+							ng-model="sess.name" ng-required="true" />
+					</td>
+					<td>
+						<input type="text" datepicker class="form-control inline"
+							ng-model="sess.startdate" ng-required="true" dateinput 
+							placeholder="MM/DD/YYYY" ng-change="startChange(sess)"/>
+						<input type="text" class="form-control inline" ng-model="sess.displayStart"
+							ng-required="true" timeinput placeholder="HH:MM AM/PM" />
+					</td>
+					<td>
+						<input type="text" datepicker class="form-control inline" 
+							ng-model="sess.enddate"
+							ng-required="true" dateinput placeholder="MM/DD/YYYY" />
+						<input type="text" class="form-control inline endtime" 
+							ng-model="sess.displayEnd"
+							ng-required="true" timeinput placeholder="HH:MM AM/PM"
+							ng-blur="endTimeBlur($event)"/>
+					</td>
+					<td>
+						<input type="checkbox" class="form-check-input" 
+							ng-model="sess.exc_master_sched_cover" 
+							ng-true-value="1" ng-false-value="0"/>
+					</td>
+					<td>
+						<input type="checkbox" class="form-check-input" 
+							ng-model="sess.exc_master_sched_daily" 
+							ng-true-value="1" ng-false-value="0"/>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		</form>
+		<div class='alert alert-danger' role='alert'
+			ng-show="!sessionForm.$valid && submitClicked">
+			Please ensure that all fields have been completed. <br/>
+			Date formats must be MM/DD/YYYY <br/>
+			Time formats must be HH:MM AM/PM (e.g. 10:30 AM)
+		</div>
+		<table style="width:98%">
+			<tr>
+				<td style="width:80%">
+					<div ng-show="changesSaved" class='alert alert-success' role='alert'>
+						Changes Saved
+					</div>
+				</td>
+				<td style="vertical-align:top">
+					<div class="button-row">
+						<button class="btn btn-success" ng-click="saveChanges()">Save</button>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>

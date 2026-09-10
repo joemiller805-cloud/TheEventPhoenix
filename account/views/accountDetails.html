@@ -1,0 +1,384 @@
+<form name="credsForm">
+	<div class="col-md-12">
+		<h3 ng-show="selectedTab == ''">Account Details</h3>
+		<h3 ng-show="selectedTab == 'attendeeMsgs'">Attendee Messages</h3>
+		<h3 ng-show="selectedTab == 'staffMsgs'">Staff Request Messages</h3>
+		<h3 ng-show="selectedTab == 'onlinePayments'">Online Payments</h3>
+		<h3 ng-show="selectedTab == 'imgMgmt'">Image Management</h3>
+		<div>
+			<div ng-show="selectedTab == ''"> <!-- Account Settings -->
+				<table class="table">
+					<tr>
+						<td class="bold" style="width:20em">Account Name</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.name" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Email</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.email" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">URL Identifier</td>
+						<td>
+							This is the identifier that will be used in the web address to direct visitors to your events 
+							(e.g <i>easyregpro.com/<b>myIdentifier</b></i>)
+							<input type="text" class="form-control" ng-model="account.slug"
+								maxlength="45" ng-change="validateSlug()" ng-blur="checkSlugStatus()" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Phone</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.phone" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Fax</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.fax" />
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<h2 style="display:inline-block;margin-right:1em">
+								Contact Information
+							</h2>
+							This is the contact information that will be visible to attendees.
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Name</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.contact_name" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Email</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.contact_email" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Address Line 1</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.contact_add1" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Address Line 2</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.contact_add2" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">City, State Zip</td>
+						<td>
+							<div class="col-sm-5" style="display:inline-block;padding-left:0px">
+								<input type="text" class="form-control"
+									ng-model="account.contact_city" />
+							</div>
+							<div class="col-sm-3" style="display:inline-block">
+								<select class="form-select" ng-options="state for state in states"
+									ng-model="account.contact_state"></select>
+							</div>
+							<div class="col-sm-3" style="display:inline-block">
+								<input type="text" class="form-control"
+									ng-model="account.contact_zip" />
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Phone</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.contact_phone" />
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Fax</td>
+						<td>
+							<input type="text" class="form-control" ng-model="account.contact_fax" />
+						</td>
+					</tr>
+				</table>
+			</div> <!-- End Account Settings -->
+			<div ng-show="selectedTab == 'attendeeMsgs'">
+				<H3 style="border-bottom: 1px solid silver">Home Page</H3>
+				<table class="table">
+					<tr>
+						<td class="bold" style="width:20em">Home Page Message</td>
+						<td>
+							<textarea cols="70" rows="5" class="form-control" ng-model="account.home_pg_msg"></textarea>
+							This message (if not blank) will appear at the top of your account's home page.
+						</td>
+					</tr>
+				</table>
+				<H3 style="border-bottom: 1px solid silver">Payment Messages</H3>
+				<table class="table">
+					<tr>
+						<td class="bold" style="width:20em">Credit Card Payment Message</td>
+						<td>
+							<textarea cols="70" rows="5" class="form-control" ng-model="account.pymt_cc_msg"></textarea>
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Purchase Order Payment Message</td>
+						<td>
+							<textarea cols="70" rows="5" class="form-control" ng-model="account.pymt_po_msg"></textarea>
+						</td>
+					</tr>
+					<tr>
+						<td class="bold">Check Payment Message</td>
+						<td>
+							<textarea cols="70" rows="5" class="form-control" ng-model="account.pymt_chk_msg"></textarea>
+						</td>
+					</tr>
+				</table>
+			</div> <!-- End Attendee Payments -->
+			<div ng-show="selectedTab == 'staffMsgs'">
+				<table class="table">
+					<tr ng-show="enable_evt_requests">
+						<td colspan="2">
+							<h2>Event Participation Response Email Content</h2>
+							Email responses to be sent when an event participation request is
+							accepted or denied.
+						</td>
+					</tr>
+					<tr ng-show="enable_evt_requests">
+						<td class="bold" style="width:20em">Request Accepted Email</td>
+						<td>
+							<textarea cols="70" rows="5" class="form-control" ng-model="account.request_accept_email">
+							</textarea>
+						</td>
+					</tr>
+					<tr ng-show="enable_evt_requests">
+						<td class="bold">Request Denied Email</td>
+						<td>
+							<textarea cols="70" rows="5" class="form-control" ng-model="account.request_deny_email">
+							</textarea>
+						</td>
+					</tr>
+					<tr ng-show="enable_course_proposals">
+						<td colspan="2">
+							<h2>Course Proposal Response Email Content</h2>
+							Email responses to be sent when a course proposal is accepted or denied.
+						</td>
+					</tr>
+					<tr ng-show="enable_course_proposals">
+						<td class="bold">Proposal Accepted Email</td>
+						<td>
+							<textarea cols="70" rows="5" class="form-control"
+								ng-model="account.proposal_accept_email">
+							</textarea>
+						</td>
+					</tr>
+					<tr ng-show="enable_course_proposals">
+						<td class="bold">Proposal Denied Email</td>
+						<td>
+							<textarea cols="70" rows="5" class="form-control"
+								ng-model="account.proposal_deny_email">
+							</textarea>
+						</td>
+					</tr>
+				</table>
+			</div> <!-- End Staff Settings -->
+
+			<div ng-show="selectedTab == 'onlinePayments'">
+				<b style="margin-right:2em;">Payment Processor</b>
+				<label>
+					<input type="radio" ng-model="paymentProvider" name="paymentProvider" 
+						value="basys"> Basys
+				</label>
+				<label style="margin-left:1em">
+					<input type="radio" ng-model="paymentProvider" name="paymentProvider" 
+						value="magicWrighter"> Magic-Wrighter
+				</label>
+				<div ng-show="paymentProvider == 'basys'">
+					<div class="d-flex">
+						<label class="bold ms-1">
+							<input type="checkbox" class="form-check-input me-1" ng-true-value="'1'" 
+								ng-false-value="'0'" ng-model="account.prefs.basysEnabled.value" 
+								style="display: inline-block"/>
+							Enable Online Payments with Basys
+						</label>
+					</div>
+					<div class="row px-3 my-2 py-2 form-bg" 
+						ng-show="account.prefs.basysEnabled.value == '1'">
+						<div class="col-sm-6 py-1">
+							<label class="bold">Private Key</label>
+							<input type="text" ng-required="account.prefs.basysEnabled.value == '1'"
+								class="form-control" ng-model="account.prefs.basysPrivateKey.value" />
+						</div>
+						<div class="col-sm-6 py-1">
+							<label class="bold">Public Key</label>
+							<input type="text" ng-required="account.prefs.basysEnabled.value == '1'"
+								class="form-control" ng-model="account.prefs.basysPublicKey.value" />
+						</div>
+					</div>
+					<div>
+						<div class="alert alert-danger" role="alert" ng-show="formError">All data is required to be complete when online payments are enabled. Please complete all fields and re-submit.</div>
+					</div>
+				</div> <!-- End Basys Creds -->
+
+				<table class="table" ng-show="paymentProvider == 'magicWrighter'">
+					<tr>
+						<td colspan="2">
+							<h2>
+							Online payments: Managed by
+							<a href="http://www.magicwrighter.com" target="_blank">
+								<b>Magic-Wrighter, Inc.</b>
+								<img src="/img/Magicwrighter.png" height="50" style="margin-left:30px"/>
+							</a>
+							</h2>
+						</td>
+					</tr>
+					<tr>
+						<td class="bold" style="width:20em">Enable Online Payments</td>
+						<td>
+							<input type="checkbox" class="form-check-input" ng-true-value="1"
+								ng-false-value="0"
+								ng-model="account.paymentData.enable_online_pymts" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Customer Name</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.customer_name" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Access Number</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.access_number" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Security Key</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.security_key" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Username</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.username" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Password</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.password" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Client Id</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.client_id" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Client Secret</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.client_secret" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Access Code</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.access_code" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">API ID</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.api_id" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">FI Number</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.fi_number" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">BC Number</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.bc_number" />
+						</td>
+					</tr>
+					<tr ng-show="account.paymentData.enable_online_pymts == '1'">
+						<td class="bold">Hash Key</td>
+						<td>
+							<input ng-required="account.paymentData.enable_online_pymts == '1'" class="form-control"
+								ng-model="account.paymentData.hashkey" size="50"/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<div class='alert alert-danger' role='alert' ng-show="formError">
+								All data is required to be complete when online payments are enabled.
+								Please complete all fields and re-submit.
+							</div>
+						</td>
+					</tr>
+				</table>
+			</div> <!-- End Online Payment Settings -->
+			<div ng-show="selectedTab == 'imgMgmt'">
+				<form enctype="multipart/form-data">
+					<div class="form-group row">
+						<div class="col-xs-2">
+							<label for="ex1">New Image</label>
+						</div>
+						<div class="col-xs-7">
+							<label class="btn btn-primary btn-primary">
+								Browse
+								<input type="file" name="image" id="imageInput" style="display:none"/>
+							</label>
+							<input type="text" class="form-control" readonly ng-model="imageName"
+								style="width:200px;display:inline-block;">
+							<label class="btn btn-primary btn-primary" ng-click="uploadImage()"
+								ng-disabled="!imageName">
+								Upload
+							</label>
+						</div>
+					</div>
+
+					<div class="form-group row">
+						 <div class="col-xs-2">
+							<label>Web Logo</label>
+						  </div>
+						  <div class="col-xs-7">
+							<select class="form-select" ng-model="account.web_logo"
+								ng-options="img.path as img.name for img in images"
+								ng-change="saveAccountLogo()">
+							</select>
+						  </div>
+					</div>
+				</form>
+				<hr/>
+				<div style="margin-top:30px"> Click Any Image To Delete	</div>
+
+				<div class="imagePreview center" ng-repeat="img in images">
+					<img ng-src="{{img.path}}" class="pointer" ng-click="promptDelete(img)"/><br/>
+					{{img.name}}
+				</div>
+			</div> <!-- End Image Tab -->
+		</div> <!-- End Tab Content -->
+	</div> <!-- End col -->
+</form>
+<div class="button-row" id="saveBtnDiv">
+	<button class="btn btn-primary" ng-click="saveCreds()">Save</button>
+</div>

@@ -1,0 +1,182 @@
+<div>
+	<div class="d-flex mb-2">
+		<div class="flex-fill" style="padding-left:.5em;">
+			<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#columnModal"
+				ng-hide="state.noColSelect">
+				Edit Displayed Columns
+			</button>
+		</div>
+		<div class="center flex-fill">
+			<input ng-hide="state.noSearch" type="text" ng-model="searchQuery" 
+				placeholder="Search..."	class="form-control">
+		</div>
+		<div class="flex-fill" ng-show="exportName" 
+			style="text-align:right;padding-right:.5em;">
+			<button class="btn btn-primary" ng-click="export()">Export</button>
+		</div>
+	</div>
+	<table class="table scrollable striped"	style="margin-bottom:0px">
+		<thead>
+			<tr class="sticky noPad">
+				<th ng-if="state.enableSelection">
+					<input type="checkbox" ng-model="state.allRowsSelected" 
+						ng-change="toggleAllSelected()"/>
+				</th>
+				<th ng-repeat="col in columns | filter:{visible:true}" 
+					style="white-space:nowrap;">
+					<span ng-click="sortBy(col.fld)" class="pointer" title="{{col.label}}">
+						{{col.label | truncate:20}}
+					</span>
+					<span class="bi bi-funnel pointer" 
+						style="color:{{col.hasFilter ? '#6ccd6c' : 'white'}}"
+						ng-click="showFilters(col)" ng-hide="state.noFilters"	
+						data-bs-toggle="modal" data-bs-target="#filterModal"></span>
+					<span style="color:white" ng-if="sortColumn === col.fld">
+						{{sortReverse ? '▼' : '▲'}} 
+					</span>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="row in pagedData()">
+				<td ng-if="state.enableSelection">
+					<input type="checkbox" ng-model="row.selected" 
+						ng-change="updateAllRowsSelected()"/>
+				</td>
+				<td ng-repeat="col in columns | filter:{visible:true}" ng-dblclick ="log(row)"
+					ng-bind-html="formatVal(row[col.fld], col) | trustHtml">
+				</td>
+			</tr>
+		</tbody>
+		<tfoot ng-if="showFooter">
+			<td ng-if="state.enableSelection">
+			</td>
+			<td ng-repeat="col in columns | filter:{visible:true}">
+				<strong>{{formatVal(col.ttl, col)}}</strong>
+			</td>
+		</tfoot>
+	</table>
+	<div class="d-flex" style="padding-top:10px">
+		<div style="padding-right:1em" class="bold right flex-fill">
+			{{ state.curPg * itemsPerPg + 1 }}
+			-
+			{{ ((state.curPg + 1) * itemsPerPg) < filteredData.length ?  ((state.curPg + 1) * itemsPerPg) : filteredData.length}} 
+			of 
+			{{filteredData.length}}
+		</div>
+		<div class="center flex-fill">
+			<a href="" class="pointer" ng-click="firstPg()"> << </a>
+			<a style="margin:0px 15px" href="" class="pointer" ng-click="prevPg()"> < </a>
+			<strong>Page {{state.curPg + 1}} of {{nbrOfPgs()}}</strong>
+			<a style="margin:0px 15px" href="" class="pointer" ng-click="nextPg()"> > </a>
+			<a href="" class="pointer" ng-click="lastPg()"> >> </a>
+		</div>
+		<div style="padding-left:1em" class="flex-fill">
+			<label for="itemsPerPg">Rows per page </label>
+			<input type="number" id="itemsPerPg" ng-model="itemsPerPg" style="width:5em"/>
+		</div>
+	</div>
+
+	<!-- Column Selection Modal -->
+	<div id="columnModal" class="modal fade" tabindex="-1" role="dialog" 
+		aria-labelledby="columnModalLabel">
+		<div class="modal-dialog modal-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<span class="modal-title bold" id="columnModalLabel">Select Columns</span>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" 
+						aria-label="Close">
+					</button>
+				</div>
+				<div class="modal-body" style="max-height: 80vh;overflow-y:auto ;">
+					<label>
+						<input type="checkbox" ng-model="allColsSelected" ng-change="toggleCols()"> 
+						<span class="bold">Select All</span>
+					</label>
+					<div style="padding-left:.5em">
+						<label ng-repeat="col in columns" style="display:block;font-weight: normal;">
+							<input type="checkbox" ng-model="col.visible" ng-change="updateColState()"> 
+							{{col.label}}
+						</label>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">
+						Close
+					</button>
+				</div>
+			</div>
+		</div>
+	</div> <!-- End #columnModal -->
+
+	<!-- Filter Modal -->
+	<div id="filterModal" class="modal fade" tabindex="-1" role="dialog" 
+		aria-labelledby="filterModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<span class="modal-title bold" id="columnModalLabel">
+						Filter {{filterCol.label}}
+					</span>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" 
+						aria-label="Close"></button>
+				</div>
+				<div class="modal-body" style="max-height: 80vh;overflow-y:auto ;">
+					<div ng-show="filterCol.filters">
+						<button class="btn btn-success btn-xs" style="float:right"
+							ng-click="addFilterCriteria()" title="Add Filter">+
+						</button>
+
+						<div ng-repeat="filter in filterCol.filters" style="margin-top:5px">
+							<button class="btn btn-primary btn-xs" ng-click="removeFilter(filter)"
+								title="Remove Filter">
+								-
+							</button>
+							<select ng-model="filter.comparator" class="form-select"
+								style="display:inline-block;width:10em">
+								<option value="eq">=</option>
+								<option value="gt">></option>
+								<option value="gte">>=</option>
+								<option value="lt"><</option>
+								<option value="lte"><=</option>
+								<option ng-if="filterCol.dataType != 'number'" 
+									value="contains">Contains</option>
+								<option ng-if="filterCol.dataType != 'number'" 
+									value="notContains">Not Contains</option>
+								<option value="empty">Empty</option>
+								<option value="notEmpty">Not Empty</option>
+							</select>
+							<input type="{{filterCol.dataType || 'text'}}" 
+								ng-show="!['empty','notEmpty'].includes(filter.comparator)"
+								ng-model="filter.value" class="form-control"
+								style="display:inline-block;width:15em" />
+						</div>
+					</div>
+					<div ng-show="filterCol.values" class="bold">
+						<input type="checkbox" ng-model="gridSelectAll" 
+							ng-change="toggleFilterSelections()"/>
+						Select All
+					</div>
+					<label ng-repeat="val in filterCol.values | orderBy:'lbl'" 
+						style="display:block;padding-left:.5em">
+						<input type="checkbox" ng-model="val.selected" ng-change="updateFltrAll()"/>
+						{{val.lbl}}
+					</label>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-warning btn-sm" 
+						ng-click="clearFilters()" data-bs-dismiss="modal">
+						<span class="bi bi-x-circle"></span>
+						Clear Filters
+					</button>
+					<button type="button" class="btn btn-success btn-sm" 
+						ng-click="filterData()"	data-bs-dismiss="modal">
+						<span class="bi bi-funnel"></span>
+						Apply
+					</button>
+				</div>
+				
+			</div>
+		</div>
+	</div> <!-- End #filterModal -->
+</div>

@@ -1,0 +1,71 @@
+<H3>Account Reports</H3>
+<div class="col-md-12">
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>Report</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-if="hasPageAccess('rpt_course_history') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!rpt_course_history">Course History</a></td>
+				<td>
+					How many times each course has been scheduled, total attendees, and average attendees per session
+				</td>
+			</tr>
+			<tr ng-if="hasPageAccess('email_history')">
+				<td><a href="/admin.php#!email_history">Email History</a></td>
+				<td>History of group emails</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_event_user_att')">
+				<td><a href="/admin.php#!rpt_event_user_att">Event Staff Attendance</a></td>
+				<td>What staff are registered to attend events</td>
+			</tr>
+			<tr ng-if="sponsors_enabled && hasPageAccess('rpt_event_sponsor_att')">
+				<td><a href="/admin.php#!rpt_event_sponsor_att">Event Vendor Attendance</a></td>
+				<td>What vendors are registered to attend events</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_outstanding_balances')">
+				<td><a href="/admin.php#!rpt_outstanding_balances">Outstanding Balances</a></td>
+				<td>Attendee registrations with unpaid balances</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_payments')">
+				<td><a href="/admin.php#!rpt_payments">Payments</a></td>
+				<td>Attendee and vendor payments</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_registrations')">
+				<td><a href="/admin.php#!rpt_registrations">Registrations</a></td>
+				<td>Search/View attendee registrations</td>
+			</tr>
+			<tr ng-if="enable_season_pass">
+				<td><a href="/admin.php#!rpt_season_pass">Season Pass Purchases</a></td>
+				<td>Search/View season pass orders</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_report_users')">
+				<td><a href="/admin.php#!rpt_report_users">Staff</a></td>
+				<td>Search/View staff details</td>
+			</tr>
+			<tr ng-if="enable_staff_expense && hasPageAccess('acct_expense_rpt') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!acct_expense_rpt">Staff Expenses</a></td>
+				<td>Staff Expenses</td>
+			</tr>
+			<tr ng-if="enable_staff_expense && hasPageAccess('acct_expense_pymts') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!acct_expense_pymts">Staff Expense Payments</a></td>
+				<td>Staff Expense Payments</td>
+			</tr>
+			<tr ng-if="enable_survey && hasPageAccess('rpt_survey_responses') && acctType != 'ticketing'">
+				<td><a href="/admin.php#!rpt_survey_responses">Survey Responses</a></td>
+				<td>Search/View survey responses</td>
+			</tr>
+			<tr ng-if="sponsors_enabled && hasPageAccess('rpt_report_sponsor_orders')">
+				<td><a href="/admin.php#!rpt_report_sponsor_orders">Vendor Orders</a></td>
+				<td>Search/View vendor orders</td>
+			</tr>
+			<tr ng-if="hasPageAccess('rpt_video_orders') && acctType != 'ticketing'">
+				<td><a class="text-blue" href="/admin.php#!rpt_video_orders">Video Orders</a></td>
+				<td>Search/View video orders</td>
+			</tr>
+		</tbody>
+	</table>
+</div>

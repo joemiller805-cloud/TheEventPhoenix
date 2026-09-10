@@ -1,0 +1,178 @@
+<style>
+	.datepicker{
+		width:8em;
+		display:inline;
+	}
+</style>
+<event-reg-tabs></event-reg-tabs>
+<div class="col-md-12">
+
+<h3 style="float:left;display:inline-block" ng-if="sponsors_enabled">Attendee Registration Types</h3>
+<h3 style="float:left;display:inline-block" ng-if="!sponsors_enabled">Registration Types</h3>
+
+<div class="btn-group" style="float:right">
+	<button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"
+		aria-haspopup="true" aria-expanded="false">
+		Add Attendee Reg Type
+	</button>
+	<div class="dropdown-menu">
+		<div class="dropdown-item" ng-click="addNew()">New Registration Type</div>
+		<h6 class="dropdown-header" ng-show="acctTypes.length">Account Registration Types</h6>
+		<div class="dropdown-item" ng-repeat="type in acctTypes | orderBy:'name'" 
+			ng-show="type.vendor_reg != '1'" ng-click="addAcctType(type.id)">
+			{{type.name}}
+		</div>
+	</div>
+</div>
+
+<input type="hidden" name="eventid" value="<?=$inputs['eventid']?>">
+<table class="table">
+	<thead>
+		<tr>
+			<th>Sort</th>
+			<th>Name</th>
+			<th>Price</th>
+			<th>Sections<br/>Allowed</th>
+			<th class="center">Registration Start-End</th>
+			<th class="center">Section Signup Start-End</th>
+			<th class="center" ng-if="hasVirtual">View Videos Start - End</th>
+			<!-- <th class="center">Target <br/>Registrations</th> -->
+		</tr>
+	</thead>
+	<tbody id="regTypesTbody">
+		<tr ng-repeat="regType in registrationTypes | orderObjectBy:'sortorder':false | filter:{'vendor_reg':'0'}">
+			<td>
+				<span class="handle pointer">&#9776;</span>
+			</td>
+			<td>
+				<input type='text' class="form-control" ng-model="regType.name" 
+					style="min-width: 6em;"/>
+			</td>
+			<td>
+				<input type='text' ng-model="regType.price" class="form-control" 
+					style="width:6em;display:inline" ng-disabled="regType.ordered"
+					title="{{regType.ordered ? 'Orders placed. Cannot update price.' : ''}}"/>
+			</td>
+			<td>
+				<input type='number' ng-model="regType.sections_allowed" class="form-control"
+					string-to-number style="width:6em;display:inline"/>
+			</td>
+			<td class="center">
+				<input type='text' ng-model="regType.sunrise" class="form-control datepicker" /> -
+				<input type='text' ng-model="regType.sunset" class="form-control datepicker" />
+			</td>
+			<td class="center">
+				<input type='text' ng-model="regType.reg_start_dt" class="form-control datepicker" /> - 
+				<input type='text' ng-model="regType.reg_end_dt" class="form-control datepicker" />
+			</td>
+			<td ng-if="hasVirtual" class="center">
+				<input type="text" ng-model="regType.video_start_dt" class="form-control datepicker" /> -
+				<input type="text" ng-model="regType.video_end_dt" class="form-control datepicker" />
+			</td>
+			<!-- <td class="center">
+				<input type="number" class="form-control" ng-model="regType.target_regs" string-to-number style="width:6em;display:inline"/>
+			</td> -->
+		</tr>
+</table>
+
+<hr/>
+<div ng-if="sponsors_enabled" style="margin-top:2em">
+	<div class="btn-group" style="float:right">
+		<button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"
+			aria-haspopup="true" aria-expanded="false">
+			Add Vendor Reg Type
+		</button>
+		<div class="dropdown-menu">
+			<div class="dropdown-item" ng-click="addNew('vendor')">New Registration Type</div>
+			<h6 class="dropdown-header">Account Registration Types</h6>
+			<div class="dropdown-divider"></div>
+			<div class="dropdown-item" ng-repeat="type in acctTypes | orderBy:'name'" 
+				ng-show="type.vendor_reg == '1'" ng-click="addAcctType(type.id)">
+				{{type.name}}
+			</div>
+		</div>
+	</div>
+
+	<h3 style="float:left;display:inline-block" ng-if="sponsors_enabled">
+		Vendor Registration Types
+	</h3>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Price</th>
+				<th># Staff<br/> Allowed</th>
+				<th>Sections<br/> Allowed</th>
+				<th>Registration<br/> Start-End</th>
+				<th>Section Signup<br/> Start-End</th>
+				<th ng-if="hasVirtual">View Videos<br/> Start-End</th>
+				<th>Description</th>
+				<th>Max <br/>Registrations</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="regType in registrationTypes" ng-show="regType.vendor_reg == '1'">
+				<td>
+					<input class="form-control" ng-model="regType.name" />
+				</td>
+				<td style="white-space:nowrap;">
+					<input class="form-control" ng-model="regType.sponsor_opt_data.price" 
+						style="width:6em;display:inline"/>
+				</td>
+				<td>
+					<input class="form-control" style="width:4em"
+						ng-model="regType.sponsor_opt_data.staff_allowance" />
+				</td>
+				<td>
+					<input class="form-control" ng-model="regType.sections_allowed" 
+						string-to-number type="number" style="width:4em"/>
+				</td>
+				<td>
+					<input class="form-control datepicker" ng-model="regType.sunrise" /> - 
+					<input class="form-control datepicker" ng-model="regType.sunset" />
+				</td>
+				<td>
+					<input type='text' ng-model="regType.reg_start_dt" class="form-control datepicker" /> - 
+					<input type='text' ng-model="regType.reg_end_dt" class="form-control datepicker" />
+				</td>
+				<td ng-if="hasVirtual">
+					<input type="text" ng-model="regType.video_start_dt" class="form-control datepicker" /> -
+					<input type="text" ng-model="regType.video_end_dt" class="form-control datepicker" />
+				</td>
+				<td>
+					<textarea ng-model="regType.sponsor_opt_data.description" 
+						class="form-control" rows="5" cols="35"></textarea>
+				</td>
+				<td>
+					<input type="number" ng-model="regType.sponsor_opt_data.num_available" 
+						class="form-control" style="width:6em" string-to-number/>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div class="button-row" style="margin-top:15px;text-align:right">
+	<button ng-click="saveTypes()" class="btn btn-primary">Save</button>
+	<button type="button" class="btn btn-primary" ng-click="reload()">Cancel</button>
+</div>
+<div class="row successMessage" style="margin-top:1em">
+	<div class='alert alert-success'>Updates Saved</div>
+</div>
+</div>
+
+<style>
+	.dropdown-item {
+	    display: block;
+	    width: 100%;
+	    padding: .25rem 1.5rem;
+	    clear: both;
+	    font-weight: 400;
+	    color: #212529;
+	    text-align: inherit;
+	    white-space: nowrap;
+	    background-color: transparent;
+	    border: 0;
+	    cursor: pointer;
+	}
+</style>

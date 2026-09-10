@@ -1,0 +1,111 @@
+<div class="row">
+	<div class="col-lg-12">
+		<p style="font-size:16pt;font-weight:bold">User Report</p>
+		<p>
+			<button class="btn btn-primary exportResultsBtn" style="vertical-align:super;"
+				data-table-id="userTable" data-file-name="Users">
+				<span class="bi bi-floppy"></span> Export To CSV
+			</button>
+			<button ng-click="columnFilter()" class="btn btn-primary colDisplayBtn readOnly"
+				style="float:none">
+				Edit displayed columns
+			</button>
+		</p>
+	</div>
+</div>
+<div id="loadingSpan">Loading User Data<span class="loader"></span></div>
+
+<div class="row" style="margin:10px 0px">
+	<div class="col-sm-3">
+		<label>Quick Search</label>
+		<input ng-model="quickSearchValue" ng-keyup="quickSearch()" class="form-control"/>
+	</div>
+	<div class="col-sm-2">
+		 <label>Include Archived Users</label><br/>
+		 <input type="checkbox" ng-model="includeArchived" ng-change="quickSearch()"
+			style="margin-left:30px"/>
+	</div>
+	<div class="col-sm-4">
+		<label>Course Search</label>
+		<select ng-model="selectedCourse" ng-change="courseSearch()" class="form-select">
+			<option value=""></option>
+			<option ng-repeat="course in courses | orderObjectBy:'name':false"" value="{{course.id}}">
+				{{course.name}}
+			</option>
+		</select>
+	</div>
+	<div class="col-sm-3">
+		<label>&nbsp;</label>
+		<select ng-model="courseSearchPref" ng-change="courseSearch()" class="form-select">
+			<option value="both">Preferred or Able</option>
+			<option value="preferred">Preferred Only</option>
+			<option value="able">Able Only</option>
+		</select>
+	</div>
+</div>
+<table id="userTable" class="table scrollable striped">
+	<thead>
+		<tr>
+			<th class="pointer" ng-click="changeSort('last_name')">
+				<sort-arrows></sort-arrows>Name
+			</th>
+			<th class="pointer" ng-click="changeSort('email')">
+				<sort-arrows></sort-arrows>Email
+			</th>
+			<th class="pointer" ng-click="changeSort('business')">
+				<sort-arrows></sort-arrows>Business
+			</th>
+			<th class="pointer" ng-click="changeSort('address')">
+				<sort-arrows></sort-arrows>Address
+			</th>
+			<th class="pointer" ng-click="changeSort('home_address')">
+				<sort-arrows></sort-arrows>Home Address
+			</th>
+			<th class="pointer" ng-click="changeSort('phone')">
+				<sort-arrows></sort-arrows>Phone
+			</th>
+			<th class="pointer" ng-click="changeSort('master')">
+				<sort-arrows></sort-arrows>Master <br/>User
+			</th>
+			<th class="pointer" ng-click="changeSort('dietary_restrictions')">
+				<sort-arrows></sort-arrows>Dietary <br/> Restrictions
+			</th>
+			<th class="pointer" ng-click="changeSort('bio')">
+				<sort-arrows></sort-arrows>Bio
+			</th>
+			<th class="pointer" ng-click="changeSort('courses_preferred_list')">
+				<sort-arrows></sort-arrows>Courses <br/>Preferred
+			</th>
+			<th class="pointer" ng-click="changeSort('courses_able_list')">
+				<sort-arrows></sort-arrows>Courses <br/>able
+			</th>
+			<th class="pointer" ng-click="changeSort('archived')">
+				<sort-arrows></sort-arrows>Archived
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="user in users | orderObjectBy:sortField:sortReverse"	ng-if="user.include">
+			<td>{{user.last_name}}, {{user.first_name}}</td>
+			<td>{{user.email}}</td>
+			<td>{{user.business}}</td>
+			<td>
+				{{user.address1}} <br/>
+				{{user.address2}} <br/>
+				{{user.city}}, {{user.state}} {{user.zip}}
+			</td>
+			<td>
+				{{user.home_add1}} <br/>
+				{{user.home_add2}} <br/>
+				{{user.home_city}}, {{user.home_state}} {{user.home_zip}}
+			</td>
+			<td>{{user.phone}}</td>
+			<td class="center"><span ng-show="user.master == '1'">&#10004;</span></td>
+			<td>{{user.dietary_restrictions}}</td>
+			<td>{{user.bio}}</td>
+			<td>{{user.courses_preferred_list}}</td>
+			<td>{{user.courses_able_list}}</td>
+			<td class="center"><span ng-show="user.archived == '1'">&#10004;</span></td>
+		</tr>
+	</tbody>
+</table>

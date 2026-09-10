@@ -1,0 +1,52 @@
+<div class="col-md-12">
+	<h3>ACME Plugin Requests</h3>
+</div>
+<div>
+	<label style="margin-right:2em">
+		<input type="radio" name="show" ng-model="show" ng-value="0" /> Unapproved
+	</label>
+	<label style="margin-right:2em">
+		<input type="radio" name="show" ng-model="show" ng-value="1" /> Approved
+	</label>
+	<label><input type="radio" name="show" ng-model="show" ng-value="2" /> All</label>
+</div>
+
+<div class='alert alert-success' role='alert' ng-show="!hasUnapproved && show == '0'">
+	<b>&#10004;</b> No Unapproved Requests	
+</div>
+
+<table class="table scrollable striped">
+	<thead>
+		<tr class="headerRow sticky noPad">
+			<th>Name</th>
+			<th>District</th>
+			<th>Email</th>
+			<th>Approved</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="request in requests | orderObjectBy:'last_name'" 
+			ng-if="show == 2 || show == request.approved || request.changed">
+			<td>{{request.last_name}}, {{request.first_name}}</td>
+			<td>{{request.district}}</td>
+			<td>{{request.email}}</td>
+			<td>
+				<input type="checkbox" ng-model="request.approved" ng-true-value="'1'" ng-false-value="'0'" 
+					ng-change="request.changed = true"/>
+			</td>
+		</tr>
+	</tbody>
+</table>
+<div class="button-row" style="margin-top:1em">
+	<button class="btn btn-danger" ng-click="deleteUnapproved()" ng-show="show == '0'">
+		<span class="bi bi-trash"></span>
+		Delete Unapproved Requests
+	</button>
+	<button class="btn btn-primary" ng-click="exportResults()" data-file-name="ACME Requests">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	<button class="btn btn-success" ng-click="saveRequests()">
+		<span class="bi bi-check-lg"></span>
+		Save Approvals
+	</button>
+</div>

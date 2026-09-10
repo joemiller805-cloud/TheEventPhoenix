@@ -1,0 +1,122 @@
+<nav class="navbar navbar-expand-xl fixed-top navbar-light bg-light">
+	<div class="container-fluid flex-row">
+		<a class="navbar-brand d-flex" href="/">
+			<img src="{{logoSrc}}" style="height:40px; margin-top:-15px; border:none;"
+				alt="Easy Reg Logo" ng-show="logoSrc && showLogo"/>
+		</a>
+		<button class="navbar-toggler" type="button d-flex" data-bs-toggle="collapse" 
+			data-bs-target="#navbarWithDropdown" aria-controls="navbarWithDropdown" 
+			aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse show-md" id="navbarWithDropdown">
+			<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" 
+						role="button" data-bs-toggle="dropdown" aria-expanded="false">
+						Events
+					</a>
+					<ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+						<li role="presentation" class="dropdown-header">Upcoming events</li>
+						<li ng-repeat="event in events | upcomingEvents:this 
+							 | orderObjectBy:'start_date':true">
+							<a class="dropdown-item" href="/e/{{event.slug}}">{{event.name}}</a>
+						</li>
+						<li class="dropdown-divider"></li>
+						<li role="presentation" class="dropdown-header">Past events</li>
+						<li ng-repeat="event in events | pastEvents:this 
+							| orderObjectBy:'start_date':true">
+							<a class="dropdown-item" href="/e/{{event.slug}}">{{event.name}}</a>
+						</li>
+					</ul>
+				</li>
+				<li class="nav-item" ng-if="user.master == '1'">
+					<a class="nav-link" href="/admin.php">Admin</a>
+				</li>
+	
+				<!-- User Menu -->
+				<li class="nav-item dropdown" ng-if="user">
+					<a class="nav-link dropdown-toggle" href="#" id="userDropdownToggle" 
+						role="button" data-bs-toggle="dropdown" aria-expanded="false">
+						<i class="bi bi-person-fill"></i>
+						{{user.first_name}} {{user.last_name}}
+					</a>
+					<ul class="dropdown-menu" aria-labelledby="userDropdownToggle" >
+						<li ng-show="user.sponsorid == '0' || !user.sponsorid">
+							<a class="dropdown-item" href="/user_events.php">
+								<i class="bi bi-list-ul"></i> Events
+							</a>
+						</li>
+						<li>
+							<a class="dropdown-item" href="/user_details.php">
+								<i class="bi bi-person-fill"></i> My Profile
+							</a>
+						</li>
+						<li>
+							<a class="dropdown-item" ng-click="logout()">
+								<i class="bi bi-box-arrow-left"></i> Logout
+							</a>
+						</li>
+					</ul>
+				</li>
+	
+				<!-- Prospective Sponsors -->
+				<li class="nav-item dropdown" ng-if="!sponsor && !user && sponsors_enabled">
+					<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+						Vendors <b class="caret"></b>
+					</a>
+					<ul class="dropdown-menu" role="menu">
+						<li>
+							<a href="/sponsor/login.php" class="dropdown-item">
+								<span class="bi bi-box-arrow-in-right"></span> Login
+							</a>
+						</li>
+						<li>
+							<a class="dropdown-item" href="/sponsor/newSponsor.php">
+								<span class="bi bi-plus-circle"></span> 
+								Become a Vendor
+							</a>
+						</li>
+					</ul>
+				</li>
+	
+				<!-- Sponsor Menu -->
+				<li class="nav-item dropdown" ng-if="sponsor && !user">
+					<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+						<span class="bi bi-person-fill"></span>
+						{{sponsor.name}} <b class="caret"></b>
+					</a>
+					<ul class="dropdown-menu" role="menu">
+						<li>
+							<a href="/sponsor/home.php" class="dropdown-item">
+								<span class="bi bi-house-door-fill"></span> Vendor Home
+							</a>
+						</li>
+						<li>
+							<a class="pointer dropdown-item" ng-click="logout()">
+								<span class="bi bi-box-arrow-left"></span> Logout
+							</a>
+						</li>
+					</ul>
+				</li>
+	
+				<li class="nav-item dropdown" ng-if="!user && !sponsor">
+					<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+						Staff<b class="caret"></b>
+					</a>
+					<ul class="dropdown-menu" role="menu">
+						<li ng-if="!user && !sponsor">
+							<a href="/login.php{{requestUri}}" class="dropdown-item">
+								<span class="bi bi-box-arrow-in-right"></span> Login
+							</a>
+						</li>
+					</ul>
+				</li>
+	
+				<li ng-if="erMaster">
+					<a href="/accounts.php" class="nav-link">Account List</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	</nav>

@@ -1,0 +1,119 @@
+<div class="row">
+	<div class="col-lg-12">
+		<span style="font-size:16pt;font-weight:bold;margin-right:3em">Event Vendor Attendance</span>
+	</div>
+</div>
+<div id="loadingSpan">Loading Vendor Data<span class="loader"></span></div>
+
+<div class="flex-row" style="margin:10px 0px">
+	<span>
+		<button class="btn btn-primary exportResultsBtn readOnly"
+			data-table-id="sponsorTable" data-file-name="Vendor Event Attendance">
+			<span class="bi bi-floppy"></span> Export To CSV
+		</button>
+		<button class="btn btn-primary" ng-click="createEmail()">
+			<span class="bi bi-envelope"></span> Email Vendors
+		</button>
+	</span>
+	<input ng-model="quickSearchValue" ng-keyup="filterSponsors()" class="form-control"
+		placeholder="Quick Search" style="display:inline-block;width:20em;margin-left:3em"/>
+
+	<label style="margin-left:3em">Events</label>
+	<select ng-model="eventFilter" class="form-select" ng-change="filterEvents()"
+		style="display:inline-block;width:20em">
+		<optgroup label="Multiple Events">
+			<option value="future">Upcoming Events</option>
+			<option value="recent">Recent Events (Last 365 Days)</option>
+			<option value="upcomingAndRecent">Upcoming and Recent Events</option>
+			<option value="all">All Events</option>
+		</optgroup>
+		<optgroup label="Specific Event">
+			<option ng-repeat="event in events | orderObjectBy:'startdate':true" value="{{event.id}}">
+				{{event.name}}
+			</option>
+		</optgroup>
+	</select>
+</div>
+
+<table id="sponsorTable" class="table scrollable striped">
+	<thead>
+		<tr>
+			<th>Vendor</th>
+			<th>Email</th>
+			<th>Category</th>
+			<th ng-repeat="event in filteredEvents | orderObjectBy:'startdate'">
+				{{event.name}}
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="sponsor in sponsors | orderObjectBy:'name'" ng-if="sponsor.show"
+			class="sponsorRow">
+			<td>{{sponsor.name}}</td>
+			<td>{{sponsor.email}}</td>
+			<td>{{sponsor.category}}</td>
+			<td ng-repeat="event in filteredEvents | orderObjectBy:'startdate'">
+				<b>{{sponsor.orders[event.id].name}}</b>
+				<div ng-show="sponsor.orders[event.id].cancelled == '1'">(<i>Cancelled</i>)</div>
+				<div ng-repeat="staff in sponsor.orders[event.id].staff" style="border-top:1px solid silver">
+					{{staff.first_name}} {{staff.last_name}} <br/> {{staff.email}}
+				</div>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<!-- Email Dialog -->
+<div id="id" class="dialogRight" style="width:70%">
+	<div class="dialogTitle">Email Vendors</div>
+	<div class="dialogContents">
+		<table>
+			<tr>
+				<td class="bold" style="width:6em">Recipients</td>
+				<td>
+					<select class="form-select" ng-model="emailTo">
+						<option value="both">Account and Staff</option>
+						<option value="account">Account Only</option>
+						<option value="staff">Staff Only</option>
+						<option value="select">Select Recipients</option>
+					</select>
+				</td>
+			</tr>
+			<tr ng-show="emailTo=='select'">
+				<td class="bold">Select Recipients</td>
+				<td>
+					<div ng-repeat="sponsor in sponsors | orderObjectBy:'name'" 
+							ng-show="sponsor.show">
+						<input type="checkbox" ng-model="sponsor.sendEmail" />
+						<b>{{sponsor.name}} ({{sponsor.email}})</b>
+						<div ng-show="getSponsorStaff(sponsor).length" style="margin-left:2em">
+							<b>Staff</b>
+						</div>
+						<div ng-repeat="staff in getSponsorStaff(sponsor) | orderBy:'last_name'" style="margin-left:4em">
+							<input type="checkbox" ng-model="staff.sendEmail"/>
+							{{staff.last_name}}, {{staff.first_name}} ({{staff.email}})
+						</div>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Subject</td>
+				<td><input type="text" ng-model="emailSubject" class="form-control"/></td>
+			</tr>
+			<tr>
+				<td class="bold" style="vertical-align:text-top;">Body</td>
+				<td>
+					<textarea ng-model="emailBody" rows="20" class="form-control"></textarea>
+				</td>
+			</tr>
+		</table>
+		<div class="button-row" style="margin-top:.5em">
+			<button class="btn btn-primary" ng-click="closeEmailDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="sendEmail()">
+				<span class="bi bi-check-lg"></span> Send Email
+			</button>
+		</div>
+	</div>
+</div> <!-- End Email Dialog -->

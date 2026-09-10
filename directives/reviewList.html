@@ -1,0 +1,22 @@
+<div id="reviewListDiv" class="dialogRight">
+	<div class="dialogTitle">
+		{{dialogTitle}}
+		<button class="btn btn-primary btn-xs" style="float:right;margin:5px" ng-click="closeRightDialog()">
+			x
+		</button>
+	</div>
+	<div class="dialogContents">
+		<section ng-repeat="review in reviewList | orderBy:'rating':true" 
+			class="reviewItem">
+			<span ng-repeat="val in [1,2,3,4,5]">
+				<span class="material-icons rating-star">
+					{{getStarType(val, review.rating)}}
+				</span>
+			</span>
+			<p ng-bind="review.comment" style="white-space:pre-wrap;"></p>
+		</section>
+	</div>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="closeRightDialog()">Close</button>
+	</div>
+</div>

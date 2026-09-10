@@ -1,0 +1,404 @@
+<style>
+	.attendBtn{
+		padding: 4px 10px;
+		margin-bottom:3px;
+	}
+	td span.alert-success{ padding: 1px 3px; }
+	#selectedEventDiv .table tr td{ border:none; }
+	#selectedEventDiv tr td, #eventExtrasDiv tr td{border: none;}
+	#paymentDialog .button-row{ margin-top:1em; }
+</style>
+
+<div class="col-sm-11 form-horizontal" style="margin-top:.5em" ng-show="curProcess == 'order'" ng-cloak>
+	<div class="right" style="margin-bottom:3px">
+		<span id="cart">
+			<div class='alert alert-success' role='alert' 
+				style="margin:3px 1em;padding:5px;display:inline-block;"
+				ng-show="cart.discount">
+				This purchase amount qualifies for a <b>{{cart.discount | currency}}</b>
+				discount.  The discount will be applied at checkout.
+			</div>
+			<span class="bi bi-cart4"></span>
+			<span ng-show="cart.events.length > 0">
+				{{cart.events.length}} 
+				<span ng-show="cart.events.length == 1">Event</span>
+				<span ng-show="cart.events.length != 1">Events</span>
+				<b>{{cart.total | currency}}</b>
+				<button class="btn btn-success" ng-click="curProcess = 'review'" style="margin-left:1em">
+					Proceed to Checkout
+				</button>
+			</span>
+			<span ng-show="cart.events.length == 0">Cart Empty</span>
+		</span>
+	</div>
+	<table ng-repeat="event in evtData" class="table eventTable" ng-show="showEvent(event)">
+		<thead>
+			<tr>
+				<th colspan="20">
+					{{event.name}}
+					<span style="margin-left:3em">
+						{{event.startdate | mySqlToLocalDate}} - {{event.enddate | mySqlToLocalDate}}
+					</span>
+					<span style="margin-left:3em">{{event.city}}, {{event.state}}</span>
+				</th>
+			</tr>
+		</thead>
+
+		<!-- This tbody will display if the vendor has NOT ordered the event yet -->
+		<tbody ng-show="!event.orderDetails.vendorType">
+			<tr class="bold" style="background:silver;">
+				<td style="width:20%">Vendor/Sponsorship Options</td>
+				<td style="width:10%">Price</td>
+				<td style="width:20%">Available</td>
+				<td style="width:30%">Details</td>
+				<td>Staff Allowance</td>
+			</tr>
+			<tr ng-repeat="type in event.regTypes | filter:{'current':true,'availableForPurchase':true} | orderBy:'price':true">
+				<td>{{type.name}}</td>
+				<td>{{type.price | currency}}</td>
+				<td>{{type.sunrise}} - {{type.sunset}}</td>
+				<td class="preWrap">{{type.description}}</td>
+				<td>{{type.staff_allowance}}</td>
+			</tr>
+			<tr class="bold"  style="background:silver;" ng-show="showExtras(event)">
+				<td>Event Extras</td>
+				<td>Price</td>
+				<td>Available</td>
+				<td>Details</td>
+				<td></td>
+			</tr>
+			<tr ng-repeat="type in event.sponsorOptions | filter:{'availableForPurchase':true} | orderBy:'price':true"
+				ng-class="{'selected' : type.selected}">
+				<td>{{type.name}}</td>
+				<td>{{type.price | currency}}</td>
+				<td>{{type.sunrise}} - {{type.sunset}}</td>
+				<td class="preWrap">{{type.description}}</td>
+				<td></td>
+			</tr>
+			<tr class="bold" style="background:silver;" ng-show="showXtraStaff(event)">
+				<td>Extra Staff</td>
+				<td>Price</td>
+				<td colspan="20">Available</td>
+			</tr>
+			<tr ng-show="showXtraStaff(event)" ng-class="{'selected' : event.extraStaff.quantity > 0}">
+				<td>Extra Staff Member</td>
+				<td>
+					{{event.extraStaff.price | currency}}
+					<span ng-show="event.extraStaff.quantity > 0"> ({{event.extraStaff.quantity}}) </span>
+				</td>
+				<td>{{event.extraStaff.sunrise}} - {{event.extraStaff.sunset}}</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr ng-show="!event.vendorType">
+				<td colspan="10" class="right">
+					<button class="btn btn-primary attendBtn" ng-click="addEditEvent(event)"
+						ng-if="!event.orderDetails.vendorType">
+						Attend This Event
+					</button>
+					<button class="btn btn-primary attendBtn" ng-click="addEditEvent(event)"
+						ng-if="event.orderDetails.vendorType">
+						Order Event Extras
+					</button>
+				</td>
+			</tr>
+			<tr ng-show="event.vendorType">
+				<td colspan="10" class="right">
+					Event Subtotal: <b>{{getEventTotal(event) | currency}}</b>
+					<button class="btn btn-danger attendBtn" ng-click="removeFromCart(event)"
+						style="margin-left:1em">
+						<span class="bi bi-trash"></span> Remove From Cart
+					</button>
+					<button class="btn btn-primary attendBtn" ng-click="addEditEvent(event)">
+						<span class="bi bi-pencil-fill"></span> Edit Order
+					</button>
+				</td>
+			</tr>
+		</tbody>
+
+		<!-- This tbody will display if the vendor HAS ordered the event -->
+		<tbody ng-show="event.orderDetails.vendorType">
+			<tr>
+				<td>
+					<div style="padding:3px">
+						<span class='alert alert-success' role='alert' 
+							style="padding:3px;margin:3px;border-radius:16px;font-weight: bold;">
+							&#10004;
+						</span>
+						You are scheduled to attend this event
+						<span style="margin-left:5em">
+							Vendor/Sponsorship Type - 
+							<b>{{getVendorType(event).name}}</b>
+							({{getVendorType(event).staffAllowed}} Staff Allowed)
+						</span>
+						<button class="btn btn-success btn-sm" ng-click="showAttendeeList(event)"
+							style="margin-left:3em">
+							Attendee List
+						</button>
+					</div>
+				</td>
+			</tr>
+			<tr ng-if="event.orderDetails.extraStaff || event.orderDetails.items.length > 0">
+				<td style="background:silver" class="bold">Extras Ordered</td>
+			</tr>
+			<tr ng-if="event.orderDetails.extraStaff">
+				<td>&nbsp;Extra Staff - {{event.orderDetails.extraStaff}}</td>
+			</tr>
+			<tr ng-repeat="item in event.orderDetails.items">
+				<td>&nbsp;{{item.name}}</td>
+			</tr>
+			<tr ng-if="extrasAvailable(event)">
+				<td class="right">
+					<button class="btn btn-primary btn-sm" ng-click="orderExtras(event)" 
+						style="margin-bottom:5px;padding:2px 4px">
+						<span class="bi bi-cart4"></span>
+						Order Extras
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<H3>Previous Events Attended</H3>
+	<table ng-repeat="event in evtData" class="table eventTable" ng-show="showAsPreviousEvent(event)">
+		<thead>
+			<tr>
+				<th colspan="20">
+					{{event.name}}
+					<span style="margin-left:3em">
+						{{event.startdate | mySqlToLocalDate}} - {{event.enddate | mySqlToLocalDate}}
+					</span>
+					<span style="margin-left:3em">{{event.city}}, {{event.state}}</span>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<div style="padding:3px">
+						<span class='alert alert-success' role='alert' 
+							style="padding:3px;margin:3px;border-radius:16px;font-weight: bold;">
+							&#10004;
+						</span>
+						You attended this event
+						<span style="margin-left:5em">
+							Vendor/Sponsorship Type - 
+							<b>{{getVendorType(event).name}}</b>
+							({{getVendorType(event).staffAllowed}} Staff Allowed)
+						</span>
+						<button class="btn btn-success btn-sm" ng-click="showAttendeeList(event)"
+							style="margin-left:3em">
+							Attendee List
+						</button>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div> <!-- End Event Column -->
+
+<div style="display:none">
+<div id="selectedEventDiv">
+	<table class="table">
+		<tr>
+			<td class="bold">Vendor/Sponsor Type</td>
+			<td>
+				<select ng-model="selectedEvent.vendorType" class="form-select"
+					ng-change="vendorTypeChange()">
+					<option ng-repeat="type in selectedEvent.regTypes | filter:{'current':true,'availableForPurchase':true} | orderBy:'price':true" 
+						value="{{type.id}}">
+						{{type.name}} ({{type.price | currency}})
+					</option>
+				</select>
+			</td>
+		</tr>
+		<tr ng-show="showExtras(selectedEvent)"><td colspan="2"><hr/></td></tr>
+		<tr ng-show="showExtras(selectedEvent)">
+			<td colspan="2" class="bold">Event Extras</td>
+		</tr>
+		<tr ng-repeat="type in selectedEvent.sponsorOptions | orderBy:'price':true" 
+			ng-show="extraAvailable(type)">
+			<td>
+				<label style="margin-left:12px">
+					<input type="checkbox" ng-model="type.selected" /> 
+					{{type.name}}
+				</label>
+			</td>
+			<td>{{type.price | currency}}</td>
+		</tr>
+		<tr ng-show="showXtraStaff(selectedEvent)"><td colspan="2"><hr/></td></tr>
+		<tr ng-show="showXtraStaff(selectedEvent)">
+			<td>
+				<b>Extra Staff</b> ({{selectedEvent.extraStaff.price | currency}})
+			</td>
+			<td>
+				<input type="number" class="form-control" ng-model="selectedEvent.extraStaff.quantity" 
+					style="width:5em" min="0"/>
+			</td>
+		</tr>
+	</table>
+	<div class="button-row">
+		Total <b>{{getEventTotal(selectedEvent) | currency}}</b><br/>
+		<button class="btn btn-danger"ng-click="cancelEvent()">
+			<span class="bi bi-x-circle" style="color:white"></span> Cancel
+		</button>
+		<button class="btn btn-success" ng-click="updateCart()">
+			<span class="bi bi-check-lg"></span> Add to Cart
+		</button>
+	</div>
+</div> <!-- END selectedEventDiv -->
+
+<div id="eventExtrasDiv">
+	<table class="table">
+		<tr ng-show="showExtras(selectedEvent)">
+			<td colspan="2" class="bold">Event Extras</td>
+		</tr>
+		<tr ng-repeat="type in selectedEvent.sponsorOptions | orderBy:'price':true"
+			ng-show="extraAvailable(type)">
+			<td>
+				<label style="margin-left:12px">
+					<input type="checkbox" ng-model="type.selected" ng-hide="type.ordered" /> 
+					<input type="checkbox" checked disabled ng-show="type.ordered" /> 
+					{{type.name}}
+				</label>
+			</td>
+			<td>{{type.price | currency}}</td>
+		</tr> 
+		<tr ng-show="selectedEvent.extraStaff && selectedEvent.availableExtras.length > 0">
+			<td colspan="2"><hr/></td>
+		</tr>
+		<tr ng-show="selectedEvent.extraStaff.current">
+			<td>
+				<b>Extra Staff</b> ({{selectedEvent.extraStaff.price | currency}})
+			</td>
+			<td>
+				<input type="number" class="form-control" ng-model="selectedEvent.extraStaff.quantity" 
+					style="width:5em" min="0"/>
+			</td>
+		</tr>
+	</table>
+	<div class="button-row">
+		Total <b>{{getEventExtrasTotal(selectedEvent) | currency}}</b><br/>
+		<button class="btn btn-danger"ng-click="cancelExtras()">
+			<span class="bi bi-x-circle" style="color:white"></span> Cancel
+		</button>
+		<button class="btn btn-success" ng-click="updateCart()">
+			<span class="bi bi-check-lg"></span> Add to Cart
+		</button>
+	</div>
+</div> <!-- END eventExtrasDiv -->
+</div>
+
+<div class="col-sm-11 form-horizontal" style="margin-top:.5em" ng-show="curProcess == 'review'" ng-cloak>
+	<div class="right">
+		<button class="btn btn-primary" ng-click="curProcess = 'order'">Back to Edit Order</button>
+		<button class="btn btn-primary" ng-show="discCdAvailable" ng-click="enterDiscountCode()">
+				Enter Discount Code
+		</button>
+		<button class="btn btn-success" ng-click="curProcess = 'payment'" ng-show="cart.total > 0">
+			Proceed to Payment 
+		</button>
+		<button class="btn btn-success" ng-click="submitPayment()" ng-show="cart.total == 0">
+			Submit Order
+		</button>
+	</div>
+	<table class="table" ng-repeat="event in cart.events">
+		<tr>
+			<th colspan="20">{{event.name}}</th>
+		</tr>
+		<tr>
+			<td>{{getSelectedVendorType(event).name}}</td>
+			<td class="right">{{getSelectedVendorType(event).price | currency}}</td>
+		</tr>
+		<tr ng-repeat="opt in getSelectedExtras(event)">
+			<td>{{opt.name}}</td>
+			<td class="right">{{opt.price | currency}}</td>
+		</tr>
+		<tr ng-show="event.extraStaff.quantity">
+			<td>Extra Staff ({{event.extraStaff.quantity}})</td>
+			<td class="right">{{(event.extraStaff.quantity || 0) * event.extraStaff.price | currency}}</td>
+		</tr>
+	</table>
+	<div class="right" style="padding-right:8px">
+		<div ng-show="cart.discount > 0">
+			Subtotal 
+			<b style="display:inline-block;width:10em">{{cart.total | currency}}</b> <br/>
+			Discount 
+			<b style="display:inline-block;width:10em">{{cart.discount | currency}}</b>
+		</div>
+		Order Total
+		<b style="display:inline-block;width:10em">{{cart.due | currency}}</b>
+	</div>
+</div>
+
+<div class="col-sm-11 form-horizontal" style="margin-top:.5em" 
+	ng-show="curProcess == 'payment'" ng-cloak>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="curProcess = 'review'">Back to Edit Order</button>
+	</div>
+	<div class='alert alert-info' role='alert' style="margin-top:.5em"
+		ng-show="cart.due > 5000 && payment_method == 'cc' && ccProvider == 'magicWrighter'">
+		<div class="blink bold" style="color:inherit;margin-bottom:1em;background:none;border:none">IMPORTANT</div>
+		We are currently able to process a maximum payment of {{'5000' | currency}}.<br/>
+		Larger payments must be made in part. <br/>
+		After this {{'5000' | currency}} payment, there will be a remaining balance of 
+		{{(cart.due - 5000) | currency}}.<br/>
+		You may log in at a later date and visit the Order History tab to pay the remaining balance.<br/>
+		Please allow 24 hours between payments to ensure proper processing.
+	</div>
+	<events-payment-dialog></events-payment-dialog>
+</div>
+
+<div class="col-sm-11 form-horizontal" style="margin-top:.5em" ng-show="curProcess == 'summary'" ng-cloak>
+	<div class='alert alert-success' role='alert'>
+		<b>Thank you for your order</b><br/>
+		<div ng-show="cc_confirmation">
+			Please keep the following confirmation number for your records - <b>{{cc_confirmation}}</b>
+		</div>
+		Please visit the Event Staff tab to select the staff members who will be attending 
+		your ordered event(s)
+	</div>
+</div>
+
+<!-- Attendee Dialog -->
+<div id="attendeeDialog" class="dialogRight">
+	<div class="dialogTitle">{{dialogTitle}}</div>
+	<div class="dialogContents">
+		<table class="table" id="attendeesTable">
+			<tr>
+				<th>Last Name</th>
+				<th>First Name</th>
+				<th>Email</th>
+				<th>Title</th>
+				<th>Business</th>
+				<th>Address1</th>
+				<th>Address2</th>
+				<th>City</th>
+				<th>State</th>
+				<th>Zip</th>
+				<th>Phone</th>
+			</tr>
+			<tr ng-repeat="attendee in attendees">
+				<td>{{attendee.last_name}}</td>
+				<td>{{attendee.first_name}}</td>
+				<td>{{attendee.email}}</td>
+				<td>{{attendee.title}}</td>
+				<td>{{attendee.business}}</td>
+				<td>{{attendee.address1}}</td>
+				<td>{{attendee.address2}}</td>
+				<td>{{attendee.city}}</td>
+				<td>{{attendee.state}}</td>
+				<td>{{attendee.zip}}</td>
+				<td>{{attendee.phone}}</td>
+			</tr>
+		</table>
+		<div class="button-row">
+			<button class="btn btn-danger" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Done
+			</button>
+			<button class="btn btn-primary" ng-click="exportAttendees()">
+				<span class="bi bi-floppy"></span> Export To CSV
+			</button>
+		</div>
+	</div>
+</div> <!-- End Attendee Dialog -->

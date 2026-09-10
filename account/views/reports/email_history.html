@@ -1,0 +1,72 @@
+<div class="col-md-12" style="margin-top:1em">
+	<span style="font-size:16pt;font-weight:bold">Email History</span>
+	<span class="center" style="margin:0px 1em 1em 5em">
+		<input ng-model="searchVal" ng-keyup="search()" placeholder="Quick Search" 
+			class="form-control" style="width:20em;display:inline-block;">
+	</span>
+	<table class="table striped scrollable" style="margin-top:1em">
+		<thead>
+			<tr class="headerRow sticky noPad">
+				<th style="width:10em">Author</th>
+				<th style="width:15em">Event</th>
+				<th style="width:15em">Date Sent</th>
+				<th>Subject</th>
+				<th style="width:25em">Content</th>
+				<th style="width:3em">Recipients</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="email in filteredEmails | orderBy:'created_time':true" >
+				<td>{{email.author}}</td>
+				<td>{{email.eventName}}</td>
+				<td>{{email.displayDate}}</td>
+				<td>{{email.subject}}</td>
+				<td>
+					<span ng-bind-html="firstPart(email.message,95) | trustHtml"></span>
+					<a ng-show="email.message.length > 95" class="pointer bold"
+						ng-click="showContent(email.message)">
+						.....
+					</a>
+				</td>
+				<td class="center">
+					<a ng-click="showRecipients(email)" class="pointer">
+						{{email.recipients.length}}
+					</a>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div id="recipientDialog" class="dialogRight">
+	<div class="dialogTitle">
+		Email Recipients
+		<span style="float:right">
+			<button class="btn btn-primary btn-xs readOnly" ng-click="closeRightDialog()">x</button>
+		</span>
+	</div>
+	<div class="dialogContents">
+		<ul>
+			<li ng-repeat="recipient in selectedEmail.recipients  track by $index">
+				{{recipient}}
+			</li>
+		</ul>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Close
+			</button>
+		</div>
+	</div>
+</div>
+
+<div id="contentDialog" class="dialogRight">
+	<div class="dialogTitle">Email Content</div>
+	<div class="dialogContents">
+		<div ng-bind-html="emailContent | trustHtml"></div>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Close
+			</button>
+		</div>
+	</div>
+</div>

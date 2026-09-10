@@ -1,0 +1,551 @@
+<div class="col-md-12">
+<H3>Staff Expenses</H3>
+<div>
+	<button class="btn btn-primary" ng-click="exportResults()" style="float:left">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	<button ng-click="downloadReceipts()" class="btn btn-primary" style="margin-left:1em">
+		<span class="bi bi-download"></span> Download Receipts 
+	</button>
+	<button ng-click="newExpense()" class="btn btn-success" style="margin-left:1em">
+		<i class="bi bi-plus-circle"></i> New Expense 
+	</button>
+</div>
+<div style="margin:1em 0px">
+	<table style="width:100%">
+		<thead>
+			<tr>
+				<th>Event(s)</th>
+				<th>Staff</th>
+				<th>Receipt</th>
+				<th>Approved</th>
+				<th>Due</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<select ng-model="selectedEvent" ng-change="getExpenses()" 
+						class="form-select"
+						style='width:20em;display:inline-block;'>
+						<optgroup label="Multiple Events">
+							<option value="upcoming">Upcoming Events</option>
+							<option value="recent">Recent Events (Last 365 Days)</option>
+							<option value="upcomingAndRecent">Upcoming and Recent Events</option>
+							<option value="">All Events</option>
+						</optgroup>
+						<optgroup label="Specific Event">
+							<option ng-repeat="event in events | orderObjectBy:'startdate':true" value="{{event.id}}">
+								{{event.name}}
+							</option>
+						</optgroup>
+					</select>
+				</td>
+				<td>
+					<select ng-model="staffFilter" class='form-select' 
+						style="width:10em" ng-change="filterExpenses()">
+						<option value="all">All</option>
+						<option ng-repeat="staff in staff | orderObjectBy:'last_name'" 
+							value="{{staff.id}}">
+							{{staff.last_name}}, {{staff.first_name}}
+						</option>
+					</select>
+				</td>
+				<td>
+					<select ng-model="receiptFilter" class="form-select"
+						style="width:9em" ng-change="filterExpenses()">
+						<option value="all">All</option>
+						<option value="has">Has Receipt</option>
+						<option value="none">No Receipt</option>
+					</select>
+				</td>
+				<td>
+					<select ng-model="approvedFilter" class="form-select"
+						style="width:9em" ng-change="filterExpenses()">
+						<option value="all">All</option>
+						<option value="part">Partially Approved </option>
+						<option value="full">Fully Approved </option>
+						<option value="unapproved">Unapproved </option>
+					</select>
+				</td>
+				<td>
+					<select ng-model="paidFilter" class="form-select"
+						style="width:7em" ng-change="filterExpenses()">
+						<option value="all">All</option>
+						<option value="paid">Fully Paid </option>
+						<option value="unpaid">Unpaid/Partially Paid</option>
+					</select>
+				</td>
+			</tr>
+		</tbody>
+	</table>		
+</div>
+
+<div class="center" style="margin-bottom:1em">	
+	<input type="text" placeholder="Quick Search" ng-model="quickSearch" 
+		ng-keyup="filterExpenses()" class="form-control" 
+		style="display:inline-block;width:25em;margin-left:-10em" />
+	<button class="btn btn-primary" style="float:right;margin-right:1em" ng-click="massPay()">
+		 <b>$</b> Mass Pay
+		</button>
+	<button class="btn btn-primary" style="float:right;margin-right:1em" ng-click="massApprove()">
+		<b>&check;</b> Mass Approve
+	</button>
+</div>
+<table class="table scrollable striped">
+	<thead>
+		<tr class="headerRow sticky noPad">
+			<th></th>
+			<th>Event</th>
+			<th>Staff</th>
+			<th>Expense Date</th>
+			<th>Expense Category</th>
+			<th>Description</th>
+			<th class='center'>Receipt</th>
+			<th class="right">Amount</th>
+			<th class="right">Approved</th>
+			<th class="right">Payments</th>
+			<th class="right">Due</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="expense in filteredExpenses | orderObjectBy:'last_name'">
+			<td style="white-space:nowrap;">
+				<button class="btn btn-primary btn-sm" ng-click="editExpense(expense)" title="Edit Expense">
+					<span class="bi bi-pencil-fill"></span>
+				</button>
+				<button class="btn btn-success btn-sm bold" ng-click="approveExpense(expense)"
+					ng-show="needsApproval(expense)" style="background:#c3c32b;border-color:#c3c32b" 
+						title="Approve Full Amount">
+					&check;
+				</button>
+				<button class="btn btn-success btn-sm bold" ng-click="addPayment(expense)"
+					ng-show="expense.due != '0'" title="Pay">
+					$
+				</button>
+			</td>
+			<td>{{expense.event_name}}</td>
+			<td>{{expense.last_name}}, {{expense.first_name}}</td>
+			<td>{{expense.expense_date | mySqlToLocalDate}}</td>
+			<td>{{expense.category}}</td>
+			<td>{{expense.description}}</td>
+			<td class="center">
+				<span ng-show="!expense.receipt">No Receipt</span>
+				<span ng-show="expense.receipt">
+					<button class="btn btn-primary btn-sm readOnly" 
+						ng-click="showReceipt(expense)"
+						style="margin-left:1em">
+						<span class="bi bi-eye"></span>
+					</button>
+				</span>
+			</td>
+			<td class="right">{{expense.amount | currency}}</td>
+			<td class="right">{{expense.approved_amt | currency}}</td>
+			<td class="right">
+				<div ng-show="expense.showPayments" ng-repeat="pymt in expense.payments"
+					class="pointer" style="color:var(--link-color);white-space:nowrap;" ng-click="editPayment(pymt)">
+					{{pymt.date_value | mySqlToLocalDate}} - 
+					{{pymt.amount | currency}}
+				</div>
+				<span class="pointer" style="color:var(--link-color)" 
+					ng-show="expense.totalPaid > 0" 
+					ng-click="expense.showPayments = !expense.showPayments">
+					{{expense.totalPaid | currency}}
+				</span>
+				<span ng-show="expense.totalPaid == 0">{{expense.totalPaid | currency}}</span>
+			</td>
+			<td class="right">{{expense.due | currency}}</td>
+		</tr>
+	</tbody>
+	<tfoot>
+		<tr class="bold right">
+			<td colspan="7">TOTALS:</td>
+			<td>{{totalAmt | currency}}</td>
+			<td>{{totalApproved | currency}}</td>
+			<td>{{totalPaid | currency}}</td>
+			<td>{{totalDue | currency}}</td>
+		</tr>
+	</tfoot>
+</table>
+</div>
+
+<div id="receiptDialog">
+	<div id="receiptHeader">
+		Receipt
+		<button class="btn btn-primary btn-xs readOnly" ng-click="hideReceipt()">x</button>
+	</div>
+	<iframe></iframe>
+	<img />
+</div>
+
+<!-- Expense Dialog -->
+<div id="expenseDialog" class="dialogRight">
+	<div class="dialogTitle">
+		<span ng-show="selectedExpense.id">Edit</span>
+		<span ng-show="!selectedExpense.id">New</span>
+		Expense
+	</div>
+	<div class="dialogContents">
+	<form name="expenseForm">
+	<table>
+		<tr>
+			<td class="bold">Staff</td>
+			<td>
+				<select ng-model="selectedExpense.userid" class="form-select" style="width:20em"
+					required ng-change="getStaffEvents()">
+					<option value=""></option>
+					<option ng-repeat="staff in allStaff | orderObjectBy:'last_name'" 
+						value="{{staff.id}}" ng-show="showStaffForEvt(staff)">
+						{{staff.last_name}}, {{staff.first_name}}
+					</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Event</td>
+			<td>
+				<select ng-model="selectedExpense.eventid" class="form-select" style="width:20em"
+					required ng-change="getEventStaff()">
+					<option value=""></option>
+					<option ng-repeat="event in events | orderObjectBy:'startdate':true" value="{{event.id}}"
+						ng-show="showEvtForStaff(event)">
+						{{event.name}}
+					</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Date</td>
+			<td>
+				<input type="text" datePicker class="form-control"
+					style="width:8em" required
+					ng-model="selectedExpense.expense_date" />
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Category</td>
+			<td>
+				<select ng-model="selectedExpense.expense_category_id" 
+					class="form-select" style="width:12em" required>
+					<option ng-repeat="cat in expenseCategories | orderObjectBy:'name'"
+						value="{{cat.id}}">
+						{{cat.name}}
+					</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Description</td>
+			<td>
+				<textarea class="form-control" rows="4" cols="40" style="width:30em"
+					ng-model="selectedExpense.description">
+				</textarea>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Receipt</td>
+			<td>
+				<span ng-show="!selectedExpense.receipt">
+					<input type="file" id="receiptInput" />
+				</span>
+				<span ng-show="selectedExpense.receipt">
+					{{selectedExpense.receipt}}
+					<button class="btn btn-danger btn-xs" style="margin-left:1em"
+						ng-click="selectedExpense.receipt = ''">
+						x
+					</button>
+					<button class="btn btn-primary btn-xs" 
+						ng-click="showReceipt(selectedExpense)"
+						style="margin-left:1em">
+						<span class="bi bi-eye"></span>
+					</button>
+				</span>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Amount</td>
+			<td>
+				<input type="number" style="width:8em" class="form-control" required
+					string-to-number ng-model="selectedExpense.amount" />
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Approved Amount</td>
+			<td>
+				<input type="number" style="width:8em" class="form-control" 
+					string-to-number ng-model="selectedExpense.approved_amt"/>
+			</td>
+		</tr>
+	</table>
+	</form>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="closeRightDialog()">
+			<span class="bi bi-chevron-left"></span> Cancel
+		</button>
+		<button class="btn btn-danger" ng-click="confirmExpenseDelete()"
+			ng-show="selectedExpense.id">
+			<span class="bi bi-trash"></span> Delete
+		</button>
+		<button class="btn btn-success" ng-click="saveExpense()">
+			<span class="bi bi-check-lg"></span> Save
+		</button>
+	</div>
+	</div>
+</div> <!-- End Expense Dialog -->
+
+<!-- Payment Dialog -->
+<div id="paymentDialog" class="dialogRight" style="min-width:45em">
+	<div class="dialogTitle">
+		<span ng-show="selectedPayment.id">Edit</span>
+		<span ng-show="!selectedPayment.id">New</span>
+		Payment
+	</div>
+	<div class="dialogContents">
+	<form name="paymentForm">
+		<table>
+			<tr>
+				<td class="bold">Staff</td>
+				<td>{{selectedExpense.last_name}}, {{selectedExpense.first_name}}</td>
+			</tr>
+			<tr>
+				<td class="bold">Payment Preferences</td>
+				<td>
+					<div ng-show="allStaff[selectedExpense.userid].pymt_method_pref">
+						Preferred Method: {{allStaff[selectedExpense.userid].pymt_method_pref}}
+					</div>
+					<div ng-show="allStaff[selectedExpense.userid].pymt_method_notes">
+						Notes: {{allStaff[selectedExpense.userid].pymt_method_notes}}
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Category</td>
+				<td>{{selectedExpense.category}}</td>
+			</tr>
+			<tr>
+				<td class="bold">Amount Due</td>
+				<td>{{selectedExpense.due | currency}}</td>
+			</tr>
+			<tr>
+				<td class="bold" style="width:10em">Payment Date</td>
+				<td>
+					<input type="text" ng-model="selectedPayment.date_value" class="form-control" 
+						style="width:8em" datePicker required>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold" style="width:10em">Method</td>
+				<td>
+					<select ng-model="selectedPayment.method" class="form-select">
+						<option ng-repeat="meth in paymentMethods" value="{{meth}}">{{meth}}</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold" style="width:10em">Notes</td>
+				<td>
+					<input type="text" ng-model="selectedPayment.notes" class="form-control" />
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Amount</td>
+				<td>
+					<input type="text" ng-model="selectedPayment.amount" 
+						class="form-control" style="width:8em" required>
+				</td>
+			</tr>
+			<tr ng-show="!pymtAmtValid(selectedPayment)">
+				<td colspan="2">
+					<div class='alert alert-danger' role='alert' 
+						style="margin-top:5px">
+						Amount must be between {{'0.01' | currency}} and
+						{{getMaxPymtAmount(selectedPayment) | currency}}
+					</div>
+				</td>
+			</tr>
+		</table>
+	</form>
+	<div class="button-row" style="margin-top:1em;margin-bottom:2em">
+		<button class="btn btn-primary" ng-click="closeRightDialog()">
+			<span class="bi bi-chevron-left"></span> Cancel
+		</button>
+		<button class="btn btn-danger" ng-click="confirmPaymentDelete()"
+			ng-show="selectedPayment.id">
+			<span class="bi bi-trash"></span> Delete
+		</button>
+		<button class="btn btn-success" ng-click="savePayment()" 
+			ng-disabled="!pymtAmtValid(selectedPayment)">
+			<span class="bi bi-check-lg"></span> Save
+		</button>
+	</div>
+	</div>
+</div><!-- End Payment Dialog -->
+
+
+<!-- Mass Approve Dialog -->
+<div id="massApproveDialog" class="dialogRight">
+	<div class="dialogTitle">
+	 	Expense Approval
+	</div>
+	<div class="dialogContents">
+		<table>
+			<thead>
+				<tr>
+					<th>Staff</th>
+					<th>Event</th>
+					<th>Category</th>
+					<th>Amount</th>
+					<th>Approved Amount</th>
+					<th></th>
+				</tr>
+				<tr ng-repeat="exp in approveExpenses | orderBy:'last_name'">
+					<td>{{exp.last_name}}, {{exp.first_name}}</td>
+					<td>{{exp.event_name}}</td>
+					<td>{{exp.category}}</td>
+					<td>{{exp.amount | currency}}</td>
+					<td>
+						<input ng-model="exp.temp_approved" style="width:8em" class="form-control" 
+							type="text"/>
+					</td>
+					<td>
+						<div class='alert alert-warning' role='alert' ng-show="overApproved(exp)"
+							style="white-space:nowrap;padding:5px;margin-bottom:0px">
+							Exceeds Category Cap - {{expenseCategories[exp.expense_category_id].max | currency}}
+						</div>
+					</td>
+				</tr>
+			</thead>
+		</table>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="saveApprovals()">
+				<span class="bi bi-check-lg"></span> Save
+			</button>
+		</div>
+	</div>
+</div> <!-- End Mass Approve Dialog -->
+
+<!-- Mass Pay Dialog -->
+<div id="massPayDialog" class="dialogRight">
+	<div class="dialogTitle">Expense Payment</div>
+	<div class="dialogContents">
+		<table>
+			<thead>
+				<tr style="border-bottom:1px solid silver">
+					<th>Staff</th>
+					<th>Event</th>
+					<th>Category</th>
+					<th>Due</th>
+					<th style="padding-bottom:10px">
+						Payment Date
+						<input datePicker ng-model="massPayDate" class="form-control" 
+							placeholder="Set All" ng-change="setAllPayDt()"/>
+					</th>
+					<th>
+						Method
+						<select ng-model="massMethod" class="form-select" ng-change="setAllMethod()">
+							<option value="">-- Set All --</option>
+							<option value="Cash">Cash</option>
+							<option value="Check">Check</option>
+							<option value="Direct Deposit">Direct Deposit</option>
+							<option value="Online Transfer">Online Transfer</option>
+							<option value="Other">Other</option>
+						</select>
+					</th>
+					<th>
+						Notes
+						<input ng-model="massPayNotes" class="form-control" 
+							placeholder="Set All" ng-change="setAllNotes()"/>
+					</th>
+					<th>Payment</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="exp in paymentExpenses | orderBy:'last_name'">
+					<td>{{exp.last_name}}, {{exp.first_name}}</td>
+					<td>{{exp.event_name}}</td>
+					<td>{{exp.category}}</td>
+					<td>{{exp.due | currency}}</td>
+					<td>
+						<input datePicker ng-model="exp.pay_date" class="form-control" 
+							style="width:8em"/>
+					</td>
+					<td>
+						<select ng-model="exp.method" class="form-select">
+							<option value="Cash">Cash</option>
+							<option value="Check">Check</option>
+							<option value="Direct Deposit">Direct Deposit</option>
+							<option value="Online Transfer">Online Transfer</option>
+							<option value="Other">Other</option>
+						</select>
+					</td>
+					<td>
+						<input ng-model="exp.notes" class="form-control" 
+							type="text"/>
+					</td>
+					<td>
+						<input ng-model="exp.pay_amt" style="width:8em" class="form-control" 
+							type="text"/>
+						<div ng-if="invalidMassPayAmt(exp) && !paymentsProcessing" 
+							class='alert alert-danger' role='alert'
+							style="white-space:nowrap;margin-top:2px;padding:2px">
+							Invalid Amount
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="submitPayments()">
+				<span class="bi bi-check-lg"></span> Submit Payments
+			</button>
+		</div>
+	</div>
+</div> <!-- End Mass Pay Dialog -->
+
+<style>
+	#paymentDialog{
+		min-width:30em;
+		height:auto;
+	}
+	#receiptDialog{
+		position: fixed;
+		top:8vh;
+		left:25vw;
+		width:50vw;
+		height:85vh;
+		z-index:1300;
+		display:none;
+		background:white;
+		-webkit-box-shadow: 5px 5px 15px 5px #000000; 
+		box-shadow: 5px 5px 15px 5px #000000;
+	}
+	#receiptDialog img{
+		display:block;
+		margin:auto;
+		max-width:95%;
+		max-height:95%;
+	}
+	#receiptDialog iframe{
+		width:100%;
+		height:100%;
+	}
+	#receiptHeader{
+		background:var(--header);
+		color:white;
+		padding:3px;
+		margin-bottom:3px;
+		font-weight: bold;
+		padding-left:1em;
+	}
+	#receiptHeader button{
+		float:right;
+		margin-right:1em;
+	}
+	#massPayDialog th{ vertical-align: text-top; }
+</style>

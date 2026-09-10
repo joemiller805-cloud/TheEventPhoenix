@@ -1,0 +1,115 @@
+<style>
+	.searchDiv{
+		display:inline-block;
+		margin-left:2em;
+		font-weight:bold;
+	}
+	thead tr th{
+		position:sticky;
+		position:-webkit-sticky;
+		top:50px;
+		z-index:900;
+		background: white
+	}
+	#responseTable{
+		width:95%;
+		margin: auto;
+	}
+	#responseSummary li meter{
+		margin-right:1em;
+		margin-left:1em;
+	}
+	th.pointer{
+		white-space:nowrap;
+		padding-right:1em !important;
+	}
+</style>
+<div class="row">
+	<div class="col-lg-12">
+		<p style="font-size:16pt;font-weight:bold">Survey Responses</p>
+		<p>
+			<button class="btn btn-primary" ng-click="exportResults()"
+				data-file-name="Survey Responses" style="vertical-align:super;">
+				<span class="bi bi-floppy"></span> Export To CSV
+			</button>
+			<button ng-click="columnFilter()" class="btn btn-primary colDisplayBtn readOnly"
+				style="float:none">
+				Edit displayed columns
+			</button>
+		</p>
+	</div>
+</div>
+<div id="loadingSpan">Loading Survey Data<span class="loader"></span></div>
+
+<div class="flex-row">
+	<div class='searchDiv'>
+		Quick Search
+		<input class="form-control" ng-model="quickSearch" ng-keyup="filter()" style="width:15em"/>
+	</div>
+	<div class="searchDiv" ng-repeat="fltr in filters">
+		{{fltr.label}}
+		<select ng-change="filter()" class="form-select" style="width:12em" ng-model="fltr.val">
+			<option value="">--All {{fltr.label}}s--</option>
+			<option ng-repeat="opt in fltr.options | orderBy" value="{{opt}}">{{opt}}</option>
+		</select>
+	</div>
+</div> <!-- End Filters -->
+
+<div id="responseSummary">
+	<table style="margin:auto;margin-top:1em">
+		<tr>
+			<td style="padding-right:8em">
+				<ul style="list-style-type:none">
+					<li class='bold'>
+						AVE: {{numericTotals.responseAve}}
+					</li>
+					<li ng-repeat="i in [5,4,3,2,1]">
+						{{i}} Star: <meter value="{{numericTotals[i].percent}}" min="0" max="100"></meter>
+						{{numericTotals[i].percent}}%
+					</li>
+				</ul>
+			</td>
+			<td class='center' style="width:5em;vertical-align:top;"><b>Yes</b><br>{{yesResponses}}</td>
+			<td class='center' style="width:5em;vertical-align:top;"><b>No</b><br>{{noResponses}}</td>
+		</tr>
+	</table>
+</div>
+
+<div class="row" style="margin-top:1em">
+	<table class="table scrollable striped" id="responseTable">
+		<thead>
+			<tr>
+				<th class="pointer" ng-click="changeSort('event')"><sort-arrows></sort-arrows> Event</th>
+				<th class="pointer" ng-click="changeSort('attendeeLast')"><sort-arrows></sort-arrows> Attendee</th>
+				<th class="pointer" ng-click="changeSort('confirmation')"><sort-arrows></sort-arrows> Confirmation</th>
+				<th class="pointer" ng-click="changeSort('email')"><sort-arrows></sort-arrows> Email</th>
+				<th class="pointer" ng-click="changeSort('session_name')"><sort-arrows></sort-arrows> Session</th>
+				<th class="pointer" ng-click="changeSort('course')"><sort-arrows></sort-arrows> Course</th>
+				<th class="pointer" ng-click="changeSort('presenternames')"><sort-arrows></sort-arrows> Presenter(s)</th>
+				<th class="pointer" ng-click="changeSort('question')"><sort-arrows></sort-arrows> Question</th>
+				<th class="pointer" ng-click="changeSort('response')"><sort-arrows></sort-arrows> Response</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="response in pagedResponses[pageNumber - 1]">
+				<td>{{response.event}}</td>
+				<td>{{response.attendeeLast}}, {{response.attendeeFirst}}</td>
+				<td>{{response.confirmation}}</td>
+				<td>{{response.email}}</td>
+				<td>{{response.session_name}}</td>
+				<td>{{response.course}}</td>
+				<td>{{response.presenternames}}</td>
+				<td>{{response.question}}</td>
+				<td>{{response.response}}</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="center">
+		<button class="btn btn-primary readOnly" ng-click="changePage(-1)" 
+			ng-disabled="pageNumber == 1"> < </button>
+		Page {{pageNumber}} of {{pagedResponses.length}}
+		<button class="btn btn-primary readOnly" ng-click="changePage(1)"
+			ng-disabled="pageNumber == pagedResponses.length"> > </button>
+	</div>
+	<H2 class="center error" ng-show="noResults">No Responses Found</H2>
+</div>

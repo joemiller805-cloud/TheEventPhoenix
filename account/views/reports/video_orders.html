@@ -1,0 +1,131 @@
+<div class="col-md-12">
+	<button class="btn btn-primary exportResultsBtn readOnly" data-table-id="ordersTbl" 
+		data-file-name="Video Orders">
+		<span class="bi bi-floppy"></span> Export To CSV
+	</button>
+	<div class="center" style="margin-bottom:.5em">
+		<b>Order Date</b>
+		<input ng-model="startDate" datepicker type="text" class="form-control" /> - 
+		<input ng-model="endDate" datepicker type="text" class="form-control" /> 
+		<button class="btn btn-primary" ng-click="getOrders()">
+			<span class="bi bi-search"></span>
+		</button>
+		<input class="form-control" ng-model="searchVal" ng-change="quickSearch()" 
+			placeholder="Quick Search" style="margin-left:4em;width:20em;display:inline-block">
+	</div>
+	<table class="table scrollable striped" id="ordersTbl">
+		<thead>
+			<tr>
+				<th>User</th>
+				<th>Email</th>
+				<th class="right" style="width:8em">Order Total</th>
+				<th class="right" style="width:8em">Discount</th>
+				<th class="right" style="width:8em">Total Charge</th>
+				<th class="right" style="width:8em">Paid</th>
+				<th class="right" style="width:8em">Due</th>
+				<th>Discount Code</th>
+				<th>Payment Number</th>
+				<th>Order Date</th>
+				<th>Video(s) Ordered</th>
+				<th>Package(s) Ordered</th>
+				<th style="width:2em"></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="order in orders | orderObjectBy:'created_time':true" ng-if="order.show">
+				<td>{{order.last_name}}, {{order.first_name}}</td>
+				<td>{{order.email}}</td>
+				<td class="right">{{(order.total + order.discount) | currency}}</td>
+				<td class="right">{{order.discount | currency}}</td>
+				<td class="right">{{order.total | currency}}</td>
+				<td class="right">{{order.paid | currency}}</td>
+				<td class="right">{{(order.total - order.paid) | currency}}</td>
+				<td>{{order.discount_code}}</td>
+				<td>{{order.payment_number}}</td>
+				<td>{{order.display_date}}</td>
+				<td>
+					<div ng-repeat="video in order.videos">{{video | truncate}}</div>
+				</td>
+				<td>
+					<div ng-repeat="pkg in order.packages">{{pkg | truncate}}</div>
+				</td>
+				<td>
+					<button class="btn btn-primary btn-sm" ng-click="editOrder(order)">
+						<span class="bi bi-pencil-fill"></span>
+					</button>
+				</td>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr class="bold">
+				<td colspan="2">TOTALS</td>
+				<td class="right">{{(discountTotal + chargeTotal) | currency}}</td>
+				<td class="right">{{discountTotal | currency}}</td>
+				<td class="right">{{chargeTotal | currency}}</td>
+				<td class="right">{{paidTotal | currency}}</td>
+				<td class="right">{{(chargeTotal - paidTotal) | currency}}</td>
+				<td colspan="50"></td>
+			</tr>
+		</tfoot>
+	</table>
+
+	<div id="editDialog" class="dialogRight">
+		<div class="dialogTitle">Edit Order</div>
+		<div class="dialogContents">
+			<table>
+				<tr>
+					<td>User</td>
+					<td>{{selectedOrder.last_name}}, {{selectedOrder.first_name}}</td>
+				</tr>
+				<tr>
+					<td>Discount</td>
+					<td>
+						<input type="text" class="form-control" ng-model="selectedOrder.discount" />
+					</td>
+				</tr>
+				<tr>
+					<td>Total Charge</td>
+					<td>
+						<input type="text" class="form-control" ng-model="selectedOrder.total" />
+					</td>
+				</tr>
+				<tr>
+					<td>Paid</td>
+					<td>
+						<input type="text" class="form-control" ng-model="selectedOrder.paid" />
+					</td>
+				</tr>
+				<tr>
+					<td>Discount Code</td>
+					<td>
+						<input type="text" class="form-control" ng-model="selectedOrder.discount_code" />
+					</td>
+				</tr>
+				<tr>
+					<td>Payment Number</td>
+					<td>
+						<input type="text" class="form-control" ng-model="selectedOrder.payment_number" />
+					</td>
+				</tr>
+			</table>
+			<div class="button-row">
+				<button class="btn btn-primary" ng-click="closeRightDialog()">
+					<span class="bi bi-chevron-left"></span> Cancel
+				</button>
+				<button class="btn btn-danger" ng-click="confirmDelete()">
+					<span class="bi bi-trash"></span> Delete
+				</button>
+				<button class="btn btn-success" ng-click="saveUpdate()">
+					<span class="bi bi-check-lg"></span> Save
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+<style>
+	.ui-datepicker{z-index: 999 !important;}
+	div [datepicker]{
+		display: inline-block;
+		width: 8em;
+	}
+</style>

@@ -1,0 +1,77 @@
+<div class="col-md-12">
+<p style="font-size:16pt;font-weight:bold">Staff Expense Payments</p>
+<table style="width:100%">
+	<thead>
+		<tr>
+			<th ng-show="acct">Event(s)</th>
+			<th>Staff</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td ng-show="acct" style="width:22em">
+				<select ng-model="selectedEvent" ng-change="getPayments()" 
+					class="form-select"
+					style='width:20em;display:inline-block;'>
+					<optgroup label="Multiple Events">
+						<option value="upcoming">Upcoming Events</option>
+						<option value="recent">Recent Events (Last 365 Days)</option>
+						<option value="upcomingAndRecent">Upcoming and Recent Events</option>
+						<option value="">All Events</option>
+					</optgroup>
+					<optgroup label="Specific Event">
+						<option ng-repeat="event in events | orderObjectBy:'startdate':true" 
+							value="{{event.id}}">
+							{{event.name}}
+						</option>
+					</optgroup>
+				</select>
+			</td>
+			<td style="width:14em">
+				<select ng-model="staffFilter" class='form-select' 
+					style="width:12em" ng-change="filterPayments()">
+					<option value="all">All</option>
+					<option ng-repeat="staff in staff | orderBy" value="{{staff}}">{{staff}}</option>
+				</select>
+			</td>
+			<td>
+				<input type="text" placeholder="Quick Search" ng-model="quickSearch" 
+					ng-keyup="filterPayments()" class="form-control" 
+					style="display:inline-block;width:25em" />
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table class="table scrollable striped" style="margin-top:1em">
+	<thead>
+		<tr class="headerRow sticky noPad">
+			<th>Staff</th>
+			<th>Event</th>
+			<th>Exp Category</th>
+			<th>Notes</th>
+			<th>Date</th>
+			<th class="right">Amount</th>
+		</tr>
+	</thead>
+	<tbody ng-repeat="pymt in filteredPayments | orderBy:'lastfirst'">
+		<tr>
+			<td>{{pymt.lastfirst}}</td>
+			<td>{{pymt.eventName}}</td>
+			<td>{{pymt.category}}</td>
+			<td>{{pymt.description}}</td>
+			<td>{{pymt.date_value | mySqlToLocalDate}}</td>
+			<td class="right">{{pymt.amount | currency}}</td>
+		</tr>
+	</tbody>
+	<tfooter>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td class="bold">TOTAL:</td>
+			<td class="right">{{pymtTotal | currency}}</td>
+		</tr>
+	</tfooter>
+</table>
+</div>

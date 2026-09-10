@@ -1,0 +1,184 @@
+<div class="row">
+	<div class="col-lg-10" ng-cloak>
+		<h3>Account News</h3>
+		<!-- EVENT REQEUSTS -->
+		<h3 ng-show="enable_evt_requests">Event Requests</h3>
+		<div class='alert alert-success' role='alert' ng-if="requests.length == 0 && enable_evt_requests">
+			No Event Requests
+		</div>
+		<div ng-repeat="event in events" ng-hide="event.requests.length == 0 || !enable_evt_requests">
+			<H4>{{event.name}}</H4>
+			<table class="table">
+				<tr ng-repeat="request in event.requests">
+					<td style="width:15em">{{request.last_name}}, {{request.first_name}}</td>
+					<td style="width:30em">{{request.request_notes}}</td>
+					<td style="width:12em">
+						<select ng-model="request.registration_typeid"
+							ng-show="!request.registered && !request.denied"
+							ng-options="type.id as type.name for type in event.registrationTypes"
+							style="width:12em;display:inline-block;" class="form-select">
+						</select>
+					</td>
+					<td style="width:20em">
+						<span ng-show="!request.registered && !request.denied">
+							<button class="btn btn-primary btn-sm" ng-click="confirm(request, event)"
+								ng-disabled="!request.registration_typeid">
+								Register
+							</button>
+							<button class="btn btn-danger btn-sm" ng-click="deny(request, event)">Deny</button>
+						</span>
+						<div class='alert alert-success' role='alert' ng-show="request.registered">
+							Request Accepted. User Registered
+						</div>
+						<div class='alert alert-warning' role='alert' ng-show="request.denied">
+							Request Denied
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<!-- COURSE PROPOSALS -->
+		<h3 ng-if="enable_course_proposals">Course Proposals</h3>
+		<div class='alert alert-success' role='alert' ng-if="proposals.length == 0 && enable_course_proposals">
+			No Course Proposals
+		</div>
+		<table class="table" ng-if="proposals.length > 0 && enable_course_proposals">
+			<tr>
+				<th>Title</th>
+				<th>Description</th>
+				<th>Proposed By</th>
+				<th>Date</th>
+				<th>Teaching Preference</th>
+				<th></th>
+			</tr>
+			<tr ng-repeat="proposal in proposals">
+				<td>
+					<textarea ng-model="proposal.title" cols="20" rows="4" ng-disabled="proposal.status">
+					</textarea>
+				</td>
+				<td>
+					<textarea ng-model="proposal.description" cols="40" rows="10"
+						ng-disabled="proposal.status">
+					</textarea>
+				</td>
+				<td>
+					<span ng-show="proposal.sponsorProposal == '1'">
+						{{proposal.name}}
+					</span>
+					<span ng-show="proposal.sponsorProposal != '1'">
+						{{proposal.first_name}} {{proposal.last_name}}
+					</span>
+				</td>
+				<td>{{proposal.created_time | mySqlToLocalDate}}</td>
+				<td>
+					<select ng-model="proposal.teaching_preference">
+						<option value="prefer">I prefer to teach this course</option>
+						<option value="able">I am able to teach this course</option>
+						<option value="suggestion">Suggestion only</option>
+					</select>
+				</td>
+				<td>
+					<span ng-show="!proposal.status">
+						<button class="btn btn-primary" ng-click="updateProposal(proposal, 'accepted')">
+							Create Course
+						</button>
+						<button class="btn btn-danger" ng-click="updateProposal(proposal, 'rejected')">
+							Deny
+						</button>
+					</span>
+					<div class='alert alert-success' role='alert' ng-show="proposal.status == 'accepted'">
+						Proposal Accepted
+					</div>
+					<div class='alert alert-danger' role='alert' ng-show="proposal.status == 'rejected'">
+						Proposal Denied
+					</div>
+				</td>
+			</tr>
+		</table> <!-- END COURSE PROPOSALS -->
+
+		<!-- EVENT CAPACITIES -->
+		<h3>Events At Or Reaching Capacity</h3>
+		<div class='alert alert-success' role='alert' ng-if="eventCapacities.length == 0">
+			No Event Capacity Alerts
+		</div>
+		<table class="table" ng-show="eventCapacities.length > 0">
+			<tr>
+				<th>Event</th>
+				<th>Capacity</th>
+				<th>Current Registration Count</th>
+			</tr>
+			<tr ng-repeat="evt in eventCapacities">
+				<td>{{evt.name}}</td>
+				<td>{{evt.capacity}}</td>
+				<td>{{evt.total}}</td>
+			</tr>
+		</table><!-- END EVENT CAPACITIES -->
+
+		<!-- SECTION CAPACITIES -->
+		<h3 ng-if="acctType != 'ticketing'">Sections At Or Reaching Capacity</h3>
+		<div class='alert alert-success' role='alert' 
+			ng-if="sectionCapacities.length == 0 && acctType != 'ticketing'">
+			No Section Capacity Alerts
+		</div>
+		<table class="table" ng-show="sectionCapacities.length > 0">
+			<tr>
+				<th>Event</th>
+				<th>Course</th>
+				<th>Room</th>
+				<th>Session</th>
+				<th>Capacity</th>
+				<th>Current Registration Count</th>
+			</tr>
+			<tr ng-repeat="sec in sectionCapacities">
+				<td>{{sec.event}}</td>
+				<td>{{sec.course}}</td>
+				<td>{{sec.room}}</td>
+				<td>{{sec.session}}</td>
+				<td>{{sec.capacity}}</td>
+				<td>{{sec.signups}}</td>
+			</tr>
+		</table><!-- END SECTION CAPACITIES -->
+	</div>
+</div>
+
+<!-- Email Dialog -->
+<div id="emailDialog" class="dialogRight">
+	<div class="dialogTitle">{{emailDialogHeader}}</div>
+	<div class="col-sm-12 dialogContents form-horizontal">
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">To:</label>
+			<span class='col-sm-9'>
+				<label>{{emailTo}}</label>
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Subject:</label>
+			<span class='col-sm-9'>
+				<input ng-model="emailSubject" class="form-control" />
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">From:</label>
+			<span class='col-sm-9'>
+				<select class="form-select" ng-model="replytoemail">
+					<option ng-repeat="email in replytoemails" value="{{email}}">
+						{{email}}
+					</option>
+				</select>
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Body:</label>
+			<span class='col-sm-9'>
+				<textarea ng-model="emailBody" class="form-control" cols="100" rows="20"></textarea>
+			</span>
+		</div>
+		<div class="button-row">
+			<button type="button" class="btn btn-primary"
+				ng-click="cancelEmail()">Cancel
+			</button>
+			<button class="btn btn-primary" ng-click="sendEmail()">Send Email</button>
+		</div>
+	</div>
+</div> <!-- End Email Dialog -->

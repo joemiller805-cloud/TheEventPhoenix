@@ -1,0 +1,22 @@
+<style>
+	@media print{
+		.page-header{
+			display:none;
+		}
+	}
+</style>
+<div class="row">
+	<div class="col-lg-12">
+		<p style="font-size:16pt;font-weight:bold" class="noPrint">Room Schedules</p>
+		<div ng-repeat="date in sessionDates">
+			<div ng-repeat="room in rooms | orderObjectBy:'sortorder':false" class="page">
+				<h1>{{room.name}} - {{date}}</h1>
+				<div style="margin-top:30px" ng-repeat="session in getSessionsInDay(date)  | orderObjectBy:'starttime':false">
+					<b>{{session.name}}</b>
+					{{session.displayStart}} - {{session.displayEnd}}
+					<div class="sectionDescription" style="margin-left:15px">{{getSection(room, session)}}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,282 @@
+<style>
+#users_table td img:hover{
+	transform: scale(7.0);
+	-webkit-transition-duration: 1s;
+    -moz-transition-duration: 1s;
+    -o-transition-duration: 1s;
+    transition-duration: 1s;
+}
+</style>
+<H3>Manage Staff</H3>
+<div class="col-md-12">
+	<table style="width:100%;margin-bottom:1em">
+		<tr>
+			<td style="width:32%">
+				<label><input type="radio" name="status" value="0" ng-model="statusFilter"> Active</label>
+				<label><input type="radio" name="status" value="1" ng-model="statusFilter"> Archived</label>
+			</td>
+			<td style="width:32%" class="center">
+				<input ng-model="searchVal" ng-keyup="search()" placeholder="Quick Search" 
+					class="form-control" style="width:20em">
+			</td>
+			<td style="width:32%">
+				<button type="button" class="btn btn-success" ng-click="startEmail()" style="float:right">
+					<span class="bi bi-envelope" aria-hidden="true"></span>&nbsp;Email User(s)
+				</button>
+				<button class="btn btn-success select" ng-click="updateUser()"
+					style="float:right;margin-right:20px">
+					<span class="bi bi-plus-lg" aria-hidden="true"></span>New User
+				</button>
+			</td>
+		</tr>
+	</table>
+
+	<table class="table scrollable striped" id="users_table">
+		<thead>
+			<tr>
+				<th>&nbsp;</th>
+				<th>Name</th>
+				<th></th>
+				<th>E-mail</th>
+				<th ng-show="acctType != 'ticketing'">Web Address</th>
+				<th ng-show="acctType != 'ticketing'">Business</th>
+				<th>Address</th>
+				<th>Home Address</th>
+				<th>Phone</th>
+				<th ng-show="acctType != 'ticketing'">Payment Pref</th>
+				<th>Security Group(s)</th>
+				<th ng-show="acctType != 'ticketing'">Presenter</th>
+				<th>Master User</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="user in users | orderObjectBy:'last_name':false"
+				ng-if="user.archived == statusFilter && meetsSearch(user)">
+				<td>
+					<button class='btn btn-primary select' ng-click="updateUser(user)">
+						<i class="bi bi-pencil"></i>
+					</button>
+				</td>
+				<td>{{user.last_name}}, {{user.first_name}}</td>
+				<td>
+					<img ng-src="{{user.photo}}" ng-if="user.photo" height="30"/>
+				</td>
+				<td>{{user.email}}</td>
+				<td ng-show="acctType != 'ticketing'">{{user.web_address}}</td>
+				<td ng-show="acctType != 'ticketing'">{{user.business}}</td>
+				<td>{{getAddress(user)}}</td>
+				<td>{{getHomeAddress(user)}}</td>
+				<td>{{user.phone}}</td>
+				<td ng-show="acctType != 'ticketing'">
+					{{user.pymt_method_pref}}<br/>
+					<i>{{user.pymt_method_notes}}</i>
+				</td>
+				<td>
+					<div ng-repeat="group in user.security_groups" style="white-space:nowrap;">
+						{{securityGroups[group].name}}
+					</div>
+				</td>
+				<td class="center" ng-show="acctType != 'ticketing'">
+					<span ng-show="user.presenter == '1'">&#10004;</span>
+				</td>
+				<td class="center"><span ng-show="user.master == '1'">&#10004;</span></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div id="editDialog" class="dialogRight">
+	<div class="dialogTitle">
+		<span ng-show="editUser.id > 0">Edit User - {{editUser.first_name}} {{editUser.last_name}}</span>
+		<span ng-show="editUser.id < 0">Add User</span>
+	</div>
+	<div class="dialogContents">
+	<table>
+		<tr>
+			<td class="bold">First Name</td>
+			<td><input ng-model="editUser.first_name" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Last Name</td>
+			<td><input ng-model="editUser.last_name" class="form-control"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Photo</td>
+			<td>
+				<img ng-src="{{editUser.photo}}" height="60" ng-show="editUser.photo"/>
+				<label class="btn btn-primary btn-primary">
+					Browse
+					<input type="file" name="image" id="imageInput" style="display:none">
+				</label>
+				<input type="text" class="form-control" ng-model="editUser.photo"
+					style="display:none">
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Email</td>
+			<td><input ng-model="editUser.email" class="form-control"/></td>
+		</tr>
+		<tr ng-show="acctType != 'ticketing'">
+			<td class="bold">Web Address</td>
+			<td>
+				<input ng-model="editUser.web_address" class="form-control"
+					placeholder="user_website.com" />
+			</td>
+		</tr>
+		<tr ng-show="acctType != 'ticketing'">
+			<td class="bold">Business</td>
+			<td><input ng-model="editUser.business" class="form-control"/></td>
+		</tr>
+		<tr class="inline">
+			<td class="bold">Address 1</td>
+			<td>
+				<input ng-model="editUser.address1" class="form-control" style="width:70%"/>
+				<input ng-model="editUser.address2" class="form-control" style="width:25%"/>
+			</td>
+		</tr>
+		<tr class="inline">
+			<td class="bold">City/State/Zip</td>
+			<td>
+				<input ng-model="editUser.city" class="form-control" style="width:15em"/>
+				<select ng-options="state for state in states" ng-model="editUser.state" 
+					class="	form-select" style="width:8em">
+				</select>
+				<input ng-model="editUser.zip" class="form-control" style="width:10em" 
+					class="form-control"/>
+			</td>
+		</tr>
+		<tr class="inline">
+			<td class="bold">Home Address</td>
+			<td>
+				<input ng-model="editUser.home_add1" class="form-control" style="width:70%"/>
+				<input ng-model="editUser.home_add2" class="form-control" style="width:25%"/>
+			</td>
+		</tr>
+		<tr class='inline'>
+			<td class="bold">Home City/State/Zip</td>
+			<td>
+				<input ng-model="editUser.home_city" class="form-control" style="width:15em"/>
+				<select ng-options="state for state in states" ng-model="editUser.home_state" 
+					class="	form-select" style="width:8em">
+				</select>
+				<input ng-model="editUser.home_zip" class="form-control" style="width:10em" 
+					class="form-control"/>
+			</td>
+		</tr>
+		<tr>
+			<td class="bold">Phone</td>
+			<td><input ng-model="editUser.phone" class="form-control"/></td>
+		</tr>
+		<tr ng-show="acctType != 'ticketing'">
+			<td class="bold">Payment Method Pref</td>
+			<td>
+				<select ng-options="meth for meth in pymt_methods"
+					ng-model="editUser.pymt_method_pref" class='form-select'>
+				</select>
+			</td>
+		</tr>
+		<tr ng-show="acctType != 'ticketing'">
+			<td class="bold">Payment Notes</td>
+			<td>
+				<input type="text" class="form-control" ng-model="editUser.pymt_method_notes" />
+			</td>
+		</tr>
+		<tr>
+			<td class="bold" style="vertical-align:top">Security Groups</td>
+			<td>
+				<label ng-repeat="group in securityGroups" style="display:block;font-weight:normal">
+					<input type="checkbox" ng-checked="userHasGroup(group.id)" 
+						ng-click="changeUserGroup(group.id)"/>
+					{{group.name}}
+				</label>
+			</td>
+		</tr>
+		<tr ng-show="acctType != 'ticketing'">
+			<td class="bold">Presenter</td>
+			<td><input type="checkbox" ng-model="editUser.presenter"
+				ng-true-value="1" ng-false-value="0"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Master User</td>
+			<td><input type="checkbox" ng-model="editUser.master"
+				ng-true-value="1" ng-false-value="0"/></td>
+		</tr>		
+		<tr>
+			<td class="bold">Archived</td>
+			<td><input type="checkbox" ng-model="editUser.archived"
+				ng-true-value="1" ng-false-value="0"/></td>
+		</tr>
+		<tr>
+			<td class="bold">Set/Rest Password</td>
+			<td><input type="checkbox" ng-model="resetPassword"/></td>
+		</tr>
+		<tr ng-show='resetPassword'>
+			<td class="bold" valign="top">Password</td>
+			<td>
+				<input type="text" ng-model="editUser.pass" class="form-control"/><br/>
+				<password-requirements></password-requirements>
+			</td>
+		</tr>
+	</table>
+	<div class="modal-footer" style="margin-top:10px">
+		<button type="button" class="btn btn-primary"
+			ng-click="closeRightDialog()">Cancel
+		</button>
+		<button type="button" class="btn btn-primary" ng-click="saveUser()">
+			<span ng-show="editUser.id > 0">Update</span>
+			<span ng-show="editUser.id < 0">Create User</span>
+		</button>
+	</div>
+	</div>
+</div>
+
+<!-- Email Dialog -->
+<div id="emailDialog" class="dialogRight">
+	<div class="dialogTitle">Email Event Staff</div>
+	<div class="col-sm-12 dialogContents form-horizontal">
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Recipients:</label>
+			<span class="col-sm-9">
+				<button ng-click="setIncludeEmail(true)">Select All</button>
+				<button ng-click="setIncludeEmail(false)">Clear All</button><br/>
+				<label ng-repeat="user in users | orderObjectBy:'last_name':false"
+					ng-show="user.archived == statusFilter" style="display:block">
+					<input type="checkbox" ng-model="user.includeInEmail"/>
+					{{user.first_name}} {{user.last_name}} ({{user.email}})
+				</label>
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Subject:</label>
+			<span class='col-sm-9'>
+				<input ng-model="emailSubject" class="form-control" />
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">From:</label>
+			<span class='col-sm-9'>
+				<select class="form-select" ng-model="replytoemail">
+					<option ng-repeat="email in replytoemails" value="{{email}}">
+						{{email}}
+					</option>
+				</select>
+			</span>
+		</div>
+		<div class="mb-2 row">
+			<label class="col-2 col-form-label">Body:</label>
+			<span class='col-sm-9'>
+				<textarea ng-model="emailBody" class="form-control" cols="100" rows="20"></textarea>
+			</span>
+		</div>
+		<div class="button-row">
+			<button type="button" class="btn btn-primary"
+				ng-click="closeRightDialog()">Cancel
+			</button>
+			<button class="btn btn-primary" ng-click="sendEmail()">Send Email</button>
+		</div>
+	</div>
+</div> <!-- End Email Dialog -->
+
+<style>
+	.inline .form-control{display:inline;}
+</style>

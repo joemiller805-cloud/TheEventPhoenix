@@ -1,0 +1,67 @@
+<div class="col-md-12" style="margin-top:1em">
+	<p style="margin-bottom: 1.5em;">
+		QR Codes configured here are available to be used with attendee badges.
+		<button class="btn btn-primary select" ng-click="editQr()" style="float:right;margin-right: .5em;">
+			<i class="bi bi-plus-circle"></i>
+			New QR
+		</button>
+	</p>
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Content</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="qr in qrCodes">
+				<td>{{qr.name}}</td>
+				<td style="white-space: pre">{{qr.content}}</td>
+				<td style="width:3em">
+					<button class="btn btn-primary btn-sm" ng-click="editQr(qr)">
+						<span class="bi bi-pencil-fill"></span>
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div id="newQrDialog" class="dialogRight">
+	<div class="dialogTitle">{{curFunction}} QR Code</div>
+	<div class="dialogContents">
+		<p class="bold">QR Code Name</p> 
+		<input type="text" class='form-control' ng-model="editCode.name" style="display:inline;width:20em"/>
+		<p class="bold" style="margin-top:2em">Content</p>
+		<textarea class="form-control" rows="8" cols="40" ng-model="editCode.content" style="width:40em"></textarea>
+		<select ng-model="selectedField" class="form-select" ng-change="addField()" 
+				style='margin-top:.5em;width:20em;display:inline-block'>
+			<option value="">--Add Attendee Info--</option>
+			<option value="first_name">First Name</option>
+			<option value="last_name">Last Name</option>
+			<option value="confirmation">Confirmation #</option>
+			<option value="email">Email</option>
+			<option value="phone">Phone</option>
+			<option value="title">Title</option>
+			<option value="business">Business</option>
+			<option value="web_address">Web Address</option>
+			<option value="address">Address</option>
+			<option value="address2">Address Line 2</option>
+			<option value="city">City</option>
+			<option value="state">State</option>
+			<option value="zip">Zip</option>
+		</select>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-danger" ng-click="deleteQr()" ng-show="curFunction == 'Edit'">
+				<span class="bi bi-trash"></span> Delete
+			</button>
+			<button class="btn btn-success" ng-click="saveQr()" ng-disabled="!editCode.name || !editCode.content">
+				<span class="bi bi-check-lg"></span> Save
+			</button>
+		</div>
+	</div>
+</div>

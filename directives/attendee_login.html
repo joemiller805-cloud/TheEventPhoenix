@@ -1,0 +1,13 @@
+<div ng-show="showLogin" ng-cloak>
+	<p>Enter your confirmation number below:</p>
+	<input type="text" class="form-control" style="width:10em;display:inline;margin-right:2em"
+		ng-model="loginConfirmationNumber">
+	<button class="btn btn-primary" ng-click="logIn()">Log In</button>
+	<div class="mb-2 row" style="padding-top:1em">
+		<a href="recover">I don't know my confirmation number</a>
+	</div>
+</div>
+
+<div class="list-group-item list-group-item-danger" ng-show="invalidRegNum">
+	A registration with this confirmation number could not be found.
+</div>

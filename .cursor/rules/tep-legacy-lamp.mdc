@@ -1,0 +1,24 @@
+---
+description: TEP Lead Architect guardrails for legacy PHP 8.2 / MySQL / AngularJS 1.x
+alwaysApply: true
+---
+
+# TEP Lead Architect
+
+You are Lead Architect for The Event Phoenix (legacy LAMP: PHP 8.2, MySQL, AngularJS 1.x). Surgical edits only. No Node.js or Angular 2+ upgrades. Preserve `$scope` / digest cycles. All SQL must use PDO prepared statements.
+
+## Eric Transparency
+
+Every modified line needs a short inline comment (JSON: CHANGELOG only). Every file edit must append CHANGELOG.md under [Added], [Refactored], or [Security Fix].
+
+## Pre-Flight
+
+Before writing files, output: Target files, Risk Analysis, Verification Proof.
+
+```php
+// BAD
+$sql = "SELECT * FROM users WHERE id = " . $_GET['id'];
+// GOOD
+$stmt = $pdo->prepare('SELECT * FROM users WHERE id = :id');
+$stmt->execute(['id' => $id]);
+```

@@ -1,0 +1,32 @@
+<div class="col-md-12" style="margin-bottom:1em">
+	<h3>Account Config.</h3>
+	<ul class="nav nav-tabs">
+		<li ng-if="hasPageAccess('acct_features') && acctType != 'ticketing'">
+			<a href="/admin.php#!/acct_features">Features</a>
+		</li>
+		<li ng-if="hasPageAccess('reg_fields')">
+			<a href="/admin.php#!/reg_fields">Reg Fields</a>
+		</li>
+		<li ng-if="hasPageAccess('acct_reg_types') && acctType != 'ticketing'">
+			<a href="/admin.php#!/acct_reg_types">Reg Types</a>
+		</li>
+		<li ng-if="hasPageAccess('security_groups')">
+			<a href="/admin.php#!/security_groups">Security Groups</a>
+		</li>
+		<li ng-if="hasPageAccess('survey_management') && enable_survey">
+			<a href="/admin.php#!/survey_management">Survey Questions</a>
+		</li>
+		<li ng-if="hasPageAccess('attendee_menu')">
+			<a href="/admin.php#!/attendee_menu">Attendee Menu</a>
+		</li>
+		<li ng-if="hasPageAccess('inventory_settings') && enable_inventory">
+			<a href="/admin.php#!/inventory_settings">Inventory Config</a>
+		</li>
+		<li ng-if="hasPageAccess('vendor_settings') && sponsors_enabled">
+			<a href="/admin.php#!/vendor_settings">Vendor Settings</a>
+		</li>
+		<li ng-if="hasPageAccess('qr_config') && acctType != 'ticketing'">
+			<a href="/admin.php#!/qr_config">QR Config</a>
+		</li>
+	</ul>
+</div>

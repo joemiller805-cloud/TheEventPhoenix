@@ -1,0 +1,126 @@
+<div class="col-md-11">
+	<H3>Season Passes</H3>
+	<div style="text-align:right;margin-bottom:1em">
+		<button class='btn btn-success' ng-click="newPass()" style="margin-left:2em">
+			<i class="bi bi-plus-circle"></i>
+			New Pass
+		</button>
+	</div>
+	<table class="table scrollable striped">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Price</th>
+				<th>Sunrise</th>
+				<th>Sunset</th>
+				<th>Event Details</th>
+				<th style="width:7em"></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="pass in passes">
+				<td>{{pass.name}}</td>
+				<td title="{{pass.description}}">{{pass.description | truncate}}</td>
+				<td>{{pass.price | currency}}</td>
+				<td>{{pass.sunrise}}</td>
+				<td>{{pass.sunset}}</td>
+				<td>
+					<section ng-repeat="(key, details) in pass.event_details">
+						<b>{{events[key].name}}</b> - {{regTypeMap[details.regType].name}}<br/>
+						<ul>
+							<li ng-repeat="(id, count) in details.tickets" ng-show="count">
+								{{count}} {{ticketMap[id].label}} 
+							</li>
+						</ul>
+					</section>
+				</td>
+				<td>
+					<button class="btn btn-sm btn-primary" ng-click="editPass(pass)">
+						<span class="bi bi-pencil"></span>
+					</button>
+					<button class="btn btn-sm btn-primary" ng-click="deletePass(pass)" style="background:red">
+						<span class="bi bi-trash"></span>
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div> <!-- End Column -->
+
+<div id="editDialog" class="dialogRight">
+	<div class="dialogTitle">{{dialogTitle}}</div>
+	<div class="dialogContents">
+		<table>
+			<tr>
+				<td colspan="2">
+					<input type="text" class="form-control" ng-model="selectedPass.name" placeholder="Name" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<textarea class="form-control" ng-model="selectedPass.description" placeholder="Description"></textarea>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Price<br/>
+					<input type="number" min="0" class="form-control" ng-model="selectedPass.price" placeholder="$0.00" step="0.01"
+						string-to-number/>
+				</td>
+				<td>
+					Sunrise - Sunset<br/>
+					<input type="text" class="form-control datepicker" ng-model="selectedPass.sunrise"> - 
+					<input type="text" class="form-control datepicker" ng-model="selectedPass.sunset">
+				</td>
+			</tr>
+		</table>
+		<H4>Included Events</H4>
+		<section ng-repeat="event in events | orderObjectBy:'startdate'" class="eventSection" >
+			<label>
+				<input type="checkbox" ng-checked="eventSelected(event)" ng-click="toggleEvent(event)" />
+				{{event.name}} <span style="font-weight:normal;">({{event.startdate | mySqlToLocalDate}})</span>
+			</label><br/>
+			<section ng-show="eventSelected(event)" style="margin-left:1em">
+				<b>Registration Type</b>
+				<select ng-model="selectedPass.event_details[event.id].regType">
+					<option ng-repeat="reg in event.regTypes | orderBy:'sortorder'" value="{{reg.id}}">
+						{{reg.name}}
+					</option>
+				</select><br/>
+
+				<section ng-show="event.tickets.length">
+					<b>Tickets</b>
+					<section class="threeCol">
+						<div ng-repeat="ticket in event.tickets | orderBy:'sortorder'" style="padding-bottom:3px">
+							<input type="number" class="qtyInput"
+								ng-model="selectedPass.event_details[event.id].tickets[ticket.id]"/>
+							{{ticket.label}}
+						</div>
+					</section>
+				</section>
+			</section>
+		</section>
+		<div class="button-row">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-success" ng-click="savePass()">
+				<span class="bi bi-check-lg"></span> Save
+			</button>
+		</div>
+	</div>
+</div>
+<style>
+	.eventSection{
+		margin-left:1em;
+		margin-bottom:1em;
+		border-bottom:1px solid silver;
+		padding-bottom:.5em;
+	}
+	.datepicker, [type="number"]{
+		display:inline-block;
+		width: 10em;
+	}
+	.qtyInput{ width:4em; }
+</style>

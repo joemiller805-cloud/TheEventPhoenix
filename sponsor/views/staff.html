@@ -1,0 +1,131 @@
+<div ng-cloak>
+	<div class="col-sm-11 form-horizontal">
+		<div class="right" style="margin-top:.5em">
+			<label style="margin-right:3em">
+				<input type="checkbox" ng-model="showArchived" class="form-check-input"/>
+				Show Archived Staff
+			</label>
+			<button class="btn btn-success select" ng-click="staffEdit()">
+				<span class="bi bi-plus-lg" aria-hidden="true"></span> New Staff Member
+			</button>
+		</div>
+		<div class="mb-2 row">
+			<label class='control-label col-sm-1'></label>
+			<span class='col-sm-10'>
+				<table class="table striped scrollable" style="margin-top:1em">
+					<tr>
+						<th></th>
+						<th>Name</th>
+						<th></th>
+						<th>Email</th>
+						<th>Address</th>
+						<th>Phone</th>
+						<th>Bio</th>
+					</tr>
+					<tr ng-repeat="member in vendor.staff | orderBy:'last_name + first_name'"
+						ng-show="member.archived != '1' || showArchived">
+						<td>
+							<button class="btn btn-primary btn-sm select" ng-click="staffEdit(member)">
+								<i class="bi bi-pencil"></i>
+							</button>
+						</td>
+						<td>{{member.last_name}}, {{member.first_name}}</td>
+						<td>
+							<img ng-src="{{member.photo}}" ng-if="member.photo" height="30"/>
+						</td>
+						<td>{{member.email}}</td>
+						<td>
+							{{member.address1}} {{member.address2}} {{member.city}},
+							{{member.state}} {{member.zip}}
+						</td>
+						<td>{{member.phone}}</td>
+						<td>{{member.bio}}</td>
+					</tr>
+				</table>
+			</span>
+		</div>
+	</div>
+</div>
+
+<!-- Staff Add/Update Dialog -->
+<div id="staffDialog" class="dialogRight">
+	<div class="dialogTitle">{{staffDialogTitle}}</div>
+	<div class="dialogContents">
+		<form name="staffForm">
+		<table>
+			<tr>
+				<td class="bold">First Name</td>
+				<td><input type="text" ng-model="selectedStaff.first_name" class="form-control" required/></td>
+			</tr>
+			<tr>
+				<td class="bold">Last Name</td>
+				<td><input type="text" ng-model="selectedStaff.last_name" class="form-control" required/></td>
+			</tr>
+			<tr>
+				<td class="bold">Photo</td>
+				<td>
+					<img id="userImg" ng-src="{{selectedStaff.photo}}" height="150"/>
+					<label class="btn btn-primary btn-primary">
+						Browse
+						<input type="file" name="image" id="imageInput" style="display:none">
+					</label>
+					<input type="text" class="form-control" ng-model="selectedStaff.photo"
+						style="display:none">
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Email</td>
+				<td><input type="email" ng-model="selectedStaff.email" class="form-control" required/></td>
+			</tr>
+			<tr>
+				<td class="bold">Address 1</td>
+				<td><input type="text" ng-model="selectedStaff.address1" class="form-control" /></td>
+			</tr>
+			<tr>
+				<td class="bold">Address 2</td>
+				<td><input type="text" ng-model="selectedStaff.address2" class="form-control" /></td>
+			</tr>
+			<tr>
+				<td class="bold">City</td>
+				<td><input type="text" ng-model="selectedStaff.city" class="form-control" /></td>
+			</tr>
+			<tr>
+				<td class="bold">State</td>
+				<td>
+					<select ng-model="selectedStaff.state" ng-options="state for state in states"
+						style="width:40%" class="form-select">
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Zip</td>
+				<td><input type="text" ng-model="selectedStaff.zip" class="form-control" /></td>
+			</tr>
+			<tr>
+				<td class="bold">Phone</td>
+				<td><input type="text" ng-model="selectedStaff.phone" class="form-control" /></td>
+			</tr>
+			<tr>
+				<td class="bold">Bio</td>
+				<td>
+					<textarea ng-model="selectedStaff.bio" class="form-control"></textarea>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Archived</td>
+				<td>
+					<input type="checkbox" ng-model="selectedStaff.archived" class="form-check-input" 
+						ng-true-value="'1'" ng-false-value="'0'"/>
+				</td>
+			</tr>
+		</table>
+		</form>
+		<div class="button-row" style="margin-top:20px">
+			<button class="btn btn-danger" ng-click="closeRightDialog()">Cancel</button>
+			<button class="btn btn-primary" ng-click="updateStaff()">
+				<span ng-show="!selectedStaff.id">Create User</span>
+				<span ng-show="selectedStaff.id">Update User</span>
+			</button>
+		</div>
+	</div>
+</div><!-- Staff Add/Update Dialog -->

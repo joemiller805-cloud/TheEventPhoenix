@@ -1,0 +1,501 @@
+<style>
+	.imagePreview .pointer:hover{
+		border:1px solid green;
+		-webkit-box-shadow: 0px 2px 43px 2px rgba(10,148,43,1);
+		-moz-box-shadow: 0px 2px 43px 2px rgba(10,148,43,1);
+		box-shadow: 0px 2px 43px 2px rgba(10,148,43,1);
+	}
+	#updateSavedAlert{ display:none; }
+	.attendeePgOption{
+		display:block;
+		margin-left:1em;
+	}
+</style>
+
+<div class="col-md-11" style="padding-top:1em" ng-show="!showRegTypes">
+<form class="form-horizontal" role="form" method="POST" name="eventForm">
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="name">Event Name</label>
+		<div class="col-sm-10">
+		  <input type="text" ng-model="eventData.name" class="form-control"
+		  	ng-keyup="nameWatcher()" placeholder="Event Name" required>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="slug">Event Slug</label>
+		<div class="col-sm-10">
+			<input type="text" ng-model="eventData.slug" class="form-control" ng-change="checkSlug()" 
+				placeholder="Event Slug" required style="width:25em;display:inline-block;margin-right:2em">
+			<button class="btn btn-sm btn-primary readOnly" ng-click="copyEvtUrl()" 
+				style="display:inline-block;">Copy Event URL</button>
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="categories.length">
+		<label class="col-2 col-form-label" for="slug">Categories</label>
+		<div class="col-sm-10">
+			<label ng-repeat="cat in categories" style="margin-right:2em;font-weight: normal;">
+				<input type="checkbox" ng-click="changeCat(cat)" ng-checked="eventData.categories.includes(cat)" />
+				{{cat}}
+			</label>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="timezone">Time zone</label>
+		<div class="col-sm-10">
+			<select ng-options="tz for tz in timezones" ng-model="eventData.timezone" 
+				class="form-select">
+			</select>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="startdate">Event Dates</label>
+		<div class="col-sm-10">
+			<span ng-show="!datesTbd" style="margin-right:2em">
+				<input ng-model="eventData.startdate" class="form-control dtPicker"
+					style="width:10em;display:inline"> -
+				<input ng-model="eventData.enddate" class="form-control dtPicker"
+					style="width:10em;display:inline">
+			</span>
+			<input type="checkbox" ng-model="datesTbd" ng-change="checkEvtDates()"> Dates to be determined
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="startdate">Hide After Start</label>
+		<div class="col-sm-10">
+			<input type="checkbox" ng-model="eventData.hide_after_start" ng-true-value="1" ng-false-value="0"/>
+			Do not show in "Recent Events" section of account landing screen
+		</div>
+	</div>
+	<div class="mb-2 row" ng-if="acctType == 'ticketing'">
+		<label class="col-2 col-form-label" for="start_time">Start Time</label>
+		<div class="col-sm-10">
+			<input ng-model="eventData.start_time" type="text" class="form-control" style="width:10em"
+				maxlength="15" />
+		</div>
+	</div>
+	<div class="mb-2 row" ng-if="acctType != 'ticketing'">
+		<label class="col-2 col-form-label" for="enddate">Capacity</label>
+		<div class="col-sm-3">
+			<input ng-model="eventData.capacity" class="form-control" ng-change="checkCapacity()">
+		</div>
+		<div class="col-sm-7">
+			<span ng-if="trial">Max capacity of 5 for trial accounts</span>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="replytoemail">Reply-To E-mail Address</label>
+		<div class="col-sm-6">
+			<input type="text" size="100" ng-model="eventData.replytoemail" class="form-control" >
+		</div>
+		<div class="col-sm-7"></div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="replytoemail">Tickets Available</label>
+		<div class="col-sm-6">
+			<input ng-model="eventData.extras_cap" class="form-control" type="number" min="0" string-to-number>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="visible">User Visibility</label>
+		<div class="col-sm-10">
+			<label>
+				<input type="checkbox" ng-model="eventData.visible"
+					ng-true-value="1" ng-false-value="0"> Attendees
+			</label>&nbsp;&nbsp;
+			<label>
+				<input type="checkbox" ng-model="eventData.visible_to_staff"
+					ng-true-value="1" ng-false-value="0"> Staff
+			</label>&nbsp;&nbsp;
+			<label>
+				<input type="checkbox" ng-model="eventData.visible_to_sponsors"
+					ng-true-value="1" ng-false-value="0"> Vendors
+			</label>&nbsp;&nbsp;
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="acctType != 'ticketing'">
+		<label class="col-2 col-form-label" for="visible">Attendee Access</label>
+		<div class="col-sm-10">
+			<div style="float:left;width:20em">
+				Visible Pages
+				<label class="attendeePgOption">
+					<input type="checkbox" ng-model="eventData.showdocumentation"
+						ng-true-value="1" ng-false-value="0"> Documentation
+				</label>
+				<label class="attendeePgOption">
+					<input type="checkbox" ng-model="eventData.showMasterSched"
+						ng-true-value="1" ng-false-value="0"> Event Program
+				</label>
+				<label class="attendeePgOption">
+					<input type="checkbox" ng-model="eventData.kioskinvoice"
+						ng-true-value="1" ng-false-value="0"> Invoice
+				</label>
+			</div>
+			<div style="float:left">
+				My Schedule Features/Functions
+				<!-- 
+				This was previously used. Moved to reg type date range.
+				<label class="attendeePgOption">
+					<input type="checkbox" ng-model="eventData.allowsignups"
+						ng-true-value="1" ng-false-value="0"> Allow Session Signups
+				</label> -->
+				<label class="attendeePgOption">
+					<input type="checkbox" ng-model="eventData.kioskcertificate"
+						ng-true-value="1" ng-false-value="0"> Certificate
+				</label>
+			</div>
+		</div>
+	</div>				
+	<div class="mb-2 row" ng-show="acctType != 'ticketing'">
+		<label class="col-2 col-form-label">Includes Virtual Sessions</label>
+		<div class="col-sm-10">
+			<label>
+				<input type="checkbox" ng-model="eventData.has_virtual"
+					ng-true-value="1" ng-false-value="0">
+			</label>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="startdate">Reg Dates</label>
+		<div class="col-sm-10">
+			<input ng-model="eventData.registrationstartdate" class="form-control dtPicker"
+				style="display:inline;width:10em"> -
+			<input ng-model="eventData.registrationenddate" class="form-control dtPicker"
+				style="display:inline;width:10em">
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="ccProvider != 'none'">
+		<label class="col-2 col-form-label" for="startdate">
+			Require CC Payment at Time of Registration
+		</label>
+		<div class="col-sm-10">
+			<input type="checkbox" ng-model="eventData.req_cc_pymt" ng-true-value="1" 
+				ng-false-value="0" />
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="ccProvider != 'none' && ccChargeRt">
+		<label class="col-2 col-form-label" for="startdate">
+			Apply {{ccChargeRt}}% CC Processing Fee
+		</label>
+		<div class="col-sm-10">
+			<input type="checkbox" ng-model="eventData.apply_cc_fee" ng-true-value="1" 
+				ng-false-value="0" />
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="ccProvider != 'none'">
+		<label class="col-2 col-form-label" for="startdate">
+			Allow Partial CC Payment
+		</label>
+		<div class="col-sm-10">
+			<input type="checkbox" ng-model="eventData.allow_partial_pymt" ng-true-value="1" ng-false-value="0" />
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label">Allow Multiple Registrations for One Attendee</label>
+		<div class="col-sm-10">
+			<input type="checkbox" ng-model="eventData.allow_dup_attendee" ng-true-value="1" ng-false-value="0" />
+		</div>
+	</div>
+	<div class="mb-2 row" ng-if="acctType != 'ticketing'">
+		<label class="col-2 col-form-label">Navigate Attendee to Schedule After Registration</label>
+		<div class="col-sm-10">
+			<input type="checkbox" ng-model="eventData.sched_after_reg" ng-true-value="1" ng-false-value="0" />
+			After registration, navigate the attendee directly to the scheduling page.
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="city">City / State</label>
+		<div class="col-sm-4">
+			<input type="text" ng-model="eventData.city" class="form-control" placeholder="City" >
+		</div>
+		<div class="col-sm-2">
+			<select ng-options="state for state in states" ng-model="eventData.state" class="form-select">
+			</select>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label">Venue</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" ng-model="eventData.site" />
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="blurb">Short Description</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.blurb" rows="5" class="form-control" placeholder="Enter a short description about this event."></textarea>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="registration_message">
+			{{acctType=='ticketing' ? 'Ticketing' : 'Registration'}} Page Message
+		</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.registration_message_primary" rows="5" 
+				class="form-control" placeholder="Any special instructions to be displayed on the registration page. This message will appear at the top of the registration page.">
+			</textarea>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="registration_message">
+			Email {{acctType=='ticketing' ? 'Confirmation' : 'Registration'}} Message
+		</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.registration_message" rows="5" class="form-control" placeholder="A message to be included with the confirmation email received by the attendee."></textarea>
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="acctType != 'ticketing'">
+		<label class="col-2 col-form-label" for="checkinstructions">
+			Courses Offered Message
+		</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.courseCatalogMsg" rows="5" class="form-control" placeholder="Message for attendees on Courses Offered Page"></textarea>
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="acctType != 'ticketing'">
+		<label class="col-2 col-form-label" for="checkinstructions">Check Payment Instructions</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.checkinstructions" rows="5" class="form-control" placeholder="Where to send check payment"></textarea>
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="acctType != 'ticketing'">
+		<label class="col-2 col-form-label" for="certificatemessage">Participation Certificate Message</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.certificatemessage" rows="5" class="form-control"  placeholder="Custom text to display on participation certificate"></textarea>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="logo">Logo URL</label>
+		<div class="col-sm-10">
+			<div class="imagePreview" ng-if="eventData.logo">
+				<img ng-src="{{eventData.logo}}" />
+				<button ng-click="eventData.logo = ''" class="btn btn-primary btn-warning">
+					Choose Different Image
+				</button>
+			</div>
+			<div class="imagePreview" ng-repeat="img in images" ng-if="!eventData.logo">
+				<img ng-src="{{img.path}}" class="pointer"
+					ng-click="setLogo(img)"/>
+			</div>
+			<div ng-if="!eventData.logo">
+				Above are all of the images that have been associated with this account.<br/>
+				To add more images to this account, navigate to the Account Details page
+				and upload new images in the Account Images section.
+			</div>
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="acctType != 'ticketing'">
+		<label class="col-2 col-form-label">CC Payment Message</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.pymt_cc_msg" rows="5" class="form-control"
+				placeholder="Leave blank to use account message"></textarea>
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="acctType != 'ticketing'">
+		<label class="col-2 col-form-label">PO Payment Message</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.pymt_po_msg" rows="5" class="form-control"
+				placeholder="Leave blank to use account message"></textarea>
+		</div>
+	</div>
+	<div class="mb-2 row" ng-show="acctType != 'ticketing'">
+		<label class="col-2 col-form-label">Check Message</label>
+		<div class="col-sm-10">
+			<textarea ng-model="eventData.pymt_chk_msg" rows="5" class="form-control"
+				placeholder="Leave blank to use account message"></textarea>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="logo">Account Code <br/>(For Internal Use)</label>
+		<div class="col-sm-9">
+			<input type="text" ng-model="eventData.acct_code" class="form-control" 
+					maxlength="30" />
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="logo">Registration Prefix</label>
+		<div class="col-sm-8">
+			<div class="input-group">
+				<input type="text" ng-model="eventData.prefix" class="form-control"
+					maxlength="5" placeholder="XX" required>
+			</div>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<label class="col-2 col-form-label" for="logo">Archived</label>
+		<div class="col-sm-8">
+			<div class="input-group">
+				<input type="checkbox" ng-model="eventData.archived" 
+					class="form-check-input" ng-true-value="1" ng-false-value="0">
+			</div>
+		</div>
+	</div>
+	<div class="mb-2 row">
+		<div class="col-sm-2" style="text-align:right"></div>
+		<div class="button-row">
+			<button ng-click="saveEvent()" class="btn btn-primary btn-primary">
+				Save
+			</button>
+			<a href="#!event_management">
+				<button type="button" class="btn btn-primary">Cancel</button>
+			</a>
+			<button type="button" class="btn btn-primary btn-warning" ng-if="!hasRegistrations"
+				ng-show="eventData.id > 0" ng-click="$parent.deleteClicked=true">
+				Delete
+			</button>
+			<div ng-show="deleteClicked" style="margin-top:1em" ng-if="!hasRegistrations">
+				Are you sure you want to delete this event?
+				<a>
+					<button type="button" class="btn btn-primary btn-danger" 
+						ng-click="deleteEvent()">
+						Confirm Delete
+					</button>
+				</a>
+				<a>
+					<button type="button" class="btn btn-success" 
+						ng-click="deleteClicked = false">
+						Nevermind
+					</button>
+				</a>
+			</div>
+			<span class='alert alert-success' role='alert' id="updateSavedAlert">
+				Event Data Saved
+			</span>
+		</div>
+	</div>
+</form>
+</div>
+
+<!------- REGISTRATION TYPES ------->
+<div class="col-md-11" style="padding-top:1em" ng-show="showRegTypes && !setupComplete">
+	<div class='alert alert-success' role='alert' style="display:block">
+		<b>Your event has been created.</b><br/>
+		Please select any registration types that will be used for this event.<br/>
+		If registration types are not added at this time, they can be added at a later time
+		in Registration Management.
+	</div>
+	<h3 style="float:left;display:inline-block" ng-if="sponsors_enabled" class="ng-scope">
+		Attendee Registration Types
+	</h3>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Price</th>
+				<th>Sunrise</th>
+				<th>Sunset</th>
+				<th>Sections <br/>Allowed</th>
+				<th colspan="2" ng-show="eventData.has_virtual == '1'">
+					Videos Available (Start - End)<br/>
+					<i style="font-weight:normal">
+						For events including pre-recorded courses
+					</i>
+				</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="regType in registrationTypes | orderObjectBy:'sortorder':false | filter:{'vendor_reg':'0'}">
+				<td><input type='text' class="form-control" ng-model="regType.name" /></td>
+				<td>
+					<input type='text' ng-model="regType.price" class="form-control" 
+						style="width:6em;display:inline"/>
+				</td>
+				<td>
+					<input type='text' ng-model="regType.sunrise" class="form-control" datepicker
+						style="width:10em;display:inline"/> 
+				</td>
+				<td>
+					<input type='text' ng-model="regType.sunset" class="form-control" datepicker
+						style="width:10em;display:inline"/> 
+				</td>
+				<td>
+					<input type='number' ng-model="regType.sections_allowed" class="form-control"
+						string-to-number style="width:6em;display:inline"/>
+				</td>
+				<td ng-show="eventData.has_virtual == '1'">
+					<input type='text' ng-model="regType.video_start_dt" 
+						class="form-control" datepicker style="width:10em;display:inline"/> 
+				</td>
+				<td ng-show="eventData.has_virtual == '1'">
+					<input type='text' ng-model="regType.video_end_dt" 
+						class="form-control" datepicker style="width:10em;display:inline"/> 
+				</td>
+				<td>
+					<button class="btn btn-danger" ng-click="removeRegType(regType)">
+						<span class="bi bi-trash"></span>
+					</button>
+				</td>
+			</tr>
+	</table>
+
+	<h3 style="float:left;display:inline-block" ng-if="sponsors_enabled && hasVendorReg()" class="ng-scope">
+		Vendor Registration Types
+	</h3>
+	<table class="table" ng-show="hasVendorReg()">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Price</th>
+				<th>Sunrise</th>
+				<th>Sunset</th>
+				<th>Sections <br/>Allowed</th>
+				<th colspan="2" ng-show="eventData.has_virtual == '1'">
+					Videos Available (Start - End)<br/>
+					<i style="font-weight:normal">
+						For events including pre-recorded courses
+					</i>
+				</th>
+				<th># Staff Allowed</th>
+				<th>Description</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="regType in registrationTypes | filter:{'vendor_reg':'1'}">
+				<td><input type='text' class="form-control" ng-model="regType.name" /></td>
+				<td>
+					<input type='text' ng-model="regType.price" class="form-control" 
+						style="width:6em;display:inline"/>
+				</td>
+				<td>
+					<input type='text' ng-model="regType.sunrise" class="form-control" datepicker
+						style="width:10em;display:inline"/> 
+				</td>
+				<td>
+					<input type='text' ng-model="regType.sunset" class="form-control" datepicker
+						style="width:10em;display:inline"/> 
+				</td>
+				<td>
+					<input type='number' ng-model="regType.sections_allowed" class="form-control"
+						string-to-number style="width:6em;display:inline"/>
+				</td>
+				<td ng-show="eventData.has_virtual == '1'">
+					<input type='text' ng-model="regType.video_start_dt" 
+						class="form-control" datepicker style="width:10em;display:inline"/> 
+				</td>
+				<td ng-show="eventData.has_virtual == '1'">
+					<input type='text' ng-model="regType.video_end_dt" 
+						class="form-control" datepicker style="width:10em;display:inline"/> 
+				</td>
+				<td>
+					<input type="number" step="1" ng-model="regType.staff_allowance" class="form-control"
+						string-to-number style="width:6em;display:inline" />
+				</td>
+				<td>
+					<textarea ng-model="regType.description" class="form-control" rows="5" cols="35">
+					</textarea>
+				</td>
+				<td>
+					<button class="btn btn-danger" ng-click="removeRegType(regType)">
+						<span class="bi bi-trash"></span>
+					</button>
+				</td>
+			</tr>
+	</table>
+	<div class="button-row">
+		<button class="btn btn-primary" ng-click="saveRegTypes()">Create Registration Types</button>
+	</div>
+</div>
+
+<div class='alert alert-success' role='alert' ng-show="setupComplete">
+	Event Creation Complete
+</div>

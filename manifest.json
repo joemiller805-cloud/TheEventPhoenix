@@ -1,0 +1,33 @@
+{
+  "name": "The Event Phoenix",
+  "short_name": "TEP",
+  "description": "The Event Phoenix event registration and management app",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#D84315",
+  "theme_color": "#E65100",
+  "orientation": "any",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/img/e.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/e.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ]
+}

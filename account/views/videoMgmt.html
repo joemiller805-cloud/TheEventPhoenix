@@ -1,0 +1,757 @@
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<h3>Video Management</h3>
+
+<ul class="nav nav-tabs">
+	<li class="nav-link active" ng-click="category='all'" 
+		ng-class="{'active':category=='all'}">
+		<a>&nbsp; All Videos</a>
+	</li>
+	<li class="nav-link" ng-click="category='course'" 
+		ng-class="{'active':category=='course'}">
+		<a>&nbsp; Videos by Course</a>
+	</li>
+	<li class="nav-link" ng-click="category='packages'" 
+		ng-class="{'active':category=='packages'}">
+		<a>&nbsp; Video Packages</a>
+	</li>
+	<li class="nav-link" ng-click="category='categories'" 
+		ng-class="{'active':category=='categories'}">
+		<a>&nbsp; Video Categories</a>
+	</li>
+	<li class="nav-link" ng-click="category='learningCenter'" 
+		ng-class="{'active':category=='learningCenter'}">
+		<a>&nbsp; Learning Center Settings</a>
+	</li>
+</ul>
+
+<!-- Video Upload -->
+<div style="margin:.5em" ng-show="category == 'all'">
+	<label class="btn btn-primary btn-primary" id="newVideoBtn">
+		<i class="bi bi-plus-circle"></i>
+		New Video
+		<input type="file" name="video" id="videoInput" style="display:none"/>
+	</label>
+	<input type="text" class="form-control" readonly ng-model="newVideo.name"
+		style="width:30em;display:inline-block;">
+
+	<div ng-show="newVideo.name">
+		<table class="table">
+			<tr>
+				<td class="bold" style="width:15em">Name</td>
+				<td>
+					<input type="text" ng-model="newVideo.display_name" class="form-control" /> 
+				</td>
+			</tr>
+			<tr>
+				<td class="bold" style="width:15em">Instructor</td>
+				<td>
+					<input type="text" ng-model="newVideo.instructor" class="form-control instructorTxt" /> 
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Description</td>
+				<td>
+					<textarea rows="2" cols="50" ng-model="newVideo.description" class="form-control">
+					</textarea>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Category, Course</td>
+				<td>
+					<select ng-model="newVideo.category" class="form-select" 
+						style="width:40%;display:inline-block;margin-right:2em">
+						<option value="">No Category</option>
+						<option ng-repeat="cat in videoCategories | orderBy:'sort'" 
+							value="{{cat.val}}">
+							{{cat.val}}
+						</option>
+					</select>
+					<select ng-model="newVideo.courseAssoc" class="form-select" 
+						style="width:40%;display:inline-block">
+						<option value="">No Course Association</option>
+						<option ng-repeat="course in courses | orderObjectBy:'name':false"
+							value="{{course.id}}" ng-show="course.archived != '1'">
+							{{course.name}}
+						</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="bold">Length, Price, Rental Duration (Hours)</td>
+				<td>
+					<input type="number" ng-model="newVideo.length" class="form-control" 
+						style="width:8em;display:inline-block" placeholder="Length" />
+					<input type="number" ng-model="newVideo.price" class="form-control" 
+						style="width:8em;display:inline-block" placeholder="Price" />
+					<input type="number" ng-model="newVideo.rental_duration" 
+						class="form-control" placeholder="Rental Duration"
+						style="width:10em;display:inline-block" />
+						<i>0 = No Expiration</i>
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td>
+					<label class="btn btn-danger" ng-click="cancelVideo()">
+						Cancel
+					</label>
+					<label class="btn btn-primary btn-success" ng-click="uploadVideo()"
+						ng-disabled="!newVideo.name">
+						Upload
+					</label>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div> <!-- End Video Upload -->
+
+<div class="row" style="margin-top:.5em">
+	<!-- All Videos -->
+	<div class="center" style="margin-bottom:.5em;" ng-show="category == 'all'">
+		<input ng-model="quickSearch" class="form-control" placeholder="Quick Search" 
+			style="width:25em;display:inline-block"/>
+		<span style="float:right;margin-right:2em">
+			<label style="margin-right:1em">
+				<input type="radio" ng-model="archiveStatus" name="archStatus" value="0"/> Active
+			</label>
+			<label>
+				<input type="radio" ng-model="archiveStatus" name="archStatus" value="1"/> Archived
+			</label>
+		</span>
+	</div>
+	<div class="col-md-12"  ng-show="category == 'all'">
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Category</th>
+					<th>Video</th>
+					<th>Name</th>
+					<th>Instructor</th>
+					<th>Description</th>
+					<th>Length (Minutes)</th>
+					<th>Crs <br/>Assoc</th>
+					<th>Pkg <br/>Assoc</th>
+					<th>Price</th>
+					<th>Rental <br/>Duration<br/> (Hours)</th>
+					<th>Published <br/>To Learning <br/> Center</th>
+					<th>Date Uploaded</th>
+					<th>Ratings</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="video in videos | orderObjectBy:'name'" ng-if="showVideo(video)">
+					<td>
+						<button class="btn btn-primary btn-xs" ng-click="editVideoDetails(video)">
+							<span class="bi bi-pencil-fill"></span>
+						</button>
+					</td>
+					<td>{{video.category}}</td>
+					<td><a href="/{{video.filepath}}" target="_blank">{{video.name}}</a></td>
+					<td>{{video.display_name}}</td>
+					<td>{{video.instructor}}</td>
+					<td>
+						<span title="{{video.description}}">
+							{{video.description | truncate:55 }}
+						</span>
+					</td>
+					<td>{{video.length}}</td>
+					<td>
+						<span ng-show="!video.courseList.length">{{video.courseList.length}}</span>
+						<a ng-show="video.courseList.length" ng-click="showVideoAssociations(video)"
+							class="pointer">
+							{{video.courseList.length}}
+						</a>
+					</td>
+					<td>
+						<span ng-show="!video.packageList.length">{{video.packageList.length}}</span>
+						<a ng-show="video.packageList.length" ng-click="showVideoAssociations(video)"
+							class="pointer">
+							{{video.packageList.length}}
+						</a>
+					</td>
+					<td>{{video.price | currency}}</td>
+					<td>{{video.rental_duration}}</td>
+					<td class="center">
+						<span ng-show="video.published_lc== '1'">&check;</span>
+					</td>
+					<td>
+						<span ng-show="video.created_time">{{video.created_time | mySqlToLocalDate}}</span>
+						<span ng-show="!video.created_time">Today</span>
+					</td>
+					<td style="white-space: nowrap;" class='smallStars'>
+						<div ng-show="reviewData.videos[video.id]" 
+							ng-click="showReviews(video, 'video')">
+							<span ng-repeat="val in [1,2,3,4,5]">
+								<span class="material-icons rating-star">
+									{{getStarType(val, reviewData.videos[video.id].averageRating)}}
+								</span>
+							</span>
+							{{reviewData.videos[video.id].reviewList.length}}	
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table> <!-- End Course Table -->
+	</div>
+
+	<!-- Videos by Course -->
+	<div class="col-md-12"  ng-show="category == 'course'">
+		<div class="col-md-12 center" style="margin:1em 0px">
+			<input ng-model="videoSearch" class="form-control" style="width:25em;display:inline"
+				placeholder="Quick Search" />
+		</div>
+
+		<table class="table scrollable striped">
+			<thead>
+				<tr>
+					<th>Course</th>
+					<th class="inlineDivs" style="width:70em"> 
+						<div style="width:15em">Video </div>
+						<div style="width:20em">Description</div>
+						<div style="width:6em">Date Uploaded</div>
+						<div style="width:6em">Instructor</div>
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="course in courses | orderObjectBy:'name'"
+					ng-if="showCourse(course)">
+					<td>{{course.name}}</td>
+					<td>
+						<div class="btn btn-success btn-xs" 
+							ng-click="addCourseVideo(course)">
+							<b>+</b> Add
+						</div>
+						<div ng-repeat="video in course.videos" class="inlineDivs">
+							<div style="width:15em">
+								<span class="btn btn-danger btn-xs bi bi-trash"
+									ng-click="removeAssoc(video, course)" title="Remove Video/Course Association">
+								</span>
+								<a href="/{{video.filepath}}" target="_blank">
+									{{video.display_name || video.name}}
+								</a>
+							</div>
+							<div style="width:20em">{{video.description | truncate:55}}</div>
+							<div style="width:6em">
+								{{video.created_time | mySqlToLocalDate}}
+							</div>
+							<div>{{video.instructor}}</div>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table> <!-- End Course Table -->
+	</div> <!-- End Videos by Course -->
+
+	<!-- Categories -->
+	<div class="col-md-12"  ng-show="category == 'categories'">
+		<div class="button-row" style="margin-bottom:.5em">
+			<button class="btn btn-success" ng-click="addCategory()">
+				<i class="bi bi-plus-circle"></i>
+				Add Category
+			</button>
+		</div>
+		<div class='alert alert-info' role='alert' ng-show="videoCategories.length == 0">
+			No categories have been created.
+		</div>
+		<table id="categoryList" class="table">
+			<tbody>
+				<tr ng-repeat="cat in videoCategories | orderBy:'sort'" data-idx="{{$index}}">
+					<td style="cursor:move;width:2em">&#9776;</td>
+					<td>
+						<input ng-model="videoCategories[$index].val" type="text" class="form-control" />
+					</td>
+					<td style="width:2em">
+						<button class="btn btn-danger" ng-click="removeCategory($index)" 
+							title="Remove Ctegory">
+							<span class="bi bi-trash"></span>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row">
+			<button ng-click="saveCategories()" class="btn btn-success">Save Categories</button>
+		</div>
+	</div> <!-- End Categories -->
+
+	<!-- Packages -->
+	<div class="col-md-12"  ng-show="category == 'packages'">
+		<div class="button-row" style="margin-bottom:.5em">
+			<button class="btn btn-success" ng-click="addPackage()">
+				<i class="bi bi-plus-circle"></i>
+				New Package
+			</button>
+		</div>
+		<div class='alert alert-info' role='alert' ng-show="!havePackages()">
+			No packages have been created.
+		</div>
+		<table id="packageList" class="table scrollable striped" ng-show="havePackages()">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th>Price</th>
+					<th>Rental Duration (Hours)</th>
+					<th>Videos</th>
+					<th>Ratings</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="pkg in packages" ng-if="!pkg.markedForDelete">
+					<td>
+						<input ng-model="pkg.name" type="text" class="form-control" />
+					</td>
+					<td>
+						<button class="btn btn-xs btn-primary" ng-show="!pkg.editDesc" 
+							ng-click="pkg.editDesc = true">
+							<span class="bi bi-pencil-fill"></span>
+						</button>
+						<span ng-show="!pkg.editDesc" title="{{pkg.description}}">
+							{{pkg.description | truncate:75}}
+						</span>
+						<textarea ng-model="pkg.description" ng-show="pkg.editDesc"
+							rows="7" cols="60" class="form-control"></textarea>
+						<div class="button-row" ng-show="pkg.editDesc" 
+							style="margin-top:.5em;margin-right: 0px">
+							<button class="btn btn-primary btn-xs" 
+								ng-click="pkg.editDesc = false">
+								Done
+							</button>
+						</div>						
+					</td>
+					<td>
+						<input type="number" ng-model="pkg.price" style="width:8em"
+							string-to-number />
+					</td>
+					<td>
+						<input type="number" ng-model="pkg.rental_duration" style="width:8em"
+							string-to-number />
+					</td>
+					<td>
+						<button class="btn btn-primary btn-xs" ng-click="selectVideoForPkg(pkg)">
+							<span class="bi bi-pencil-fill"></span>
+						</button>
+						<div ng-repeat="video in pkg.videos | orderBy:'sortorder'" 
+							ng-hide="video.markedForDelete">
+							{{video.videoName}}
+						</div>
+					</td>
+					<td style="white-space: nowrap;" class='smallStars'>
+						<div ng-show="reviewData.packages[pkg.id]" 
+							ng-click="showReviews(pkg, 'package')">
+							<span ng-repeat="val in [1,2,3,4,5]">
+								<span class="material-icons rating-star">
+									{{getStarType(val, reviewData.packages[pkg.id].averageRating)}}
+								</span>
+							</span>
+							{{reviewData.packages[pkg.id].reviewList.length}}	
+						</div>
+					</td>
+					<td>
+						<button class="btn btn-danger" ng-click="pkg.markedForDelete = true">
+							<span class="bi bi-trash"></span>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="button-row">
+			<button class="btn btn-success" ng-click="savePackages()">
+				Save Packages
+			</button>
+		</div>
+	</div> <!-- End Packages -->
+
+	<!-- Learning Center Settings -->
+	<div class="col-md-12" ng-show="category == 'learningCenter'">
+		<H3>Learning Center Message</H3>
+		Enter a message to display to visitors in the Learning Center
+		<textarea ng-model="learningCenterMsg.value" class="form-control"></textarea>
+
+		<!-- Purchase amount discounts -->
+		<H3>Discounts</H3>
+		<H5 style="float:left">Purchase Total Discounts</H5>
+		<div class="button-row" style="margin-bottom:.5em">
+			<button class="btn btn-primary" ng-click="addDiscount()">
+				<i class="bi bi-plus-circle"></i>
+				Add Discount
+			</button>
+		</div>
+		<table class="table scrollable" ng-show="discounts.length">
+			<thead>
+				<tr>
+					<th>Minimum Purchase</th>
+					<th>Calculation Method</th>
+					<th>Discount</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="disc in discounts">
+					<td><input type="text" ng-model="disc.val" class="form-control"/></td>
+					<td>
+						<select ng-model="disc.method" class="form-select">
+							<option value="percent">Percent</option>
+							<option value="amount">Amount</option>
+						</select>
+					</td>
+					<td>
+						<input type="number" ng-model="disc.discount" class="form-control"
+							string-to-number/>
+					</td>
+					<td>
+						<button class="btn text-white primary-bg btn-sm" ng-click="deleteDiscount(disc)">
+							<span class="bi bi-trash"></span>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class='alert alert-info' role='alert' ng-show="!discounts.length">
+			No purchase total discounts defined
+		</div>
+
+		<!-- Discount Codes -->
+		<H5 style="float:left">Discount Codes</H5>
+		<div class="button-row" style="margin-bottom:.5em">
+			<button class="btn btn-primary" ng-click="addDiscountCode()">
+				<i class="bi bi-plus-circle"></i>
+				Add Discount Code
+			</button>
+		</div>
+		<table class="table scrollable" ng-show="discountCodes.length">
+			<thead>
+				<tr>
+					<th>Discount Code</th>
+					<th>Calculation Method</th>
+					<th>Discount</th>
+					<th>Sunrise</th>
+					<th>Sunset</th>
+					<th>Frequency</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="code in discountCodes">
+					<td><input type="text" ng-model="code.code" class="form-control"/></td>
+					<td>
+						<select ng-model="code.method" class="form-select">
+							<option value="percent">Percent</option>
+							<option value="amount">Amount</option>
+						</select>
+					</td>
+					<td>
+						<input type="number" ng-model="code.discount" class="form-control"
+							string-to-number/>
+					</td>
+					<td>
+						<input type="text" datepicker ng-model="code.sunrise" />
+					</td>
+					<td>
+						<input type="text" datepicker ng-model="code.sunset" />
+					</td>
+					<td>
+						<select ng-model="code.frequency" class="form-select">
+							<option value="oneTime" selected="selected">One Time Only</option>
+							<option value="oncePerUser">One Time Per User</option>
+						</select>
+					</td>
+					<td>
+						<button class="btn text-white primary-bg btn-sm" ng-click="deleteCode(code)">
+							<span class="bi bi-trash"></span>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class='alert alert-info' role='alert' ng-show="!discountCodes.length">
+			No discounts codes defined
+		</div>
+
+		<H3>Payment Settings</H3>
+		<p>
+			Visitors to the Learning Center will have the ability to pay via credit card based
+			on this account's online payment settings. <br/>
+			If PO and/or check payments are accepted, visitors will be granted access to purchased
+			videos immediately after indicating PO or check as intended payment method. 
+		</p>
+		<table class="table scrollable">
+			<thead>
+				<tr>
+					<th style="width:6em">Payment Method</th>
+					<th style="width:6em">Enabled</th>
+					<th>Payment Instructions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>PO</td>
+					<td><input type="checkbox" ng-model="pymtPrefs.poEnabled" /></td>
+					<td>
+						<textarea class="form-control" rows="8" ng-model="pymtPrefs.poInstructions"></textarea>
+					</td>
+				</tr>
+				<tr>
+					<td>Check</td>
+					<td><input type="checkbox" ng-model="pymtPrefs.checkEnabled" /></td>
+					<td>
+						<textarea class="form-control" rows="8" ng-model="pymtPrefs.checkInstructions"></textarea>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<H3>Invoice Message</H3>
+		<p>
+			Enter a message to display on Learning Center invoices
+		</p>
+		<textarea class="form-control" rows="8" ng-model="invoiceMsg"></textarea>
+
+		<div class="button-row" style="margin-top:1em">
+			<button ng-click="saveLearningSettings()" class="btn btn-primary">Save Settings</button>
+		</div>
+	</div>
+	<!-- End Learning Center Settings -->
+
+	<!-- Video Associations Dialog -->
+	<div id="videoAssocDialog" class="dialogRight">
+		<div class="dialogTitle">Video Associations - {{selectedVideo.display_name}}</div>
+		<section class="dialogContents">
+			<H4 ng-show="selectedVideo.courseList.length">Course Associations</H4>
+			<ul>
+				<li ng-repeat="course in selectedVideo.courseList">{{course}}</li>
+			</ul>
+			<H4 ng-show="selectedVideo.packageList.length">Package Associations</H4>
+			<ul>
+				<li ng-repeat="course in selectedVideo.packageList">{{course}}</li>
+			</ul>
+			<div class="button-row">
+				<button class="btn btn-primary" ng-click="closeRightDialog()">Close</button>
+			</div>
+		</section>
+	</div>
+
+	<!-- Package Videos Dialog -->
+	<div id="pkgVidoesDialog" class="dialogRight">
+		<div class="dialogTitle">Manage Package Videos - {{selectedPkg.name}}</div>
+		<div class="dialogContents">
+			<div class="bold" style="margin-bottom:.5em">
+				Add Video
+			</div>
+			<select ng-model="newPkgVideo" class="form-select">
+				<option ng-repeat="video in videos | orderObjectBy:'display_name'" 
+					value="{{video.id}}" 
+					ng-show="videoNotInPackage(video.id) && video.published_lc == '1'">
+					{{video.display_name || video.name}}
+				</option>
+			</select>
+			<div class="button-row" style="margin-top:1em">
+				<button class="btn btn-success" ng-click="addVideoToPackage()"
+					ng-disabled="!newPkgVideo">
+					<span class="bi bi-check-lg"></span>
+					Add Video to Package
+				</button>
+			</div>
+			<div style="margin-bottom:.5em">
+				<b>Package Videos</b> &nbsp;&nbsp;&nbsp;
+				(<i>Drag video up or down to change sort order</i>)
+			</div>
+			<ul id="pkgVideoList" style="padding-left:5px;margin-top:1em;">
+				<li ng-repeat="video in selectedPkg.videos | orderBy:'sortorder'" 
+					data-video-id="{{video.videoid}}"
+					ng-hide="video.markedForDelete" style="margin:5px;list-style: none;">
+					<span class="pointer" style="margin-left:1em;font-weight:bold">
+						{{video.sortorder}}.
+					</span>
+					<span style="display:inline-block;width:18em;margin-left:1em">
+						{{video.videoName}}
+					</span>
+					<button class="btn btn-danger btn-xs" ng-click="markPkgVideoForDelete(video)"
+						title="Remove Video From Package">
+						<span class="bi bi-trash"></span>
+					</button>
+				</li>
+			</ul>
+			<div class="button-row">
+				<button class="btn btn-primary" ng-click="closeRightDialog()">Done</button>
+			</div>
+		</div>
+	</div><!-- EndSelect Video For Package -->
+
+	<!-- Edit Video Details Dialog -->
+	<div id="editVideoDetailsDiv" class="dialogRight">
+		<div class="dialogTitle">{{dialogTitle}}</div>
+		<div class="dialogContents">
+			<table>
+				<tr>
+					<td class="bold">Category</td>
+					<td>
+						<select ng-model="modVideo.category"  class="form-select" style="width:15em">
+							<option ng-repeat="cat in videoCategories | orderBy:'sort'" 
+								value="{{cat.val}}">
+								{{cat.val}}
+							</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td class="bold">Name</td>
+					<td>
+						<input type="text" class="form-control" ng-model="modVideo.display_name" />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold">Instructor</td>
+					<td>
+						<input ng-model="modVideo.instructor" class="form-control instructorTxt" />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold">Description</td>
+					<td>
+						<textarea ng-model="modVideo.description"
+							rows="7" cols="60" class="form-control"></textarea>
+					</td>
+				</tr>
+				<tr>
+					<td class="bold">Length (Minutes)</td>
+					<td>
+						<input type="number" string-to-number ng-model="modVideo.length" class="form-control"/>
+					</td>
+				</tr>
+				<tr>
+					<td class="bold">Publish to Learning Center</td>
+					<td>
+						<input type="checkbox" ng-model="modVideo.published_lc" 
+							class="form-check-input" 
+							ng-true-value="'1'" ng-false-value="'0'" />
+					</td>
+				</tr>
+				<tr ng-show="modVideo.published_lc == '1'">
+					<td class="bold">Price</td>
+					<td>
+						<input type="number" ng-model="modVideo.price" class="form-control" string-to-number />
+					</td>
+				</tr>
+				<tr ng-show="modVideo.published_lc == '1'">
+					<td class="bold">Rental Duration (Hours)</td>
+					<td>
+						<i>0 = No Expiration</i>
+						<input type="number" ng-model="modVideo.rental_duration" class="form-control"
+							step="1" string-to-number />
+					</td>
+				</tr>
+				<tr>
+					<td class="bold">Archived</td>
+					<td>
+						<input type="checkbox" ng-model="modVideo.archived" class="form-check-input"
+							ng-true-value="1" ng-false-value="0" />
+					</td>
+				</tr>
+				<tr>
+					<td style="vertical-align: bottom;">
+						<label class="btn btn-primary btn-primary" id="replaceVideoBtn">
+							Replace Video
+							<input type="file" name="video" id="replacementVideo" style="display:none"/>
+						</label>
+					</td>
+					<td style="padding-top:1em">
+						Use this feature to replace the video with an updated version.<br/>
+						The video will be replaced for all associated courses and packages.
+						<input type="text" class="form-control" readonly ng-model="replaceVideo.name"
+							style="width:30em;display:inline-block;">
+					</td>
+				</tr>
+			</table>
+			<div class="button-row" style="margin-top:1em">
+				<button class="btn btn-primary" ng-click="closeRightDialog()">
+					<span class="bi bi-chevron-left"></span> Cancel
+				</button>
+				<button class="btn btn-danger" ng-click="confirmVideoDelete()">
+					<span class="bi bi-trash"></span> Delete Video
+				</button>
+				<button class="btn btn-success" ng-click="updateSelectedVideo()">
+					<span class="bi bi-check-lg"></span> Save
+				</button>
+			</div>
+		</div>
+	</div>
+</div> <!-- End Row -->
+
+<!-- New Course Video Dialog -->
+<div id="newCourseVideoDialog" class="dialogRight">
+	<div class="dialogTitle">Add Course Video</div>
+	<div class="dialogContents">
+		<H3>{{selectedCourse.name}}</H3>
+		<select ng-model="associationVideo" class="form-select"
+			ng-options="video as (video.display_name || video.name) for video in videos  | orderObjectBy:'name' | filter:{archived:'0'}">
+		</select>
+		<div class="button-row" style="margin-top:1em">
+			<button class="btn btn-primary" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span> Cancel
+			</button>
+			<button class="btn btn-primary btn-primary" 
+				ng-click="addCrsAssociation(selectedCourse)"
+				ng-disabled="!associationVideo">
+				<span class="bi bi-check-lg"></span>
+				Associate Selected Video
+			</button>
+		</div>
+	</div>
+</div> <!-- End newCourse Video Dialog -->
+
+<!-- New Package Dialog -->
+<div id="newPackageDialog" class="dialogRight">
+	<div class="dialogTitle">New Package</div>
+	<div class="dialogContents">
+		<table>
+			<tr>
+				<td>Name</td>
+				<td><input type="text" ng-model="editPackage.name" class="form-control"/></td>
+			</tr>
+			<tr>
+				<td>Description</td>
+				<td>
+					<textarea ng-model="editPackage.description" rows="8" cols="60" 
+						class="form-control"></textarea>
+				</td>
+			</tr>
+			<tr>
+				<td>Price</td>
+				<td>
+					<input type="number" step=".01" ng-model="editPackage.price" 
+						class="form-control" style="width: 10em"/>
+				</td>
+			</tr>
+			<tr>
+				<td>Rental Duration</td>
+				<td>
+					<input type="number" step="1" ng-model="editPackage.rental_duration" 
+						class="form-control" style="width: 10em"/>
+				</td>
+			</tr>
+		</table>
+		<div class="button-row" style="margin-top:1em;">
+			<button class="btn btn-danger" ng-click="closeRightDialog()">
+				<span class="bi bi-chevron-left"></span>
+				Cancel
+			</button>
+			<button class="btn btn-success" ng-click="createPackage()">
+				<span class="bi bi-check-lg"></span>
+				Create Package
+			</button>
+		</div>
+	</div>
+</div> <!-- End New Package Dialog -->
+
+<review-list></review-list>
+
+<style>
+	.inlineDivs div{ display: inline-block; }
+	.inlineDivs{ margin-bottom:.1em; }
+	.nav li{ cursor:pointer; }
+	.ui-autocomplete.ui-front.ui-menu{ z-index: 901 !important; }
+</style>
