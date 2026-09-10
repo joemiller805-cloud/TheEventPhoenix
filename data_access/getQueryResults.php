@@ -69,6 +69,12 @@
 			exit;
 		}
 
+		if (isset($queryDefinition['rows']) && is_array($queryDefinition['rows'])) { // queries.php prebuilt payload (empty eventData slug)
+			print json_encode(array("rows" => $queryDefinition['rows'])); // HTTP 200 JSON for AngularJS dataSvc — no mysqli execute
+			mysqli_close($resourceID); // Release the connection opened above
+			exit; // Skip prepare/bind so PHP 8.2 cannot fatal on a missing slug
+		}
+
 		$resultID = execute_query_definition($resourceID, $queryDefinition);
 		if($resultID !== false){
 			$response = array();

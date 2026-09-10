@@ -38,9 +38,49 @@ function is_https_request() {
 	return false;
 }
 
+function tep_is_local_host() { // Local XAMPP detector used by DB fallbacks and the dev session helper
+	$host = strtolower((string)($_SERVER['HTTP_HOST'] ?? '')); // Host header only; never trust X-Forwarded-Host here
+	return ($host === 'localhost' || $host === '127.0.0.1' || strpos($host, 'localhost:') === 0); // Allow localhost:port from IDEs
+}
+
+function tep_apply_local_dev_session() { // Lightweight localhost auto-login so / skips landing.php
+	if (!tep_is_local_host()) { // Never seed sessions on production hosts
+		return; // Production login_process.php remains the only auth path
+	}
+	if (!defined('TEP_LOCAL_DEV_AUTOLOGIN') || !TEP_LOCAL_DEV_AUTOLOGIN) { // Toggle: define false in tep_config.php to disable
+		return; // Explicit off switch for local testing of the real login flow
+	}
+	if (session_status() !== PHP_SESSION_ACTIVE) { // Do not call session_start here; callers own cookie params
+		return; // Wait until start_secure_session() or the page's session_start()
+	}
+	$script = basename((string)($_SERVER['SCRIPT_NAME'] ?? '')); // Current PHP file, e.g. index.php
+	if (in_array($script, array('login.php', 'logout.php', 'landing.php'), true)) { // Keep login/logout/landing testable locally
+		return; // Those pages must not be force-authenticated
+	}
+	$devAccountId = defined('TEP_LOCAL_DEV_ACCOUNT_ID') ? (string)TEP_LOCAL_DEV_ACCOUNT_ID : '1000'; // Matches tep_local accounts.id
+	$devUserId = defined('TEP_LOCAL_DEV_USER_ID') ? (string)TEP_LOCAL_DEV_USER_ID : '1'; // Matches tep_local users.id
+	if (empty($_SESSION['accountid'])) { // Do not overwrite a real local login
+		$_SESSION['accountid'] = $devAccountId; // index.php echoes this into $scope.accountid and skips landing.php
+	}
+	if (empty($_SESSION['useraccount'])) { // commonJs.php logs out /events and /account when these differ
+		$_SESSION['useraccount'] = $_SESSION['accountid']; // Staff dashboard treats this as the logged-in account
+	}
+	if (empty($_SESSION['userid'])) { // navController getCurrentUserData binds users.id
+		$_SESSION['userid'] = $devUserId; // Local stub user; not a production credential
+	}
+	if (empty($_SESSION['name'])) { // Display name used by some staff views
+		$_SESSION['name'] = 'Local Dev'; // Obvious non-production label
+	}
+	if (empty($_SESSION['last_activity'])) { // Existing session-timeout helper reads this key
+		$_SESSION['last_activity'] = time(); // Mark the seeded session as active
+	}
+	ensure_session_csrf_token(); // Keep CSRF token in the seeded session for AngularJS posts
+}
+
 function start_secure_session() {
 	if (session_status() === PHP_SESSION_ACTIVE) {
 		ensure_session_csrf_token();
+		tep_apply_local_dev_session(); // Seed localhost test account when this page already called session_start()
 		return;
 	}
 	session_set_cookie_params([
@@ -53,6 +93,7 @@ function start_secure_session() {
 	]);
 	session_start();
 	ensure_session_csrf_token();
+	tep_apply_local_dev_session(); // Seed after a fresh local session so /index.php has accountid
 }
 
 function ensure_session_csrf_token() {
@@ -182,9 +223,7 @@ if (!defined('TEP_ENC_KEY_RAW')) { // PHP 8.2 fatals on undefined constants; loc
 $encKey = TEP_ENC_KEY_RAW; // Decode path unchanged once the constant exists
 $encryption_key = base64_decode($encKey); // Empty string is safe when config is missing on localhost
 
-$tepHttpHost = $_SERVER['HTTP_HOST'] ?? 'localhost'; // Host used to scope XAMPP-only DB fallbacks
-$tepIsLocalHost = ($tepHttpHost === 'localhost' || $tepHttpHost === '127.0.0.1'); // Production hosts must keep using tep_config.php
-if ($tepIsLocalHost) { // Local XAMPP: private tep_config.php is absent, so queries.php cannot read DB_NAME_DEV
+if (tep_is_local_host()) { // Local XAMPP: private tep_config.php is absent, so queries.php cannot read DB_NAME_DEV
 	if (!defined('DB_HOST')) define('DB_HOST', 'localhost'); // XAMPP MySQL listen address
 	if (!defined('DB_PORT')) define('DB_PORT', 3306); // XAMPP default MySQL port
 	if (!defined('DB_NAME_DEV')) define('DB_NAME_DEV', 'tep_local'); // Local schema so getQueryResults.php can bind information_schema
@@ -193,6 +232,13 @@ if ($tepIsLocalHost) { // Local XAMPP: private tep_config.php is absent, so quer
 	if (!defined('DB_PASS_LOCAL')) define('DB_PASS_LOCAL', ''); // XAMPP default empty root password
 	if (!defined('DB_USER_PROD')) define('DB_USER_PROD', 'root'); // Unused on localhost; prevents a later undefined-constant fatal
 	if (!defined('DB_PASS')) define('DB_PASS', ''); // Unused on localhost; prevents a later undefined-constant fatal
+	if (!defined('TEP_LOCAL_DEV_AUTOLOGIN')) define('TEP_LOCAL_DEV_AUTOLOGIN', true); // Default on; set false in tep_config.php to use real login locally
+	if (!defined('TEP_LOCAL_DEV_ACCOUNT_ID')) define('TEP_LOCAL_DEV_ACCOUNT_ID', '1000'); // tep_local accounts.id used by the dashboard
+	if (!defined('TEP_LOCAL_DEV_USER_ID')) define('TEP_LOCAL_DEV_USER_ID', '1'); // tep_local users.id for getCurrentUserData
+}
+
+if (session_status() === PHP_SESSION_ACTIVE) { // index.php and getQueryResults.php start the session before this include
+	tep_apply_local_dev_session(); // Fill empty localhost sessions so $scope.accountid is set before landing.php redirect
 }
 
 function encryptthis($data) {

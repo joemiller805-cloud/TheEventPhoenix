@@ -6,12 +6,16 @@
 	}
 	$queries = array();
 
-	function query_definition($sql, $types = '', $params = array()){
-		return array(
-			"sql" => $sql,
-			"types" => $types,
-			"params" => $params
+	function query_definition($sql, $types = '', $params = array(), $rows = null){ // Optional $rows skips mysqli when a safe JSON payload is already known
+		$definition = array( // Existing prepared-query shape used by getQueryResults.php
+			"sql" => $sql, // SQL string; unused when $rows is an array
+			"types" => $types, // bind_param types; unused when $rows is an array
+			"params" => $params // Bound values; unused when $rows is an array
 		);
+		if (is_array($rows)) { // Local/empty-slug eventData returns HTTP 200 without hitting missing tables
+			$definition['rows'] = $rows; // Prebuilt rows array encoded as {"rows":[...]}
+		}
+		return $definition; // Unchanged for every existing three-argument caller
 	}
 
 	function append_query_condition(&$query, $sql, $types = '', $params = array()){
@@ -1470,8 +1474,12 @@
 
 	/** --------------------------  Event Queries  -------------------------------**/
 
-	$eventDataAccountId = $inputs['accountid'] ?? '';
+	$eventDataAccountId = $inputs['accountid'] ?? ''; // Optional account filter; empty means any account
+	$eventDataSlug = (string)($inputs['slug'] ?? ''); // PHP 8.2: missing slug must not be read as an undefined array key
 
+	if ($eventDataSlug === '') { // No slug → do not prepare eventData SQL (avoids null bind + missing local tables)
+		$queries["eventData"] = query_definition('', '', array(), array()); // Safe local-dev JSON: {"rows":[]} HTTP 200
+	} else {
 	$queries["eventData"] = query_definition("
 		SELECT
 			events.accountid,
@@ -1544,8 +1552,9 @@
 		WHERE events.slug = ?
 	",
 		"sss",
-		array($eventDataAccountId, $eventDataAccountId, $inputs['slug'])
+		array($eventDataAccountId, $eventDataAccountId, $eventDataSlug) // Bound slug; never a missing $inputs['slug']
 	);
+	} // End empty-slug eventData short-circuit
 
 	$queries["studentNumUsed"] = query_definition("
 		SELECT count(id) AS count

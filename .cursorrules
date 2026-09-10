@@ -9,7 +9,7 @@ Do not modernize the stack. Do not introduce Node.js build steps, npm-based app 
 - Preserve AngularJS digest cycles and scope bindings (`$scope`, `$apply`, `$applyAsync`, `ng-*`). Do not rewrite controllers as components unless asked.
 - All new or changed SQL must use PDO prepared statements with bound parameters. Never concatenate user input into SQL.
 - Do not add webpack, Vite, Composer-driven front-end upgrades, or TypeScript rewrites of existing AngularJS.
-- PWA layer must stay vanilla JavaScript (`sw.js`). Do not add Workbox, Node service-worker toolchains, or cache PHP / `/data_access/` / non-GET responses.
+- PWA layer must stay vanilla JavaScript (`sw.js`). Do not add Workbox or Node service-worker toolchains. Cache-First static GET (CSS/JS/fonts/images); Network-First GET `/data_access/` (HTTP 200 only). Never cache non-GET, PHP HTML, or 404/500 responses.
 
 ### Examples
 
