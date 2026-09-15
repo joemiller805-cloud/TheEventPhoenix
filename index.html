@@ -1,1312 +1,403 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Event Phoenix — Event Management, Reborn.</title>
-  <meta name="description" content="The Event Phoenix is a planner-built Event Management System with Phoenix Engage — a full attendee app included free. Unlimited registrations, ticketing, scheduling, check-in & scanning. Plans from $199/mo. Single events from $499." />
-  <link rel="icon" type="image/png" href="phoenix-logo.png" />
-  <link rel="apple-touch-icon" href="phoenix-logo.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Event Phoenix | Event Management Built by Event Planners</title>
+  <meta name="description" content="Planner-built event management software for registration, payments, speakers, sessions, scheduling, communications, onsite check-in, sponsors, exhibitors, reporting and Phoenix Engage.">
+  <link rel="canonical" href="https://theeventphoenix.com/">
+  <meta property="og:title" content="The Event Phoenix | Run the event. Not the software.">
+  <meta property="og:description" content="Event management built by event planners, with Phoenix Engage launching October 2026.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://theeventphoenix.com/">
+  <meta property="og:image" content="https://theeventphoenix.com/assets/tep-logo.png">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="assets/tep-logo.png">
+  <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"SoftwareApplication",
+    "name":"The Event Phoenix",
+    "applicationCategory":"BusinessApplication",
+    "operatingSystem":"Web",
+    "url":"https://theeventphoenix.com/",
+    "description":"Planner-built event management software for registration, payments, speakers, sessions, scheduling, communications, onsite check-in, sponsors, exhibitors, reporting and attendee engagement.",
+    "offers":{"@type":"AggregateOffer","lowPrice":"199","highPrice":"999","priceCurrency":"USD"},
+    "sameAs":[
+      "https://www.facebook.com/TheEventPhoenix",
+      "https://www.instagram.com/theeventphoenix/",
+      "https://www.linkedin.com/company/the-event-phoenix/",
+      "https://x.com/EventPhoenixHQ",
+      "https://www.threads.com/@theeventphoenix"
+    ]
+  }
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- NAV -->
-  <nav class="nav" id="nav">
-    <a class="nav__logo" href="/">
-      <img class="nav__logomark" src="phoenix-logo.png" alt="The Event Phoenix logo" />
-      <span class="nav__brand">The Event Phoenix</span>
-    </a>
-    <button class="nav__hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-    <ul class="nav__links" id="navLinks">
-      <li><a href="#features">Features</a></li>
-      <li><a href="#engage">Engage App</a></li>
-      <li><a href="#pricing">Pricing</a></li>
-      <li><a href="#founders-detail">Charter Circle</a></li>
-      <li><a href="#compare">Compare</a></li>
-      <li><a href="#demo" class="nav__cta">Request a Demo</a></li>
-    </ul>
-  </nav>
-
-  <!-- HERO -->
-  <section class="hero" id="home">
-    <div class="hero__bg">
-      <div class="hero__orb hero__orb--1"></div>
-      <div class="hero__orb hero__orb--2"></div>
-      <div class="hero__grid"></div>
+  <div class="announcement" role="status">
+    <div class="container announcement-inner">
+      <span><strong>Phoenix Engage launches October 2026</strong></span>
+      <span class="announcement-divider" aria-hidden="true">•</span>
+      <span>IMEX America: attending with PSUG Events</span>
+      <span class="announcement-divider" aria-hidden="true">•</span>
+      <span>Event Planner Expo NYC: The Event Phoenix is exhibiting</span>
     </div>
-    <div class="hero__content">
-      <!-- FIX #12: badge rewritten as a single inline span to prevent mobile wrapping -->
-      <div class="hero__badge">
-        <span class="hero__badge-dot"></span>
-        <span class="hero__badge-text">Built by meeting planners &middot; Proven through <strong>10&nbsp;years</strong> of real-world use</span>
-      </div>
-      <p class="hero__eyebrow">Event Management, Reborn.</p>
-      <h1 class="hero__headline">
-        The event management system planners have been <em>asking for.</em>
-      </h1>
-      <p class="hero__sub">
-        The Event Phoenix is a planner-built <strong>Event Management System</strong> where online registration comes first — and everything else flows from it. Ticketing, payments, scheduling, check-in &amp; badge scanning, vendors/sponsors, email tools, and reporting work together as one clean workflow.
-      </p>
-      <div class="hero__actions">
-        <a href="#demo" class="btn btn--primary btn--lg">Request a Demo</a>
-        <a href="#features" class="btn btn--outline btn--lg">Explore Features</a>
-      </div>
-      <a href="#pricing" class="hero__founders-pill">
-        🔥 Charter Circle: <strong>$449/mo effective</strong> — First 50 planners · June 1 – Aug 31
+  </div>
+
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#top" aria-label="The Event Phoenix home">
+        <img src="assets/tep-logo.png" alt="The Event Phoenix" width="52" height="52">
+        <span>The Event Phoenix</span>
       </a>
-      <div class="hero__checks">
-        <span>✓ Unlimited registrations</span>
-        <span>✓ Ticketing + payments</span>
-        <span>✓ Scheduling</span>
-        <span>✓ Check-in + scanning</span>
-      </div>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#platform">Platform</a>
+        <a href="#features">Features</a>
+        <a href="#engage">Phoenix Engage</a>
+        <a href="#fit">Why TEP</a>
+        <a href="#voices">Testimonials</a>
+        <a href="#pricing">Pricing</a>
+        <a class="btn btn-dark nav-cta" href="mailto:joe.miller@TheEventPhoenix.com?subject=The%20Event%20Phoenix%20Demo%20Request">Request a Demo</a>
+      </nav>
+      <button class="mobile-menu btn btn-outline" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav">Menu</button>
     </div>
+    <nav id="mobile-nav" data-mobile-menu class="mobile-nav" hidden aria-label="Mobile navigation">
+      <a href="#platform">Platform</a>
+      <a href="#features">Features</a>
+      <a href="#engage">Phoenix Engage</a>
+      <a href="#fit">Why TEP</a>
+      <a href="#voices">Testimonials</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn btn-dark" href="mailto:joe.miller@TheEventPhoenix.com?subject=The%20Event%20Phoenix%20Demo%20Request">Request a Demo</a>
+    </nav>
+  </header>
 
-    <!-- FIX #1: At-a-glance with better 4 features, FIX #3: removed "Formerly Easy Reg Pro" -->
-    <div class="hero__card-wrap">
-      <div class="hero__card">
-        <p class="hero__card-label">At-a-glance</p>
-        <p class="hero__card-sub">The features planners ask about first.</p>
-        <div class="hero__card-grid">
-          <div class="hero__card-item">
-            <strong>Online Registration</strong>
-            <span>Unlimited types + custom flows</span>
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Built by event planners • Proven at real events</div>
+          <h1>Run the event.<span>Not the software.</span></h1>
+          <p class="lead">A broad, self-service event management platform for planners who want registration, payments, speakers, sessions, multi-day scheduling, communications, onsite check-in, exhibitors, sponsors, reporting and attendee engagement working together.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="mailto:joe.miller@TheEventPhoenix.com?subject=The%20Event%20Phoenix%20Demo%20Request">Request a Demo</a>
+            <a class="btn btn-outline" href="#features">See what it does</a>
           </div>
-          <div class="hero__card-item">
-            <strong>Scheduling + Agenda</strong>
-            <span>Visual multi-day builder</span>
-          </div>
-          <div class="hero__card-item">
-            <strong>Check-in + Scanning</strong>
-            <span>Fast onsite from any device</span>
-          </div>
-          <div class="hero__card-item">
-            <strong>Copy Events</strong>
-            <span>Reuse events &amp; courses year after year</span>
+          <div class="trust-row" aria-label="Key proof points">
+            <span>10+ years of real-world use</span>
+            <span>Unlimited planner/admin users</span>
+            <span>Phoenix Engage included on subscription plans</span>
           </div>
         </div>
-        <a href="#demo" class="btn btn--primary btn--full">Request a Demo</a>
-      </div>
-    </div>
-  </section>
 
-  <!-- DIFFERENTIATORS -->
-  <section class="diff">
-    <div class="container">
-      <div class="diff__intro"><h2>What makes The Event Phoenix different</h2></div>
-      <div class="diff__pills">
-        <div class="diff__pill">
-          <span class="diff__icon">∞</span>
-          <p><strong>Unlimited</strong> events, users, registrations, registration types, questions &amp; discount codes</p>
-        </div>
-        <div class="diff__pill">
-          <span class="diff__icon">✦</span>
-          <p>Fewer <em>"add-on"</em> surprises — every core capability planners need is included</p>
-        </div>
-        <div class="diff__pill">
-          <span class="diff__icon">◈</span>
-          <p>Built around <strong>real multi-day workflows</strong> by planners who ran events for 10 years</p>
+        <div class="hero-visual" aria-label="Connected event workflow">
+          <div class="visual-header">
+            <img src="assets/tep-logo.png" alt="" width="64" height="64">
+            <div><strong>The Event Phoenix</strong><span>One event. One connected workflow.</span></div>
+          </div>
+          <div class="flow-grid">
+            <div class="flow-card"><b>01</b><strong>Register</strong><span>Attendees & payments</span></div>
+            <div class="flow-card"><b>02</b><strong>Plan</strong><span>Sessions & speakers</span></div>
+            <div class="flow-card"><b>03</b><strong>Communicate</strong><span>Email & updates</span></div>
+            <div class="flow-card"><b>04</b><strong>Operate</strong><span>Check-in & onsite</span></div>
+            <div class="flow-card"><b>05</b><strong>Engage</strong><span>Phoenix Engage</span></div>
+            <div class="flow-card"><b>06</b><strong>Review</strong><span>Reports & exports</span></div>
+          </div>
+          <div class="visual-footer"><span>Built for planners who want control.</span><strong>Powerful without the enterprise maze.</strong></div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- OUR STORY — expanded Built by Planners -->
-  <section class="planners" id="our-story">
-    <div class="container">
-      <div class="planners__story">
-
-        <div class="planners__story-left">
-          <div class="planners__tag">Our Story</div>
-          <h2 class="planners__headline">We built this<br><span>for ourselves first.</span></h2>
-
-          <p class="planners__body">For nearly a decade, we ran real events — conferences, multi-day summits, association meetings, award ceremonies. And for nearly a decade, we did what every planner does: we stitched together six, seven, sometimes eight different tools to pull off a single event.</p>
-
-          <p class="planners__body">Registration here. Payments there. A separate app for scheduling. Another one for check-in. Spreadsheets filling in the gaps. Every tool had its own login, its own learning curve, and its own way of not quite talking to the others.</p>
-
-          <p class="planners__body">We weren't looking to build software. We were looking to run better events. But after enough years of watching good planners waste hours on bad tools — and after enough times paying for features that should have just been included — we decided to stop waiting for someone else to solve it.</p>
-
-          <p class="planners__body planners__body--highlight">So we had it built. For us. The way we actually needed it to work.</p>
-
-          <p class="planners__body">We used it for years before we ever considered sharing it. It got tested against real events, real attendees, real day-of chaos. The rough edges got smoothed out the hard way — by living with the consequences when something didn't work right.</p>
-
-          <p class="planners__body">Eventually the platform got good enough that other planners started asking about it. That question — <em>"what are you using for registration?"</em> — is what eventually became The Event Phoenix.</p>
-
-          <p class="planners__body">We're not a venture-backed startup guessing at what planners need. We're planners who built what we needed, proved it worked, and decided it was time to let everyone else use it too.</p>
-        </div>
-
-        <div class="planners__story-right">
-          <div class="planners__grid">
-            <div class="planners__card">
-              <div class="planners__card-dot"></div>
-              <h3>Registration is the foundation</h3>
-              <p>Unlimited registration types + questions — because real events aren't one-size-fits-all.</p>
-            </div>
-            <div class="planners__card">
-              <div class="planners__card-dot"></div>
-              <h3>Everything works together</h3>
-              <p>Ticketing, payments, scheduling, onsite tools, and reporting — connected, not bolted on.</p>
-            </div>
-            <div class="planners__card">
-              <div class="planners__card-dot"></div>
-              <h3>No artificial caps</h3>
-              <p>Unlimited events, users, registrations, questions, discount codes — no "you hit your limit" surprises.</p>
-            </div>
-            <div class="planners__card">
-              <div class="planners__card-dot"></div>
-              <h3>Built for multi-day reality</h3>
-              <p>Multi-day agendas, sessions, speakers, tracks, courses, vendors/sponsors, and onsite check-in + scanning.</p>
-            </div>
-          </div>
-
-          <div class="planners__timeline">
-            <div class="planners__timeline-item">
-              <span class="planners__timeline-dot planners__timeline-dot--active"></span>
-              <div>
-                <strong>Years 1–3</strong>
-                <p>Built and battle-tested across real events</p>
-              </div>
-            </div>
-            <div class="planners__timeline-line"></div>
-            <div class="planners__timeline-item">
-              <span class="planners__timeline-dot planners__timeline-dot--active"></span>
-              <div>
-                <strong>Years 4–9</strong>
-                <p>Refined through hundreds of real-world events</p>
-              </div>
-            </div>
-            <div class="planners__timeline-line"></div>
-            <div class="planners__timeline-item">
-              <span class="planners__timeline-dot planners__timeline-dot--active"></span>
-              <div>
-                <strong>2026</strong>
-                <p>Reborn as The Event Phoenix — available to everyone</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
+    <section class="proof-strip" aria-label="The Event Phoenix proof points">
+      <div class="container proof-grid">
+        <div><strong>10+ years</strong><span>Built and refined through real events</span></div>
+        <div><strong>Unlimited admins</strong><span>No per-planner seat charge</span></div>
+        <div><strong>One workflow</strong><span>From registration through attendee experience</span></div>
+        <div><strong>Self-service</strong><span>Designed for planners who want to run their own events</span></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- FEATURES -->
-  <section class="features" id="features">
-    <div class="container">
-      <div class="features__header">
-        <div class="section-tag">Full Feature Set</div>
-        <h2>One platform.<br>Everything you need.</h2>
-        <p>Stop stitching together six tools. Everything flows from your registration data.</p>
-      </div>
-      <div class="features__list">
-
-        <!-- 01 Registration — FIX #4: removed group reg, removed waitlists -->
-        <div class="feature-block feature-block--alt">
-          <div class="feature-block__text">
-            <div class="feature-block__num">01</div>
-            <h3>Online Registration</h3>
-            <p>Create unlimited registration types with custom question flows, conditional logic, and multi-step forms. Each attendee type gets exactly the right experience — from VIP to general public to speaker.</p>
-            <ul class="feature-block__bullets">
-              <li>Unlimited registration types &amp; questions</li>
-              <li>Conditional logic &amp; branching</li>
-              <li>Custom confirmation emails</li>
-              <li>Unlimited discount codes</li>
+    <section class="section white" id="platform">
+      <div class="container">
+        <div class="section-head">
+          <div class="kicker">Two ways to start</div>
+          <h2>Use the full platform — or add Phoenix Engage to the system you already use.</h2>
+          <p>The Event Phoenix is the full planner platform. Phoenix Engage is the attendee experience. If replacing your current EMS is not the right move today, Phoenix Engage can still be part of the conversation.</p>
+        </div>
+        <div class="paths">
+          <article class="path-card">
+            <span class="path-tag">Full event management platform</span>
+            <h3>The Event Phoenix</h3>
+            <p>Bring the core work of running an event into one planner-built environment instead of stitching together separate tools and spreadsheets.</p>
+            <ul class="path-list">
+              <li>Registration & payments</li><li>Speakers & sessions</li>
+              <li>Multi-day scheduling</li><li>Email communications</li>
+              <li>Check-in & attendance</li><li>Sponsors & exhibitors</li>
             </ul>
-          </div>
-          <div class="feature-block__visual">
-            <div class="feature-mock feature-mock--reg">
-              <div class="mock-field"><span>First Name</span><div class="mock-input"></div></div>
-              <div class="mock-field"><span>Last Name</span><div class="mock-input"></div></div>
-              <div class="mock-field"><span>Registration Type</span>
-                <div class="mock-select">
-                  <div class="mock-tag">General Attendee</div>
-                  <div class="mock-tag mock-tag--alt">Speaker</div>
-                  <div class="mock-tag">Sponsor</div>
-                </div>
-              </div>
-              <div class="mock-btn">Register Now →</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 02 Ticketing -->
-        <div class="feature-block">
-          <div class="feature-block__text">
-            <div class="feature-block__num">02</div>
-            <h3>Ticketing + Payments</h3>
-            <p>Sell tickets, manage unlimited discount codes, and process payments — all without leaving the platform. Integrated payment processing with full revenue reporting.</p>
-            <ul class="feature-block__bullets">
-              <li>Integrated payment processing</li>
-              <li>Unlimited promo &amp; discount codes</li>
-              <li>Revenue reporting</li>
+            <a class="btn btn-dark" href="#features">Explore the platform</a>
+          </article>
+          <article class="path-card engage-card">
+            <span class="path-tag">Launching October 2026</span>
+            <h3>Phoenix Engage</h3>
+            <p>A mobile-first attendee experience designed to put event information, schedules and engagement tools directly in attendees' hands.</p>
+            <ul class="path-list">
+              <li>No App Store download required</li><li>Event schedules</li>
+              <li>Session & speaker information</li><li>Attendee-facing event content</li>
+              <li>Home-screen install</li><li>Works with imported event data</li>
             </ul>
-          </div>
-          <div class="feature-block__visual">
-            <div class="feature-mock feature-mock--payment">
-              <div class="mock-stat"><span class="mock-stat-num">$48,200</span><span class="mock-stat-label">Total Revenue</span></div>
-              <div class="mock-stat"><span class="mock-stat-num">312</span><span class="mock-stat-label">Tickets Sold</span></div>
-              <div class="mock-bar-wrap">
-                <div class="mock-bar" style="width:85%"></div>
-                <div class="mock-bar" style="width:60%"></div>
-                <div class="mock-bar" style="width:40%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 03 Scheduling -->
-        <div class="feature-block feature-block--alt">
-          <div class="feature-block__text">
-            <div class="feature-block__num">03</div>
-            <h3>Scheduling &amp; Agenda Builder</h3>
-            <p>Multi-day scheduling that actually makes sense. Manage sessions, speakers, rooms, tracks, and reusable courses — with real-time capacity alerts so nothing fills up by surprise.</p>
-            <ul class="feature-block__bullets">
-              <li>Visual multi-day schedule builder</li>
-              <li>Speaker &amp; session management</li>
-              <li>Unlimited tracks &amp; reusable courses</li>
-              <li>Room &amp; capacity assignments</li>
-              <li>Session capacity alerts</li>
-              <li>Attendee-facing agenda pages</li>
-            </ul>
-          </div>
-          <div class="feature-block__visual">
-            <div class="feature-mock feature-mock--schedule">
-              <div class="mock-day-header">Day 1 — Monday</div>
-              <div class="mock-session" style="--col:#00D4B4">9:00 AM · Opening Keynote · Main Hall</div>
-              <div class="mock-session" style="--col:#FF6B35">10:30 AM · Workshop A · Track 1 · Room 204</div>
-              <div class="mock-session" style="--col:#00D4B4">10:30 AM · Workshop B · Track 2 · Room 205</div>
-              <div class="mock-session mock-session--alert" style="--col:#FF6B35">⚠ Room 204 nearing capacity (48/50)</div>
-              <div class="mock-session" style="--col:#6C63FF">12:00 PM · Lunch Break</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 04 Check-in — FIX #5: removed "Works offline" -->
-        <div class="feature-block">
-          <div class="feature-block__text">
-            <div class="feature-block__num">04</div>
-            <h3>Check-in + Badge Scanning</h3>
-            <p>Fast onsite operations from any device. Scan QR codes, print badges on the fly, and track attendance in real time — no clunky hardware required.</p>
-            <ul class="feature-block__bullets">
-              <li>QR code scanning on any device</li>
-              <li>QR-based attendee identification</li>
-              <li>Real-time check-in dashboard</li>
-              <li>Session-level attendance tracking</li>
-            </ul>
-          </div>
-          <div class="feature-block__visual">
-            <div class="feature-mock feature-mock--checkin">
-              <div class="mock-scan-ring">
-                <div class="mock-scan-inner">
-                  <span class="mock-scan-icon">⬛</span>
-                  <span class="mock-scan-label">SCAN QR</span>
-                </div>
-              </div>
-              <div class="mock-checkin-stat">✓ 247 Checked In · 65 Remaining</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 05 Vendors/Sponsors — FIX #8: rewritten accurately, FIX #6+#8: removed open/click metrics -->
-        <div class="feature-block feature-block--alt">
-          <div class="feature-block__text">
-            <div class="feature-block__num">05</div>
-            <h3>Vendors, Sponsors &amp; Email Tools</h3>
-            <p>Define your own vendor types, exhibitor types, and sponsor tiers — as many as your event needs. Built-in email tools let you communicate with sponsors, speakers, or any attendee group directly from the platform.</p>
-            <ul class="feature-block__bullets">
-              <li>Custom vendor, exhibitor &amp; sponsor types</li>
-              <li>Unlimited sponsor tiers</li>
-              <li>Email tools for targeted attendee communication</li>
-              <li>Merge tags pull from registration data</li>
-              <li>Document sharing for vendors &amp; speakers</li>
-            </ul>
-          </div>
-          <div class="feature-block__visual">
-            <!-- FIX #6: no open rate or click metrics shown -->
-            <div class="feature-mock feature-mock--email">
-              <div class="mock-email-header">📧 Send to: All Sponsors (18)</div>
-              <div class="mock-email-subject">Exhibitor Setup Details — {Event Name}</div>
-              <div class="mock-email-body">Hi {Company Name}, your booth is confirmed in {Hall}. Setup begins at {Time}. Please review the attached vendor guide…</div>
-              <div class="mock-email-types">
-                <span class="mock-tag mock-tag--alt">Sponsors</span>
-                <span class="mock-tag">Exhibitors</span>
-                <span class="mock-tag">Speakers</span>
-                <span class="mock-tag">Vendors</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 06 Reporting — FIX #9: removed custom report builder, added "built on request" -->
-        <div class="feature-block">
-          <div class="feature-block__text">
-            <div class="feature-block__num">06</div>
-            <h3>Reporting &amp; Analytics</h3>
-            <p>Real-time dashboards that show exactly what's happening at every stage of your event — registrations, revenue, and attendance. Need something custom? We'll build it for you.</p>
-            <ul class="feature-block__bullets">
-              <li>Real-time registration dashboard</li>
-              <li>Revenue &amp; financial reports</li>
-              <li>Attendance tracking &amp; reporting</li>
-              <li>CSV &amp; Excel exports</li>
-              <li>Custom reports built on request</li>
-            </ul>
-          </div>
-          <div class="feature-block__visual">
-            <!-- FIX #9: showing only what's actually available -->
-            <div class="feature-mock feature-mock--reports">
-              <div class="mock-report-row"><span>Total Registrations</span><strong>487</strong></div>
-              <div class="mock-report-row"><span>Revenue Collected</span><strong>$48,200</strong></div>
-              <div class="mock-report-row"><span>Checked In</span><strong>441 of 487</strong></div>
-              <div class="mock-report-row"><span>Sessions Running</span><strong>12 active</strong></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 07 Power Features — NEW -->
-        <div class="feature-block feature-block--alt">
-          <div class="feature-block__text">
-            <div class="feature-block__num">07</div>
-            <h3>Power Features Competitors Charge Extra For</h3>
-            <p>The Event Phoenix includes capabilities that other platforms either don't offer or lock behind expensive enterprise plans. These are the features that make planners' lives dramatically easier — included at no extra cost.</p>
-            <ul class="feature-block__bullets">
-              <li>Copy Event — clone any past event in one click</li>
-              <li>Expense management — speaker travel approvals &amp; tracking</li>
-              <li>Inventory management — track your event equipment</li>
-              <li>Document management — event &amp; session-level file sharing</li>
-              <li>Reusable courses &amp; tracks — build once, reuse every year</li>
-            </ul>
-          </div>
-          <div class="feature-block__visual">
-            <div class="feature-mock feature-mock--power">
-              <div class="mock-power-row">
-                <span class="mock-power-icon">📋</span>
-                <div><strong>Annual Conference 2025</strong><span>Click to copy → Annual Conference 2026</span></div>
-                <div class="mock-copy-btn">Copy Event</div>
-              </div>
-              <div class="mock-power-row">
-                <span class="mock-power-icon">💰</span>
-                <div><strong>Speaker Expenses</strong><span>3 pending approval · $1,240 total</span></div>
-                <div class="mock-status mock-status--pending">Review</div>
-              </div>
-              <div class="mock-power-row">
-                <span class="mock-power-icon">📦</span>
-                <div><strong>Inventory</strong><span>14 items tracked · 2 checked out</span></div>
-                <div class="mock-status mock-status--ok">OK</div>
-              </div>
-              <div class="mock-power-row">
-                <span class="mock-power-icon">📁</span>
-                <div><strong>Documents</strong><span>8 files · shared with speakers</span></div>
-                <div class="mock-status mock-status--ok">Live</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- PHOENIX ENGAGE — FULL SECTION -->
-  <section class="engage" id="engage">
-    <div class="container">
-
-      <div class="engage__header">
-        <h2 class="engage__headline">Introducing <span>Phoenix Engage</span></h2>
-        <p class="engage__subhead">A complete attendee experience app — built into The Event Phoenix and included on every plan. No app store required. No extra charge. No per-event fees.</p>
-        <div class="engage__value-bar">
-          <span>Competitors charge <strong>$3,000–$15,000 per event</strong> for a mobile event app.</span>
-          <span class="engage__value-bar-sep">·</span>
-          <span>Phoenix Engage is <strong>included on every plan.</strong></span>
-        </div>
-        <p class="engage__standalone-note">Phoenix Engage is included on all plans today. As the platform matures, Engage will be priced to reflect its standalone value — which, based on what competitors charge for far less, will be significant. <strong>Lock in now.</strong></p>
-      </div>
-
-      <div class="engage__inner">
-        <div class="engage__left">
-
-          <div class="engage__group">
-            <div class="engage__group-label">📱 The App Itself</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>No app store required</strong><p>Installs directly to iPhone or Android home screen. Skip Apple &amp; Google review delays — your app is live the moment your event is.</p><p class="engage__feature-note">Prefer the App Store? iOS and Android store versions are also available.</p></div>
-              </div>
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>Works offline</strong><p>Cached content loads even with no signal. Conference WiFi issues don't become your problem.</p></div>
-              </div>
-              <div class="engage__feature">
-                <span class="engage__feature-icon">✦</span>
-                <div><strong>Full-screen native experience</strong><p>Your branding, your colors — looks and feels like a native app on every device.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__group">
-            <div class="engage__group-label">🗳️ Live Engagement</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>Live polls — real time</strong><p>Admin launches polls mid-session with one tap. Attendees see results as votes come in. Multiple formats: multiple choice, yes/no, star rating, open text.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__group">
-            <div class="engage__group-label">⬛ Session Check-In</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>QR code check-in at every session</strong><p>Post at the door or project on screen. Attendance recorded automatically — no paper sign-in sheets.</p></div>
-              </div>
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>Cryptographically signed QR codes</strong><p>Can't be faked or reused. Role-based staff access. The kind of security infrastructure usually reserved for platforms costing ten times as much.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__group">
-            <div class="engage__group-label">🏷️ Digital Badge &amp; Lead Capture</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>Every attendee carries a scannable digital badge</strong><p>No printed badges to lose. No rented scanning hardware to pay for.</p></div>
-              </div>
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>Vendors scan badges with any phone</strong><p>Full contact capture in seconds. Notes added on the spot. One-click CSV export after the event.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__group">
-            <div class="engage__group-label">🏆 Gamification &amp; Leaderboard</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>Live leaderboard visible to all attendees</strong><p>Points for sessions attended, booths visited, posts made, polls voted. Drives engagement organically. Fraud-proof — each action counted once at database level.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__group">
-            <div class="engage__group-label">📡 Social Wall</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>Private live social feed</strong><p>Text posts and photos. Likes and comments in real time. Visible only to your attendees — builds community energy throughout the event.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__group">
-            <div class="engage__group-label">🤝 Networking</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>In-app connection requests</strong><p>Attendee directory, search, send and accept connections. Both sides earn gamification points when connected.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__group">
-            <div class="engage__group-label">🎤 Speakers &amp; Sponsors</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-icon">✦</span>
-                <div><strong>Full speaker profiles</strong><p>Bio, photo, and sessions listed — all in the app.</p></div>
-              </div>
-              <div class="engage__feature">
-                <span class="engage__feature-star">⭐</span>
-                <div><strong>Sponsor logos on animated splash screen</strong><p>Tier-grouped sponsor showcase. Sponsors get visibility every time an attendee opens the app.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__group">
-            <div class="engage__group-label">📅 Schedule</div>
-            <div class="engage__features">
-              <div class="engage__feature">
-                <span class="engage__feature-icon">✦</span>
-                <div><strong>Personal schedule &amp; session bookmarking</strong><p>Full event schedule with search and filter. Session documents downloadable in-app. Push notifications coming soon.</p></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engage__founders-note">
-            <span>🔥</span>
-            <p><strong>Phoenix Engage Charter Circle members lock in their rate <span class="founders__free-forever">FOREVER</span></strong> — while helping shape the attendee experience from day one.</p>
-          </div>
-
-        </div>
-
-        <div class="engage__right">
-          <div class="engage__phone-wrap">
-            <div class="engage__phone">
-              <div class="engage__phone-notch"></div>
-              <div class="engage__phone-screen">
-                <div class="engage__screen-header">
-                  <span class="engage__screen-event">TechConf 2026</span>
-                  <span class="engage__screen-day">Day 1 of 2</span>
-                </div>
-                <div class="engage__screen-tabs">
-                  <span class="engage__tab engage__tab--active">Schedule</span>
-                  <span class="engage__tab">Network</span>
-                  <span class="engage__tab">Live</span>
-                </div>
-                <div class="engage__screen-sessions">
-                  <div class="engage__session engage__session--now">
-                    <div class="engage__session-time">NOW</div>
-                    <div class="engage__session-info"><strong>Opening Keynote</strong><span>Main Hall · Sarah Chen</span></div>
-                    <div class="engage__session-check">✓</div>
-                  </div>
-                  <div class="engage__session">
-                    <div class="engage__session-time">11:00</div>
-                    <div class="engage__session-info"><strong>Growth Strategies</strong><span>Room A · Mike Torres</span></div>
-                    <div class="engage__session-add">+</div>
-                  </div>
-                  <div class="engage__session">
-                    <div class="engage__session-time">12:30</div>
-                    <div class="engage__session-info"><strong>Networking Lunch</strong><span>Atrium · All Attendees</span></div>
-                    <div class="engage__session-add">+</div>
-                  </div>
-                </div>
-                <div class="engage__screen-poll">
-                  <div class="engage__poll-label">🗳️ Live Poll — Keynote</div>
-                  <div class="engage__poll-q">What's your biggest event challenge?</div>
-                  <div class="engage__poll-bar-wrap">
-                    <div class="engage__poll-bar" style="--w:68%">Registration <span>68%</span></div>
-                    <div class="engage__poll-bar" style="--w:22%">Check-in <span>22%</span></div>
-                    <div class="engage__poll-bar" style="--w:10%">Scheduling <span>10%</span></div>
-                  </div>
-                </div>
-                <div class="engage__screen-leaderboard">
-                  <div class="engage__lb-label">🏆 Top Engagers</div>
-                  <div class="engage__lb-row"><span class="engage__lb-rank">1</span><span>Sarah M.</span><span class="engage__lb-pts">840 pts</span></div>
-                  <div class="engage__lb-row"><span class="engage__lb-rank">2</span><span>James K.</span><span class="engage__lb-pts">720 pts</span></div>
-                  <div class="engage__lb-row engage__lb-row--you"><span class="engage__lb-rank">3</span><span>You</span><span class="engage__lb-pts">695 pts</span></div>
-                </div>
-              </div>
-            </div>
-            <div class="engage__phone-glow"></div>
-          </div>
-
-          <div class="engage__diff-box">
-            <p class="engage__diff-title">⭐ = Rare or unavailable in competing platforms</p>
-            <div class="engage__diff-list">
-              <span>No app store required</span>
-              <span>Works offline</span>
-              <span>Live leaderboard</span>
-              <span>Digital badge scanning</span>
-              <span>Crypto-signed QR codes</span>
-              <span>Private social wall</span>
-              <span>In-app connections</span>
-              <span>Sponsor splash screen</span>
-            </div>
-          </div>
-
+            <a class="btn btn-primary" href="#engage">Meet Phoenix Engage</a>
+            <p class="integration-note"><strong>Using another EMS?</strong> Today, event and attendee data can be brought into Phoenix Engage through imports. Automated synchronization and API integrations are future goals and are not being represented as available today.</p>
+          </article>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- TECHNOLOGY CREDIBILITY -->
-  <section class="tech-cred">
-    <div class="container">
-      <div class="tech-cred__inner">
-
-        <div class="tech-cred__left">
-          <div class="section-tag">The Technology</div>
-          <h2>Built to last.<br>Built to scale.</h2>
-          <p>The Event Phoenix is built on modern, enterprise-grade architecture by a development team with over a decade of experience delivering production software. Every feature is engineered for reliability at scale — from the registration engine to Phoenix Engage's cryptographically signed session check-in codes.</p>
-          <p>We build and ship continuously. Charter Circle members see new features first — because the people using the platform every day are the best source of what it should do next.</p>
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <div class="kicker">A lot more than registration</div>
+          <h2>Broad enough for real event operations. Simple enough to run yourself.</h2>
+          <p>TEP already covers much of the day-to-day work planners handle before, during and after an event. The goal is not a longer feature list. The goal is fewer places for your team to work.</p>
+        </div>
+        <div class="features feature-primary">
+          <article class="feature"><div class="feature-icon" aria-hidden="true">🧾</div><h3>Registration</h3><p>Multiple registration types, custom questions, confirmation workflows and discount codes for different attendee groups.</p></article>
+          <article class="feature"><div class="feature-icon" aria-hidden="true">💳</div><h3>Payments</h3><p>Paid and free registrations, payment tracking and revenue information connected to the registration record.</p></article>
+          <article class="feature"><div class="feature-icon" aria-hidden="true">🗓️</div><h3>Speakers, sessions & scheduling</h3><p>Multi-day schedules, sessions, speakers, rooms, tracks, reusable courses and capacity-aware planning.</p></article>
+          <article class="feature"><div class="feature-icon" aria-hidden="true">✉️</div><h3>Email communications</h3><p>Target attendee, speaker, sponsor, exhibitor or other groups from the event data your team already maintains.</p></article>
+          <article class="feature"><div class="feature-icon" aria-hidden="true">✅</div><h3>Check-in & attendance</h3><p>QR-based attendee identification, event check-in and attendance tracking from everyday devices.</p></article>
+          <article class="feature"><div class="feature-icon" aria-hidden="true">🤝</div><h3>Sponsors & exhibitors</h3><p>Manage partner registration types, setup information, documents and communications within the same event workflow.</p></article>
+          <article class="feature"><div class="feature-icon" aria-hidden="true">🌐</div><h3>Event websites</h3><p>Give each event its own web presence and URL/slug so attendees can find the information and registration path they need.</p></article>
+          <article class="feature"><div class="feature-icon" aria-hidden="true">📊</div><h3>Reporting & exports</h3><p>Core registration, financial and attendance reporting plus CSV/Excel exports. Advanced analytics are an area we are actively expanding.</p></article>
+          <article class="feature"><div class="feature-icon" aria-hidden="true">📱</div><h3>Phoenix Engage</h3><p>Extend the event into a mobile attendee experience without forcing every customer into a separate app purchase.</p></article>
         </div>
 
-        <div class="tech-cred__right">
-          <div class="tech-cred__card">
-            <div class="tech-cred__icon">📱</div>
-            <h4>Progressive Web App</h4>
-            <p>Phoenix Engage installs like a native app on any iPhone or Android — no App Store or Google Play approval required. Also wraps natively for both stores for organizations that prefer that path.</p>
+        <div class="capability-panel">
+          <div class="capability-intro">
+            <span class="path-tag">The deeper toolkit</span>
+            <h3>The operational features planners discover after the demo gets past the obvious stuff.</h3>
+            <p>These are the practical tools that came from running real events and trying to eliminate side spreadsheets and repetitive setup.</p>
           </div>
-          <div class="tech-cred__card">
-            <div class="tech-cred__icon">🔐</div>
-            <h4>Enterprise-Grade Security</h4>
-            <p>Cryptographically signed QR codes. Role-based staff access with granular security groups. Built on a decade of hardened production infrastructure — the kind usually reserved for platforms costing ten times as much.</p>
-          </div>
-          <div class="tech-cred__card">
-            <div class="tech-cred__icon">⚡</div>
-            <h4>10+ Years of Real-World Use</h4>
-            <p>This platform wasn't designed in a boardroom. It was built by people running events, refined through hundreds of real deployments, and hardened against the chaos of actual event day.</p>
-          </div>
-          <div class="tech-cred__card">
-            <div class="tech-cred__icon">🔄</div>
-            <h4>Continuously Improving</h4>
-            <p>No annual release cycles. No waiting for the next version. Features ship when they're ready — and Charter Circle members help decide what gets built next.</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- COMPARE — FIX #10: massively expanded -->
-  <section class="compare" id="compare">
-    <div class="container">
-      <div class="section-tag">Honest Comparison</div>
-      <h2>Why planners switch to<br>The Event Phoenix</h2>
-      <p class="compare__sub">The big names are expensive, complicated, and full of surprises. We built what we actually needed as planners — and included it all.</p>
-      <div class="compare__table-wrap">
-        <table class="compare__table">
-          <thead>
-            <tr>
-              <th>Feature</th>
-              <th class="compare__us">Event Phoenix</th>
-              <th>Cvent</th>
-              <th>Bizzabo</th>
-              <th>Eventbrite</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Starting price</td><td class="compare__us"><strong>From $199/mo · Single events $499</strong></td><td>$5,000+/yr</td><td>$7,500+/yr</td><td>$29/mo (very limited)</td></tr>
-            <tr><td>Unlimited events</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per-event fees</td><td class="compare__x">Tiered</td><td class="compare__x">Capped</td></tr>
-            <tr><td>Unlimited registrations</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per-reg fees</td><td class="compare__x">Capped</td><td class="compare__x">Per ticket fees</td></tr>
-            <tr><td>Unlimited users / staff</td><td class="compare__us compare__check">✓</td><td class="compare__x">Per seat</td><td class="compare__x">~$499/user/mo</td><td class="compare__x">Limited</td></tr>
-            <tr><td>Unlimited discount codes</td><td class="compare__us compare__check">✓</td><td class="compare__x">Capped by tier</td><td class="compare__x">Capped</td><td class="compare__x">Limited</td></tr>
-            <tr><td>Multi-day scheduling</td><td class="compare__us compare__check">✓ Visual multi-day builder</td><td>✓ Complex setup</td><td>✓</td><td class="compare__x">Basic only</td></tr>
-            <tr><td>Unlimited tracks &amp; courses</td><td class="compare__us compare__check">✓ Reusable year to year</td><td class="compare__x">Add-on</td><td class="compare__x">Limited</td><td class="compare__x">No</td></tr>
-            <tr><td>Copy event in one click</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">No</td><td class="compare__x">No</td><td class="compare__x">No</td></tr>
-            <tr><td>Session capacity alerts</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Enterprise only</td><td class="compare__x">Enterprise only</td><td class="compare__x">No</td></tr>
-            <tr><td>Onsite check-in scanning</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Add-on cost</td><td class="compare__x">Add-on cost</td><td class="compare__x">Separate app</td></tr>
-            <tr><td>Expense management</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">No</td><td class="compare__x">No</td><td class="compare__x">No</td></tr>
-            <tr><td>Inventory management</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">No</td><td class="compare__x">No</td><td class="compare__x">No</td></tr>
-            <tr><td>Document management</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Add-on</td><td class="compare__x">Add-on</td><td class="compare__x">No</td></tr>
-            <tr><td>Vendors &amp; sponsors module</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Add-on</td><td class="compare__x">Add-on</td><td class="compare__x">No</td></tr>
-            <tr><td>Mobile attendee app</td><td class="compare__us compare__check">✓ Included free on every plan</td><td class="compare__x">$5k–$15k/event</td><td class="compare__x">$3k–$10k/event</td><td class="compare__x">No</td></tr>
-            <tr><td>Personal schedule (attendee)</td><td class="compare__us compare__check">✓ In Phoenix Engage</td><td class="compare__x">Separate app cost</td><td class="compare__x">Separate app cost</td><td class="compare__x">No</td></tr>
-            <tr><td>Attendee social feed</td><td class="compare__us compare__check">✓ Private — in Engage</td><td class="compare__x">No</td><td class="compare__x">Add-on</td><td class="compare__x">No</td></tr>
-            <tr><td>In-app networking / connections</td><td class="compare__us compare__check">✓ In Phoenix Engage</td><td class="compare__x">No</td><td class="compare__x">Add-on</td><td class="compare__x">No</td></tr>
-            <tr><td>Live polls &amp; leaderboard</td><td class="compare__us compare__check">✓ Included in Engage</td><td class="compare__x">Add-on / Enterprise</td><td class="compare__x">Add-on</td><td class="compare__x">No</td></tr>
-            <tr><td>Digital badge scanning</td><td class="compare__us compare__check">✓ Any phone — no hardware</td><td class="compare__x">Rented hardware</td><td class="compare__x">Rented hardware</td><td class="compare__x">No</td></tr>
-            <tr><td>Certificate generation</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">No</td><td class="compare__x">No</td><td class="compare__x">No</td></tr>
-            <tr><td>Self-service kiosk check-in</td><td class="compare__us compare__check">✓ Included</td><td class="compare__x">Add-on cost</td><td class="compare__x">Add-on cost</td><td class="compare__x">No</td></tr>
-            <tr><td>Built by planners</td><td class="compare__us compare__check">✓ 10 years real-world</td><td class="compare__x">Enterprise sales co.</td><td class="compare__x">VC-backed startup</td><td class="compare__x">Ticketing focused</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="compare__note">*Competitor pricing based on publicly available data and industry reporting as of 2026. Enterprise pricing varies.</p>
-    </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section class="testimonials">
-    <div class="container">
-      <div class="section-tag">What Planners Say</div>
-      <div class="testimonials__grid">
-        <div class="testimonial">
-          <p class="testimonial__quote">"This feels like it was built by someone who actually runs events. Everything I expected to be there — is there."</p>
-          <p class="testimonial__attr">— Conference Director</p>
-        </div>
-        <div class="testimonial">
-          <p class="testimonial__quote">"We stopped paying for add-ons and finally had everything in one place. The savings alone paid for the platform."</p>
-          <p class="testimonial__attr">— Association Planner</p>
-        </div>
-        <div class="testimonial">
-          <p class="testimonial__quote">"Scheduling and check-in saved our onsite team hours. We used to dread day-of. Now it's actually smooth."</p>
-          <p class="testimonial__attr">— Event Ops Manager</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRICING -->
-  <section class="pricing" id="pricing">
-    <div class="container">
-      <div class="section-tag">Transparent Pricing</div>
-      <h2>Pricing that doesn't punish growth.</h2>
-      <p class="pricing__sub">No per-registration fees. No per-user seats. No surprise add-ons. Every plan includes the full platform <strong>plus Phoenix Engage</strong> — the attendee app competitors charge $3,000–$15,000 per event for — included on every plan.</p>
-
-      <!-- Monthly / Annual toggle -->
-      <div class="pricing__toggle-wrap">
-        <span class="pricing__toggle-label pricing__toggle-label--active" id="label-monthly">Monthly</span>
-        <button class="pricing__toggle" id="billingToggle" aria-pressed="false" role="switch" aria-label="Toggle annual billing">
-          <span class="pricing__toggle-knob"></span>
-        </button>
-        <span class="pricing__toggle-label" id="label-annual">Annual <span class="pricing__save-badge">Save 15%</span></span>
-      </div>
-
-      <!-- Single Event card -->
-      <div class="pricing__single-wrap">
-        <div class="pricing__single-card">
-          <div class="pricing__single-left">
-            <div class="pricing__card-badge pricing__card-badge--single">Single Event</div>
-            <h3>One event. Full platform.</h3>
-            <p class="pricing__single-desc">Every feature — no subscription required. Perfect for organizations hosting one event per year.</p>
-            <ul class="pricing__single-features">
-              <li>✓ Full platform access for one event</li>
-              <li>✓ Unlimited registrations &amp; attendees</li>
-              <li>✓ All registration types, payments &amp; check-in tools</li>
-              <li>✓ Up to 3 staff / admin users</li>
-              <li>✓ Up to 3 registration types</li>
-              <li>✓ Email support (48-hr response)</li>
-              <li>✓ Event data retained for 90 days post-event</li>
-            </ul>
-            <p class="pricing__single-note">* The Single Event option is designed for organizations hosting one event per year. Planners hosting multiple events annually are kindly directed to our subscription plans, which offer better value and full platform access.</p>
-          </div>
-          <div class="pricing__single-right">
-            <div class="pricing__price">
-              <span class="pricing__amount pricing__amount--single">$499</span>
-              <span class="pricing__per">flat fee</span>
-            </div>
-            <p class="pricing__single-value">One flat fee. No per-attendee charges, no per-registration fees, no surprises.</p>
-            <a href="#demo" class="btn btn--primary btn--full">Get Started</a>
-            <p class="pricing__nonprofit" style="text-align:center;margin-top:12px;">Nonprofit? <a href="#demo">Ask us about a discount →</a></p>
+          <div class="capability-grid">
+            <div><strong>Copy & reuse events</strong><span>Start from a proven prior event instead of rebuilding.</span></div>
+            <div><strong>Rooms & capacity</strong><span>Assign spaces and keep session planning organized.</span></div>
+            <div><strong>Courses & tracks</strong><span>Reuse learning structures across repeat programs.</span></div>
+            <div><strong>Document management</strong><span>Keep event and session files close to the workflow.</span></div>
+            <div><strong>Expense management</strong><span>Track operational event expenses in the platform.</span></div>
+            <div><strong>Inventory management</strong><span>Track event materials and operational inventory.</span></div>
+            <div><strong>Certificates</strong><span>Support post-event recognition and completion workflows.</span></div>
+            <div><strong>Attendee segmentation</strong><span>Different registration types can support different event experiences.</span></div>
+            <div><strong>Unlimited planner/admin users</strong><span>Add the staff who need access without buying another seat.</span></div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Subscription tiers -->
-      <div class="pricing__tiers-label">
-        <span>Subscription Plans</span>
-        <span class="pricing__tiers-sub">For planners who run multiple events each year</span>
+    <section class="section white" id="fit">
+      <div class="container">
+        <div class="section-head">
+          <div class="kicker">Where TEP fits today</div>
+          <h2>Powerful self-service for planners who do not need an enterprise implementation team.</h2>
+          <p>We would rather be clear about fit than overpromise. TEP is built for planners who want broad capability, direct control and predictable pricing. Enterprise-only requirements are a future growth area, not something we pretend is finished today.</p>
+        </div>
+        <div class="compare-wrap" role="region" aria-label="Event technology approach comparison" tabindex="0">
+          <table class="compare-table">
+            <thead><tr><th>What matters</th><th>Patchwork / point tools</th><th>Traditional enterprise suite</th><th class="tep-col">The Event Phoenix</th></tr></thead>
+            <tbody>
+              <tr><th>Core event workflow</th><td>Spread across tools</td><td>Broad, often complex</td><td class="tep-col"><strong>Connected by design</strong></td></tr>
+              <tr><th>Registration & payments</th><td>May be separate</td><td>Available</td><td class="tep-col">Included</td></tr>
+              <tr><th>Multi-day sessions & speakers</th><td>Varies</td><td>Available</td><td class="tep-col">Included</td></tr>
+              <tr><th>Onsite check-in</th><td>May require another tool</td><td>Available / package dependent</td><td class="tep-col">Included</td></tr>
+              <tr><th>Attendee experience</th><td>Often another product</td><td>Available / package dependent</td><td class="tep-col"><strong>Phoenix Engage</strong></td></tr>
+              <tr><th>Admin users</th><td>Varies</td><td>Often tied to packaging</td><td class="tep-col"><strong>Unlimited planner/admin users</strong></td></tr>
+              <tr><th>Custom API / SSO / enterprise services</th><td>Varies</td><td>Common enterprise option</td><td class="tep-col"><strong>Not a current launch claim</strong></td></tr>
+              <tr><th>Best fit today</th><td>Simple or specialized needs</td><td>Organizations needing enterprise infrastructure/services</td><td class="tep-col"><strong>Planners who want broad self-service without the enterprise maze</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="compare-note"><strong>Our rule:</strong> if a requirement is not production-ready, we will say so. TEP already does a lot. We do not need to pretend it does everything.</div>
       </div>
+    </section>
 
-      <div class="pricing__grid pricing__grid--5">
-
-        <!-- SPARK -->
-        <div class="pricing__card">
-          <div class="pricing__tier-name pricing__tier-name--spark">Spark</div>
-          <div class="pricing__card-badge pricing__card-badge--spark">2 – 5 events / year</div>
-          <div class="pricing__card-header">
-            <div class="pricing__price">
-              <span class="pricing__amount" id="price-spark">$199</span>
-              <span class="pricing__per" id="per-spark">/mo</span>
-            </div>
-            <p class="pricing__annual-note" id="note-spark" style="display:none;">Billed as <strong>$2,030/yr</strong> — saves $358 vs monthly</p>
-            <p class="pricing__per-event" id="perevent-spark">As low as <strong>$478/event</strong></p>
+    <section class="section dark" id="engage">
+      <div class="container engage-grid">
+        <div class="phone" aria-label="Phoenix Engage mobile experience illustration">
+          <img class="phone-logo" src="assets/tep-logo.png" alt="" width="82" height="82">
+          <h3>Phoenix Engage</h3>
+          <p>Launching October 2026</p>
+          <div class="app-grid">
+            <div><b>🗓️</b><span>Schedule</span></div><div><b>🎤</b><span>Sessions</span></div><div><b>👤</b><span>Speakers</span></div>
+            <div><b>ℹ️</b><span>Event Info</span></div><div><b>📍</b><span>Guides</span></div><div><b>📱</b><span>Mobile</span></div>
           </div>
-          <ul class="pricing__features">
-            <li>✓ All platform features</li>
-            <li>✓ Unlimited registrations</li>
-            <li>✓ Unlimited staff &amp; admin users</li>
-            <li>✓ Unlimited registration types</li>
-            <li>✓ Unlimited discount codes</li>
-            <li>✓ Priority support</li>
-            <li>✓ Unlimited data retention</li>
-            <li>✓ <strong>Phoenix Engage</strong> — full attendee app, included free</li>
-          </ul>
-          <a href="#demo" class="btn btn--outline btn--full">Get Started</a>
         </div>
-
-        <!-- BLAZE -->
-        <div class="pricing__card">
-          <div class="pricing__tier-name pricing__tier-name--blaze">Blaze</div>
-          <div class="pricing__card-badge pricing__card-badge--blaze">6 – 10 events / year</div>
-          <div class="pricing__card-header">
-            <div class="pricing__price">
-              <span class="pricing__amount" id="price-blaze">$299</span>
-              <span class="pricing__per" id="per-blaze">/mo</span>
-            </div>
-            <p class="pricing__annual-note" id="note-blaze" style="display:none;">Billed as <strong>$3,050/yr</strong> — saves $538 vs monthly</p>
-            <p class="pricing__per-event" id="perevent-blaze">As low as <strong>$305/event</strong></p>
+        <div class="engage-copy">
+          <div class="kicker">Phoenix Engage</div>
+          <h2>The attendee side of The Event Phoenix gets its own spotlight this October.</h2>
+          <p>Phoenix Engage is a browser-based Progressive Web App designed to give attendees a fast mobile event experience without requiring an App Store download. It works with The Event Phoenix and can also be discussed as a standalone attendee layer for organizations keeping another EMS.</p>
+          <div class="bullets">
+            <div>No App Store download required</div><div>Home-screen installation</div>
+            <div>Event schedules</div><div>Session & speaker information</div>
+            <div>Attendee-facing event content</div><div>Import-based setup for external EMS data</div>
           </div>
-          <ul class="pricing__features">
-            <li>✓ Everything in Spark</li>
-            <li>✓ All platform features</li>
-            <li>✓ Unlimited registrations</li>
-            <li>✓ Unlimited staff &amp; admin users</li>
-            <li>✓ Unlimited registration types</li>
-            <li>✓ Unlimited discount codes</li>
-            <li>✓ Priority support</li>
-            <li>✓ <strong>Phoenix Engage</strong> — full attendee app, included free</li>
-          </ul>
-          <a href="#demo" class="btn btn--outline btn--full">Get Started</a>
-        </div>
-
-        <!-- INFERNO — featured / best value -->
-        <div class="pricing__card pricing__card--featured">
-          <div class="pricing__tier-name pricing__tier-name--inferno">Inferno</div>
-          <div class="pricing__card-badge pricing__card-badge--inferno">11 – 19 events / year</div>
-          <div class="pricing__card-header">
-            <div class="pricing__price">
-              <span class="pricing__amount" id="price-inferno">$399</span>
-              <span class="pricing__per" id="per-inferno">/mo</span>
-            </div>
-            <p class="pricing__annual-note" id="note-inferno" style="display:none;">Billed as <strong>$4,070/yr</strong> — saves $718 vs monthly</p>
-            <p class="pricing__per-event" id="perevent-inferno">As low as <strong>$214/event</strong></p>
-          </div>
-          <ul class="pricing__features">
-            <li>✓ Everything in Blaze</li>
-            <li>✓ All platform features</li>
-            <li>✓ Unlimited registrations</li>
-            <li>✓ Unlimited staff &amp; admin users</li>
-            <li>✓ Unlimited registration types</li>
-            <li>✓ Unlimited discount codes</li>
-            <li>✓ Priority support</li>
-            <li>✓ <strong>Phoenix Engage</strong> — full attendee app, included free</li>
-          </ul>
-          <p class="pricing__nonprofit">Nonprofit? <a href="#demo">Ask about a discount →</a></p>
-          <a href="#demo" class="btn btn--primary btn--full">Get Started</a>
-        </div>
-
-        <!-- PHOENIX -->
-        <div class="pricing__card">
-          <div class="pricing__tier-name pricing__tier-name--phoenix">Phoenix</div>
-          <div class="pricing__card-badge pricing__card-badge--phoenix">20+ events / year</div>
-          <div class="pricing__card-header">
-            <div class="pricing__price">
-              <span class="pricing__amount" id="price-phoenix">$699</span>
-              <span class="pricing__per" id="per-phoenix">/mo</span>
-            </div>
-            <p class="pricing__annual-note" id="note-phoenix" style="display:none;">Billed as <strong>$7,130/yr</strong> — saves $1,250 vs monthly</p>
-          </div>
-          <ul class="pricing__features">
-            <li>✓ Everything in Inferno</li>
-            <li>✓ All platform features</li>
-            <li>✓ Unlimited registrations</li>
-            <li>✓ Unlimited staff &amp; admin users</li>
-            <li>✓ Unlimited registration types</li>
-            <li>✓ Unlimited discount codes</li>
-            <li>✓ White-glove support</li>
-            <li>✓ <strong>Phoenix Engage</strong> — full attendee app, included free</li>
-          </ul>
-          <a href="#demo" class="btn btn--outline btn--full">Get Started</a>
-        </div>
-
-        <!-- CHARTER CIRCLE -->
-        <div class="pricing__card pricing__card--founders" id="founders">
-          <div class="pricing__card-badge pricing__card-badge--fire">🔥 Charter Circle</div>
-          <div class="pricing__card-header">
-            <h3>Shape Engage. Lock the Rate.</h3>
-            <div class="pricing__price">
-              <span class="pricing__amount pricing__amount--founders" id="price-founders">$449</span>
-              <span class="pricing__per" id="per-founders">/mo effective</span>
-            </div>
-            <p class="founders__annual-note-static">Pre-paid annually: <strong>$5,389/yr</strong> &nbsp;·&nbsp; 10% off · locked for life</p>
-            <p>Be one of 50 planners who help build the Phoenix Engage experience — and never pay more.</p>
-          </div>
-
-          <div class="founders__countdown">
-            <div class="founders__countdown-label">First 50 planners · June 1 – August 31</div>
-            <div class="founders__countdown-timer">
-              <div class="founders__countdown-unit">
-                <span class="founders__countdown-num" id="fc-days">--</span>
-                <span class="founders__countdown-unit-label">days</span>
-              </div>
-              <span class="founders__countdown-sep">:</span>
-              <div class="founders__countdown-unit">
-                <span class="founders__countdown-num" id="fc-hours">--</span>
-                <span class="founders__countdown-unit-label">hrs</span>
-              </div>
-              <span class="founders__countdown-sep">:</span>
-              <div class="founders__countdown-unit">
-                <span class="founders__countdown-num" id="fc-mins">--</span>
-                <span class="founders__countdown-unit-label">min</span>
-              </div>
-              <span class="founders__countdown-sep">:</span>
-              <div class="founders__countdown-unit">
-                <span class="founders__countdown-num" id="fc-secs">--</span>
-                <span class="founders__countdown-unit-label">sec</span>
-              </div>
-            </div>
-          </div>
-
-          <ul class="pricing__features">
-            <li>✓ Full platform — all features, unlimited everything</li>
-            <li>✓ Rate locked for life</li>
-            <li>✓ Charter Advisory Access</li>
-            <li>✓ Private beta access to new Engage features</li>
-            <li>✓ Quarterly Charter roundtable — virtual</li>
-          </ul>
-          <a href="#founders-detail" class="btn btn--founders btn--full">Join the Charter Circle →</a>
-          <p class="pricing__founders-note">⚡ 50 spots only · June 1 – August 31 · Full details below ↓</p>
-        </div>
-      </div><!-- end pricing__grid -->
-
-      <!-- All plans include -->
-      <div class="pricing__all-included">
-        <p class="pricing__all-included-title">All subscription plans include everything. Zero gotchas.</p>
-        <div class="pricing__all-included-grid">
-          <span>∞ Unlimited events</span>
-          <span>∞ Unlimited registrations</span>
-          <span>∞ Unlimited staff users</span>
-          <span>∞ Unlimited registration types</span>
-          <span>∞ Unlimited discount codes</span>
-          <span>∞ Unlimited courses &amp; tracks</span>
-          <span>✓ Copy event in one click</span>
-          <span>✓ No per-event fees</span>
-          <span>✓ No seat licenses</span>
-          <span>✓ No surprise add-ons</span>
-          <span>✓ Certificate generation</span>
-          <span>✓ Expense &amp; inventory management</span>
-          <span>✓ Document management</span>
-          <span>📱 Phoenix Engage app — included free</span>
+          <p class="launch-note"><strong>Launch discipline:</strong> only production-ready Engage capabilities will be demonstrated and marketed as available. Additional features will be added to the site as they pass validation.</p>
+          <a class="btn btn-primary" href="mailto:joe.miller@TheEventPhoenix.com?subject=Phoenix%20Engage%20Inquiry">Talk with us about Phoenix Engage</a>
         </div>
       </div>
+    </section>
 
-      <!-- Add-ons section -->
-      <div class="pricing__addons">
-        <div class="pricing__addons-label">Available on All Plans</div>
-        <div class="pricing__addons-grid">
-          <div class="pricing__addon-card">
-            <div class="pricing__addon-icon">🎟️</div>
-            <div class="pricing__addon-body">
-              <h4>Online Ticketing &amp; Redemption</h4>
-              <p>Issue and manage tickets for any function, session, or event at no additional cost.</p>
-              <span class="pricing__addon-price pricing__addon-price--free">Included free on all plans</span>
-            </div>
-          </div>
-          <div class="pricing__addon-card">
-            <div class="pricing__addon-icon">💳</div>
-            <div class="pricing__addon-body">
-              <h4>Paid Ticket Sales</h4>
-              <p>Sell tickets to any function or event and collect payment online. Flat fee per function — never a percentage of your revenue.</p>
-              <span class="pricing__addon-price">$99 flat fee per function</span>
-            </div>
-          </div>
-          <div class="pricing__addon-card">
-            <div class="pricing__addon-icon">🚀</div>
-            <div class="pricing__addon-body">
-              <h4>Phoenix Launch</h4>
-              <p>Hit the ground running with live onboarding: 2 training sessions, event setup guidance, workflow review, and priority support for your first 30 days.</p>
-              <span class="pricing__addon-price">$749 one-time</span>
-            </div>
+    <section class="section white" id="story">
+      <div class="container story-grid">
+        <div class="story-quote">
+          <strong>We did not set out to build an event software company.</strong>
+          <p>We were trying to run better events.</p>
+        </div>
+        <div class="story-copy">
+          <div class="kicker">Why The Event Phoenix exists</div>
+          <h2>Built from the planner side of the screen.</h2>
+          <p>For years, our events relied on the same patchwork planners know too well: registration in one place, payments somewhere else, separate scheduling, separate communications and spreadsheets filling the gaps.</p>
+          <p>So we built what we wanted to use ourselves. Then we used it at real events, found the rough edges the hard way and kept improving it. The Event Phoenix is software shaped by the consequences of event day, not just a product roadmap.</p>
+          <div class="story-points">
+            <div><strong>Planner-first decisions</strong><span>Workflow comes before feature count.</span></div>
+            <div><strong>Real-event proof</strong><span>Designed around actual day-of pressure.</span></div>
+            <div><strong>Self-service by design</strong><span>Power without enterprise-sized staffing.</span></div>
+            <div><strong>Still improving</strong><span>New releases will keep expanding the platform as real planner needs are validated.</span></div>
           </div>
         </div>
       </div>
+    </section>
 
+    <section class="section white" id="voices">
+      <div class="container">
+        <div class="section-head">
+          <div class="kicker">What planners say</div>
+          <h2>Real-world feedback matters more than our own marketing.</h2>
+          <p>These testimonials come from the feedback library built from real users and events.</p>
+        </div>
+        <div class="testimonials">
+          <figure class="testimonial featured-quote">
+            <blockquote>“This feels like it was built by someone who actually runs events. Everything I expected to be there — is there.”</blockquote>
+            <figcaption>Conference Director</figcaption>
+          </figure>
+          <figure class="testimonial">
+            <blockquote>“We stopped paying for add-ons and finally had everything in one place. The savings alone paid for the platform.”</blockquote>
+            <figcaption>Association Planner</figcaption>
+          </figure>
+          <figure class="testimonial">
+            <blockquote>“Scheduling and check-in saved our onsite team hours. We used to dread day-of. Now it's actually smooth.”</blockquote>
+            <figcaption>Event Ops Manager</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
 
-    </div>
-  </section>
+    <section class="section october" id="october">
+      <div class="container">
+        <div class="section-head">
+          <div class="kicker">October launch window</div>
+          <h2>IMEX for listening. New York for showing.</h2>
+          <p>Phoenix Engage launches in the same month we take The Event Phoenix into two very different industry environments.</p>
+        </div>
+        <div class="event-grid">
+          <article class="event-card">
+            <span class="badge">Attending with PSUG Events</span>
+            <div class="date">October 13–15 • Las Vegas</div>
+            <h3>IMEX America 2026</h3>
+            <p>Joe Miller will attend as an event planner representing PSUG Events — listening, learning, meeting other planners and studying what event technology is doing well and where planners still struggle.</p>
+            <a class="btn btn-outline" href="mailto:joe.miller@TheEventPhoenix.com?subject=Connect%20at%20IMEX%20America">Connect at IMEX</a>
+          </article>
+          <article class="event-card">
+            <span class="badge orange">The Event Phoenix is exhibiting</span>
+            <div class="date">October 27–29 • New York City</div>
+            <h3>The Event Planner Expo 2026</h3>
+            <p>Two weeks later, the conversation becomes hands-on. See The Event Phoenix, try Phoenix Engage and talk directly with the people building the platform.</p>
+            <a class="btn btn-primary" href="mailto:joe.miller@TheEventPhoenix.com?subject=Meet%20The%20Event%20Phoenix%20in%20NYC">Plan a demo in NYC</a>
+          </article>
+        </div>
+      </div>
+    </section>
 
-
-  <!-- CHARTER CIRCLE — DEDICATED SECTION -->
-  <section class="founders-detail" id="founders-detail">
-    <div class="container">
-      <div class="founders-detail__inner">
-
-        <div class="founders-detail__left">
-          <div class="section-tag">Phoenix Engage Charter Circle</div>
-          <h2>Shape the app.<br><span>Lock the rate.</span></h2>
-          <p class="founders-detail__sub">The Event Phoenix has been running real events for over a decade. Phoenix Engage is what we built next — and we want 50 planners who care about attendee experience to help us shape it. Join the Charter Circle, influence what gets built, and lock in your rate before prices reflect what this platform is actually worth.</p>
-
-          <div class="founders-detail__price-block">
-            <div class="founders-detail__price-row">
-              <span class="founders-detail__amount">$449</span>
-              <span class="founders-detail__per">/mo effective</span>
-            </div>
-            <p class="founders-detail__price-note">Pre-paid annually at $5,389/yr — 10% off the standard rate, locked for life. Regular plans start at $199/mo and go up to $699/mo depending on volume.</p>
-          </div>
-
-          <div class="founders-detail__savings">
-            <p class="founders-detail__savings-title">What Charter members save vs. regular pricing — every year, forever:</p>
-            <table class="founders__savings-table">
-              <thead>
-                <tr><th>vs. regular plan…</th><th>Save/mo</th><th>Save/yr</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Spark ($199/mo)</td><td>—</td><td>Charter includes more</td></tr>
-                <tr><td>Blaze ($299/mo)</td><td>—</td><td>Charter includes more</td></tr>
-                <tr><td>Inferno ($399/mo)</td><td>—</td><td>Charter includes more</td></tr>
-                <tr class="founders__savings-highlight"><td>Phoenix ($699/mo)</td><td>$250</td><td><strong>$3,000/yr</strong></td></tr>
-              </tbody>
-            </table>
-            <p class="founders-detail__savings-note">Charter Circle includes everything in Phoenix — at a rate that never increases. And when Engage is priced as a standalone product, your rate still never changes.</p>
-          </div>
-
-          <div class="founders-detail__countdown">
-            <div class="founders__countdown-label">50 spots only · June 1 – August 31, 2026</div>
-            <div class="founders__countdown-timer">
-              <div class="founders__countdown-unit">
-                <span class="founders__countdown-num" id="fc2-days">--</span>
-                <span class="founders__countdown-unit-label">days</span>
-              </div>
-              <span class="founders__countdown-sep">:</span>
-              <div class="founders__countdown-unit">
-                <span class="founders__countdown-num" id="fc2-hours">--</span>
-                <span class="founders__countdown-unit-label">hrs</span>
-              </div>
-              <span class="founders__countdown-sep">:</span>
-              <div class="founders__countdown-unit">
-                <span class="founders__countdown-num" id="fc2-mins">--</span>
-                <span class="founders__countdown-unit-label">min</span>
-              </div>
-              <span class="founders__countdown-sep">:</span>
-              <div class="founders__countdown-unit">
-                <span class="founders__countdown-num" id="fc2-secs">--</span>
-                <span class="founders__countdown-unit-label">sec</span>
-              </div>
-            </div>
-          </div>
-
-          <a href="#demo" class="btn btn--founders btn--lg founders-detail__cta">Join the Charter Circle →</a>
-          <p class="founders-detail__limit">⚡ 50 spots only. June 1 – August 31, 2026. When they're gone, they're gone.</p>
+    <section class="section white" id="pricing">
+      <div class="container">
+        <div class="section-head">
+          <div class="kicker">Simple event-volume pricing</div>
+          <h2>The software does not get weaker because you run fewer events.</h2>
+          <p>Same core platform. Choose the plan that matches your annual event volume. Subscription plans include unlimited planner/admin users — no seat maze.</p>
         </div>
 
-        <div class="founders-detail__right">
-          <div class="founders-detail__perks-title">What Charter Members Get</div>
-          <div class="founders-detail__perks">
-
-            <div class="founders-detail__perk">
-              <span class="founders-detail__perk-icon">🔒</span>
-              <div>
-                <h4>Rate locked for life</h4>
-                <p>Your $449/mo effective rate never changes. Not when we raise prices for new customers. Not when Engage is priced as a standalone product. Not ever.</p>
-              </div>
-            </div>
-
-            <div class="founders-detail__perk">
-              <span class="founders-detail__perk-icon">🧪</span>
-              <div>
-                <h4>Private beta access to new Engage features</h4>
-                <p>Before anything is announced publicly, Charter members get access first. Use it at real events, report what works, and directly influence what ships next.</p>
-              </div>
-            </div>
-
-            <div class="founders-detail__perk">
-              <span class="founders-detail__perk-icon">🎯</span>
-              <div>
-                <h4>Charter Advisory Access</h4>
-                <p>Your feedback moves to the front of the line. This isn't a suggestion box — Charter members shape what gets built. Your experience running real events is exactly what we need.</p>
-              </div>
-            </div>
-
-            <div class="founders-detail__perk">
-              <span class="founders-detail__perk-icon">🗓️</span>
-              <div>
-                <h4>Quarterly Charter roundtable — virtual</h4>
-                <p>Four times a year, Charter members join a private virtual session with our team. See the roadmap, ask questions directly, and vote on what we prioritize next.</p>
-              </div>
-            </div>
-
-            <div class="founders-detail__perk">
-              <span class="founders-detail__perk-icon">⚡</span>
-              <div>
-                <h4>First access to every new feature</h4>
-                <p>Every feature we ship — platform and Engage — goes to Charter members first. Early access windows, direct feedback channels, and a voice in what gets refined before general release.</p>
-              </div>
-            </div>
-
-            <div class="founders-detail__perk">
-              <span class="founders-detail__perk-icon">🏅</span>
-              <div>
-                <h4>Charter member status — permanent</h4>
-                <p>Your account is permanently recognized as a Charter Circle member. As the platform grows, that matters — you were part of building this from the beginning.</p>
-              </div>
-            </div>
-
-          </div>
+        <div class="trial-pricing">
+          <article class="trial-card launch-offer"><span class="path-tag">New organization introductory offer</span><h3>First Event</h3><div class="price">$499</div><p>Try The Event Phoenix on one real event before making a longer commitment.</p></article>
+          <article class="trial-card"><span class="path-tag">Standard one-event option</span><h3>Single Event</h3><div class="price">$795</div><p>For an organization that runs one event and does not need an annual subscription.</p></article>
         </div>
 
-      </div>
-    </div>
-  </section>
+        <div class="fire-pricing">
+          <article class="fire-card spark"><div class="flame-mark">✦</div><h3>Spark</h3><div class="event-band">2–5 events / year</div><div class="price">$199 <small>/ month</small></div><p>For planners moving beyond one annual event.</p><ul><li>Same core platform</li><li>Unlimited planner/admin users</li><li>Unlimited registrations</li><li>Phoenix Engage included</li></ul></article>
+          <article class="fire-card blaze"><div class="flame-mark">🔥</div><h3>Blaze</h3><div class="event-band">6–10 events / year</div><div class="price">$299 <small>/ month</small></div><p>For active event teams managing a steady calendar.</p><ul><li>Same core platform</li><li>Unlimited planner/admin users</li><li>Unlimited registrations</li><li>Phoenix Engage included</li></ul></article>
+          <article class="fire-card inferno"><div class="flame-mark">🔥</div><h3>Inferno</h3><div class="event-band">11–20 events / year</div><div class="price">$449 <small>/ month</small></div><p>For high-volume planners building repeatable processes across many events.</p><ul><li>Same core platform</li><li>Unlimited planner/admin users</li><li>Unlimited registrations</li><li>Phoenix Engage included</li></ul></article>
+          <article class="fire-card phoenix"><div class="flame-mark">♨</div><h3>Phoenix</h3><div class="event-band">21–50 events / year</div><div class="price">$999 <small>/ month</small></div><p>For organizations running a substantial year-round event portfolio.</p><ul><li>Same core platform</li><li>Unlimited planner/admin users</li><li>Unlimited registrations</li><li>Phoenix Engage included</li></ul></article>
+        </div>
 
-  <!-- CTA / DEMO -->
-  <section class="cta-section" id="demo">
-    <div class="cta-section__bg"><div class="cta-section__orb"></div></div>
-    <div class="container">
-      <h2>Ready to see it in action?</h2>
-      <p>Pick a time that works for you. We'll walk you through the whole platform — no sales pressure, just a real look at what The Event Phoenix can do for your events.</p>
-      <div class="demo-cta-block">
-        <p class="demo-cta-block__sub">Tell us a little about your events and we'll reach out to schedule a time that works for you.</p>
-        <a href="/cdn-cgi/l/email-protection#1179747d7d7e516579747467747f6561797e747f78693f727e7c2e6264737b7472652c55747c7e314374606474626531f3918531457974315467747f653141797e747f786937737e75682c59783d31583675317d787a7431657e316272797475647d7431703175747c7e3f315974637436623170317378653170737e6465317c68317467747f65622b3421503421505f707c742b3421505e6376707f786b7065787e7f2b342150506161637e693f317467747f65623161746331687470632b342150537462653165787c7431657e31727e7f7f7472652b" class="btn btn--primary btn--lg">Request a Demo →</a>
-        <p class="demo-cta-block__note">We'll respond within one business day to find a time that works.</p>
-      </div>
-      <div class="cta-section__alt">
-        <p>Prefer email? <a href="/cdn-cgi/l/email-protection#c8a0ada4a4a788bca0adadbeada6bcb8a0a7ada6a1b0e6aba7a5"><span class="__cf_email__" data-cfemail="ef878a838380af9b878a8a998a819b9f87808a818697c18c8082">[email&#160;protected]</span></a></p>
-      </div>
-    </div>
-  </section>
+        <div class="portfolio-card"><div><span class="path-tag">51+ events or enterprise requirements</span><h3>Larger Event Portfolio</h3><p>Let's understand your event volume and requirements before quoting. High event count does not automatically mean enterprise complexity — but SSO, custom API/integration work, advanced security/procurement requirements or unusual implementation needs require a separate fit conversation.</p></div><a class="btn btn-dark" href="mailto:joe.miller@TheEventPhoenix.com?subject=Large%20Event%20Portfolio%20Pricing">Let's talk</a></div>
 
-  <!-- FOOTER — FIX #3: "Formerly Easy Reg Pro" fully removed -->
+        <p class="pricing-footnote">Subscription prices shown are monthly equivalents on an annual agreement. Payment-processor fees still apply to paid registrations. The Event Phoenix does not take a percentage of standard registration revenue. Genuine third-party or special-use costs — such as future assigned seating, SMS, hardware, custom integrations or custom development — may be priced separately.</p>
+      </div>
+    </section>
+
+    <section class="cta" id="demo">
+      <div class="container">
+        <h2>Tell us what you run. We will show you what matters.</h2>
+        <p>No giant sales production. Tell us what is frustrating you today and what you want event software to make easier. We will focus the demo on that — and tell you plainly if something you need is not available yet.</p>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="mailto:joe.miller@TheEventPhoenix.com?subject=The%20Event%20Phoenix%20Demo%20Request">Request a Demo</a>
+          <a class="btn btn-ghost" href="mailto:joe.miller@TheEventPhoenix.com">joe.miller@TheEventPhoenix.com</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="social-section" id="connect">
+      <div class="container social-inner">
+        <div><div class="kicker">Follow the launch</div><h2>Connect with The Event Phoenix.</h2><p>Phoenix Engage launch updates, planner conversations, IMEX observations, New York demos and what we learn as the platform grows.</p></div>
+        <div class="social-buttons">
+          <a href="https://www.linkedin.com/company/the-event-phoenix/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://www.facebook.com/TheEventPhoenix" target="_blank" rel="noopener">Facebook</a>
+          <a href="https://www.instagram.com/theeventphoenix/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.threads.com/@theeventphoenix" target="_blank" rel="noopener">Threads</a>
+          <a href="https://x.com/EventPhoenixHQ" target="_blank" rel="noopener">X</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <footer class="footer">
     <div class="container">
-      <div class="footer__top">
-        <div class="footer__brand">
-          <img class="footer__logomark" src="phoenix-logo.png" alt="The Event Phoenix logo" />
-          <div>
-            <p class="footer__brand-name">The Event Phoenix</p>
-            <p class="footer__brand-tag">Event Management, Reborn.</p>
-          </div>
+      <div class="footer-grid">
+        <div>
+          <a class="brand footer-brand" href="#top"><img src="assets/tep-logo.png" alt="" width="52" height="52"><span>The Event Phoenix</span></a>
+          <p>Event management built by event planners.<br>Run the event. Not the software.</p>
         </div>
-        <nav class="footer__nav">
-          <div class="footer__nav-col">
-            <p class="footer__nav-heading">Product</p>
-            <a href="#features">Features</a>
-            <a href="#engage">Phoenix Engage</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#founders-detail">Charter Circle</a>
-            <a href="#compare">Why Us</a>
-          </div>
-          <div class="footer__nav-col">
-            <p class="footer__nav-heading">Company</p>
-            <a href="#demo">Request Demo</a>
-            <a href="/cdn-cgi/l/email-protection#5c34393030331c283439392a3932282c343339323524723f3331">Contact</a>
-          </div>
-        </nav>
+        <div>
+          <h3>Explore</h3>
+          <a href="#platform">Platform</a><a href="#features">Features</a><a href="#engage">Phoenix Engage</a><a href="#fit">Why TEP</a><a href="#voices">Testimonials</a><a href="#pricing">Pricing</a>
+        </div>
+        <div>
+          <h3>Follow</h3>
+          <a href="https://www.linkedin.com/company/the-event-phoenix/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://www.instagram.com/theeventphoenix/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.threads.com/@theeventphoenix" target="_blank" rel="noopener">Threads</a>
+          <a href="https://x.com/EventPhoenixHQ" target="_blank" rel="noopener">X</a>
+          <a href="https://www.facebook.com/TheEventPhoenix" target="_blank" rel="noopener">Facebook</a>
+        </div>
       </div>
-      <div class="footer__bottom">
-        <p>&copy; 2026 The Event Phoenix. All rights reserved.</p>
-      </div>
+      <div class="copyright"><span>© 2026 The Event Phoenix. All rights reserved.</span></div>
     </div>
   </footer>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-    // Nav scroll
-    const nav = document.getElementById('nav');
-    window.addEventListener('scroll', () => nav.classList.toggle('nav--scrolled', window.scrollY > 40));
+  <div class="mobile-sticky" aria-label="Quick actions">
+    <a href="mailto:joe.miller@TheEventPhoenix.com?subject=The%20Event%20Phoenix%20Demo%20Request">Request a Demo</a>
+    <a href="#engage">Phoenix Engage</a>
+  </div>
 
-    // Mobile hamburger
-    const hamburger = document.getElementById('hamburger');
-    const navLinks  = document.getElementById('navLinks');
-
-    // Create backdrop
-    const backdrop = document.createElement('div');
-    backdrop.className = 'nav__backdrop';
-    backdrop.id = 'navBackdrop';
-    document.body.appendChild(backdrop);
-
-    function openMenu() {
-      navLinks.classList.add('nav__links--open');
-      backdrop.classList.add('nav__backdrop--open');
-      hamburger.setAttribute('aria-expanded', 'true');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeMenu() {
-      navLinks.classList.remove('nav__links--open');
-      backdrop.classList.remove('nav__backdrop--open');
-      hamburger.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
-    }
-
-    hamburger.addEventListener('click', () => {
-      const isOpen = navLinks.classList.contains('nav__links--open');
-      isOpen ? closeMenu() : openMenu();
-    });
-    backdrop.addEventListener('click', closeMenu);
-    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
-
-    // Scroll reveal
-    document.querySelectorAll('.planners__card,.feature-block,.pricing__card,.testimonial,.diff__pill,.compare__table-wrap')
-      .forEach(el => {
-        el.classList.add('reveal-target');
-        new IntersectionObserver((entries, obs) => {
-          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); obs.unobserve(e.target); }});
-        }, { threshold: 0.08 }).observe(el);
-      });
-
-    // Engage notify
-    function handleEngageNotify(e) {
-      e.preventDefault();
-      document.getElementById('engage-success').style.display = 'block';
-      document.getElementById('engage-fine').style.display    = 'none';
-      e.target.style.display = 'none';
-      // TODO: wire to Mailchimp/ConvertKit — email is: e.target.querySelector('input').value
-    }
-
-    // Billing toggle
-    const toggle = document.getElementById('billingToggle');
-    let isAnnual = false;
-
-    const tiers = [
-      { id: 'spark',   monthly: '$199', annual: '$2,030', perEventMonthly: 'As low as <strong>$478/event</strong>', perEventAnnual: 'As low as <strong>$406/event</strong>' },
-      { id: 'blaze',   monthly: '$299', annual: '$3,050', perEventMonthly: 'As low as <strong>$305/event</strong>', perEventAnnual: 'As low as <strong>$259/event</strong>' },
-      { id: 'inferno', monthly: '$399', annual: '$4,070', perEventMonthly: 'As low as <strong>$214/event</strong>', perEventAnnual: 'As low as <strong>$183/event</strong>' },
-      { id: 'phoenix', monthly: '$699', annual: '$7,130', perEventMonthly: null, perEventAnnual: null  },
-      { id: 'founders',monthly: '$449',  annual: '$5,389',   perEventMonthly: null, perEventAnnual: null }
-    ];
-
-    toggle.addEventListener('click', () => {
-      isAnnual = !isAnnual;
-      toggle.classList.toggle('pricing__toggle--on', isAnnual);
-      toggle.setAttribute('aria-pressed', isAnnual);
-      document.getElementById('label-monthly').classList.toggle('pricing__toggle-label--active', !isAnnual);
-      document.getElementById('label-annual').classList.toggle('pricing__toggle-label--active', isAnnual);
-
-      tiers.forEach(t => {
-        const priceEl    = document.getElementById('price-' + t.id);
-        const perEl      = document.getElementById('per-' + t.id);
-        const noteEl     = document.getElementById('note-' + t.id);
-        const peEl       = document.getElementById('perevent-' + t.id);
-        if (!priceEl) return;
-        if (isAnnual) {
-          priceEl.textContent = t.annual;
-          perEl.textContent   = '/yr';
-          if (noteEl) noteEl.style.display = 'block';
-          if (peEl && t.perEventAnnual) peEl.innerHTML = t.perEventAnnual;
-        } else {
-          priceEl.textContent = t.monthly;
-          perEl.textContent   = '/mo';
-          if (noteEl) noteEl.style.display = 'none';
-          if (peEl && t.perEventMonthly) peEl.innerHTML = t.perEventMonthly;
-        }
-      });
-    });
-
-    // Calendly embed — uncomment and replace YOUR_CALENDLY_URL when ready
-    /*
-    (function(d) {
-      var s = d.createElement('script');
-      s.src = 'https://assets.calendly.com/assets/external/widget.js';
-      s.async = true;
-      s.onload = function() {
-        Calendly.initInlineWidget({
-          url: 'YOUR_CALENDLY_URL',
-          parentElement: document.getElementById('calendly-embed')
-        });
-      };
-      d.head.appendChild(s);
-    })(document);
-    */
-
-    // Founders Circle countdown — target: August 31, 2025 11:59 PM
-    (function() {
-      const deadline = new Date('2025-09-01T00:00:00').getTime();
-      function pad(n) { return String(n).padStart(2, '0'); }
-      function tick() {
-        const now  = Date.now();
-        const diff = deadline - now;
-        if (diff <= 0) {
-          ['fc-days','fc-hours','fc-mins','fc-secs'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = '00';
-          });
-          const label = document.querySelector('.founders__countdown-label');
-          if (label) label.textContent = 'Charter Circle is now closed.';
-          return;
-        }
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000)  / 60000);
-        const s = Math.floor((diff % 60000)    / 1000);
-        const days  = document.getElementById('fc-days');
-        const hours = document.getElementById('fc-hours');
-        const mins  = document.getElementById('fc-mins');
-        const secs  = document.getElementById('fc-secs');
-        if (days)  days.textContent  = pad(d);
-        if (hours) hours.textContent = pad(h);
-        if (mins)  mins.textContent  = pad(m);
-        if (secs)  secs.textContent  = pad(s);
-      }
-      tick();
-      setInterval(tick, 1000);
-    })();
-
-    // Second countdown instance (Founders detail section)
-    (function() {
-      const deadline = new Date('2025-09-01T00:00:00').getTime();
-      function pad(n) { return String(n).padStart(2, '0'); }
-      function tick() {
-        const now  = Date.now();
-        const diff = deadline - now;
-        const d = diff <= 0 ? 0 : Math.floor(diff / 86400000);
-        const h = diff <= 0 ? 0 : Math.floor((diff % 86400000) / 3600000);
-        const m = diff <= 0 ? 0 : Math.floor((diff % 3600000)  / 60000);
-        co
+  <script src="script.js"></script>
+</body>
+</html>
