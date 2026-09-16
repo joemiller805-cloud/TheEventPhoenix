@@ -11,7 +11,7 @@
 	}
 
 	function tep_is_poll_query($queryName) { // Prebuilt PDO payloads stay HTTP 200 for dataSvc.rows and SW Network-First
-		return ($queryName === 'getActivePoll' || $queryName === 'submitPollVote' || $queryName === 'savePushSubscription' || $queryName === 'getAttendeeCheckInStatus' || $queryName === 'checkInAttendee' || $queryName === 'getVendorStatus' || $queryName === 'saveVendorLead'); // Poll, push, check-in, vendor ops
+		return ($queryName === 'getActivePoll' || $queryName === 'submitPollVote' || $queryName === 'savePushSubscription' || $queryName === 'getAttendeeCheckInStatus' || $queryName === 'checkInAttendee' || $queryName === 'getVendorStatus' || $queryName === 'saveVendorLead' || $queryName === 'getEventAnalytics'); // Poll, push, check-in, vendor ops, Event Pulse aggregates
 	}
 
 	function json_poll_rows($rows) { // Always HTTP 200 JSON {"rows":[...]} — never 400/500 for polls

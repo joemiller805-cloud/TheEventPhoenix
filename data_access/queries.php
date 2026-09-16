@@ -3061,8 +3061,8 @@
 		}
 	}
 
-	$tepPollQueryName = (string)($inputs['query'] ?? ''); // Only open PDO for poll, push-save, check-in, and vendor-ops endpoints
-	if ($tepPollQueryName === 'getActivePoll' || $tepPollQueryName === 'submitPollVote' || $tepPollQueryName === 'savePushSubscription' || $tepPollQueryName === 'getAttendeeCheckInStatus' || $tepPollQueryName === 'checkInAttendee' || $tepPollQueryName === 'getVendorStatus' || $tepPollQueryName === 'saveVendorLead') { // Skip extra connect on every other query
+	$tepPollQueryName = (string)($inputs['query'] ?? ''); // Only open PDO for poll, push-save, check-in, vendor-ops, and Event Pulse endpoints
+	if ($tepPollQueryName === 'getActivePoll' || $tepPollQueryName === 'submitPollVote' || $tepPollQueryName === 'savePushSubscription' || $tepPollQueryName === 'getAttendeeCheckInStatus' || $tepPollQueryName === 'checkInAttendee' || $tepPollQueryName === 'getVendorStatus' || $tepPollQueryName === 'saveVendorLead' || $tepPollQueryName === 'getEventAnalytics') { // Skip extra connect on every other query
 		try {
 			$pollPdo = tep_poll_pdo(); // Separate PDO handle; mysqli path unused when rows are prebuilt
 			if ($tepPollQueryName === 'savePushSubscription') { // Push save does not need poll tables
@@ -3071,6 +3071,10 @@
 				tep_checkin_ensure_local_demo($pollPdo); // Local attendees stub + demo tickets only
 			} elseif ($tepPollQueryName === 'getVendorStatus' || $tepPollQueryName === 'saveVendorLead') { // Vendor booth + leads
 				tep_vendor_ensure_schema($pollPdo); // Idempotent DDL for tep_vendor_booths / tep_vendor_leads
+			} elseif ($tepPollQueryName === 'getEventAnalytics') { // Pulse needs registrations, leads, and poll votes
+				tep_checkin_ensure_local_demo($pollPdo); // Local attendees stub so check-in % is not empty on XAMPP
+				tep_vendor_ensure_schema($pollPdo); // tep_vendor_leads for the lead COUNT
+				tep_poll_ensure_schema($pollPdo); // tep_polls / tep_poll_votes for live breakdowns
 			} else {
 				tep_poll_ensure_schema($pollPdo); // Idempotent DDL for Instant Polling
 			}
@@ -3337,6 +3341,94 @@
 					)));
 				}
 			}
+			if ($tepPollQueryName === 'getEventAnalytics') { // Account-scoped check-in %, vendor lead COUNT, live poll breakdowns
+				$emptyPulse = array(array( // HTTP 200 zero row when session/account is missing
+					'ok' => '0',
+					'checkin_total' => '0',
+					'checkin_in' => '0',
+					'checkin_percent' => '0',
+					'lead_count' => '0',
+					'polls_json' => '[]'
+				)); // Event Pulse binds these keys even when empty
+				if ($pollAccountId < 1) { // Do not leak other accounts
+					$queries['getEventAnalytics'] = query_definition('', '', array(), $emptyPulse); // HTTP 200 zeros
+				} else {
+					$checkSql = 'SELECT COUNT(*) AS checkin_total,
+						COALESCE(SUM(CASE WHEN r.checkin IS NULL OR r.checkin = \'0000-00-00 00:00:00\' THEN 0 ELSE 1 END), 0) AS checkin_in
+						FROM registrations r
+						JOIN events e ON e.id = r.eventid
+						WHERE e.accountid = :accountid
+						AND COALESCE(r.deleted, 0) = 0
+						AND (:eventid = 0 OR r.eventid = :eventid_match)'; // Bound tenant + optional event
+					$checkStmt = $pollPdo->prepare($checkSql); // PDO prepared aggregate
+					$checkStmt->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Session account
+					$checkStmt->bindValue(':eventid', $pollEventId, PDO::PARAM_INT); // 0 = all events
+					$checkStmt->bindValue(':eventid_match', $pollEventId, PDO::PARAM_INT); // Native prepares cannot reuse one name
+					$checkStmt->execute(); // Run the COUNT
+					$checkRow = $checkStmt->fetch() ?: array(); // Assoc or empty
+					$checkinTotal = (int)($checkRow['checkin_total'] ?? 0); // Registrations in scope
+					$checkinIn = (int)($checkRow['checkin_in'] ?? 0); // Checked-in subset
+					$checkinPercent = ($checkinTotal > 0) ? (int)round(($checkinIn / $checkinTotal) * 100) : 0; // 0–100; 0 when no regs
+					$leadSql = 'SELECT COUNT(*) FROM tep_vendor_leads
+						WHERE accountid = :accountid
+						AND (:eventid = 0 OR eventid = :eventid_match)'; // Bound tenant + optional event
+					$leadStmt = $pollPdo->prepare($leadSql); // PDO prepared COUNT
+					$leadStmt->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Session account
+					$leadStmt->bindValue(':eventid', $pollEventId, PDO::PARAM_INT); // 0 = all leads
+					$leadStmt->bindValue(':eventid_match', $pollEventId, PDO::PARAM_INT); // Native prepares cannot reuse one name
+					$leadStmt->execute(); // Run the COUNT
+					$leadCount = (int)$leadStmt->fetchColumn(); // Total vendor leads logged
+					$pulsePollSql = 'SELECT p.id, p.question, p.options_json,
+						(SELECT COUNT(*) FROM tep_poll_votes v WHERE v.pollid = p.id) AS total_votes
+						FROM tep_polls p
+						WHERE p.is_active = 1
+						AND p.accountid = :accountid
+						AND (:eventid = 0 OR p.eventid = :eventid_match OR p.eventid IS NULL)
+						ORDER BY p.id DESC'; // Live polls for this account (account-wide polls have NULL eventid)
+					$pulsePollStmt = $pollPdo->prepare($pulsePollSql); // PDO prepared select
+					$pulsePollStmt->bindValue(':accountid', $pollAccountId, PDO::PARAM_INT); // Session account
+					$pulsePollStmt->bindValue(':eventid', $pollEventId, PDO::PARAM_INT); // 0 = all
+					$pulsePollStmt->bindValue(':eventid_match', $pollEventId, PDO::PARAM_INT); // Native prepares cannot reuse one name
+					$pulsePollStmt->execute(); // Run the select
+					$pulsePollRows = $pulsePollStmt->fetchAll(); // Active polls
+					$pulseVoteStmt = $pollPdo->prepare('SELECT option_index, COUNT(*) AS vote_count FROM tep_poll_votes WHERE pollid = :pollid GROUP BY option_index'); // Per-option tallies
+					$pulsePollsOut = array(); // JSON-friendly breakdown list
+					foreach ($pulsePollRows as $pulsePollRow) { // Attach option labels + votes
+						$pulseLabels = json_decode((string)$pulsePollRow['options_json'], true); // ["Yes","No"]
+						if (!is_array($pulseLabels)) { // Bad JSON
+							$pulseLabels = array(); // Skip broken options
+						}
+						$pulseVoteStmt->bindValue(':pollid', (int)$pulsePollRow['id'], PDO::PARAM_INT); // Bound poll id
+						$pulseVoteStmt->execute(); // Grouped counts
+						$pulseCountMap = array(); // option_index => votes
+						foreach ($pulseVoteStmt->fetchAll() as $pulseCountRow) { // Build map
+							$pulseCountMap[(int)$pulseCountRow['option_index']] = (int)$pulseCountRow['vote_count']; // Integer keys in PHP
+						}
+						$pulseOptions = array(); // AngularJS ng-repeat source
+						foreach ($pulseLabels as $pulseIdx => $pulseLabel) { // One row per option
+							$pulseOptions[] = array( // Breakdown cell
+								'index' => (string)(int)$pulseIdx, // 0-based
+								'label' => (string)$pulseLabel, // Option text
+								'votes' => (string)(int)($pulseCountMap[(int)$pulseIdx] ?? 0) // Votes for this choice
+							);
+						}
+						$pulsePollsOut[] = array( // One live poll
+							'id' => (string)(int)$pulsePollRow['id'], // Poll id
+							'question' => (string)$pulsePollRow['question'], // Headline
+							'total_votes' => (string)(int)$pulsePollRow['total_votes'], // Sum
+							'options' => $pulseOptions // Vote breakdown
+						);
+					}
+					$queries['getEventAnalytics'] = query_definition('', '', array(), array(array( // Single HTTP 200 row for Event Pulse
+						'ok' => '1',
+						'checkin_total' => (string)$checkinTotal, // Registrations
+						'checkin_in' => (string)$checkinIn, // Checked in
+						'checkin_percent' => (string)$checkinPercent, // 0–100
+						'lead_count' => (string)$leadCount, // Vendor leads
+						'polls_json' => json_encode($pulsePollsOut) // Live poll vote breakdowns
+					)));
+				}
+			}
 		} catch (Exception $pollEx) { // Missing schema, PDO down, etc.
 			error_log('TEP poll query failed: ' . $pollEx->getMessage()); // Log only — no HTML error page
 			if ($tepPollQueryName === 'getActivePoll') { // Safe empty list
@@ -3351,6 +3443,15 @@
 				$queries['getVendorStatus'] = query_definition('', '', array(), array()); // HTTP 200
 			} elseif ($tepPollQueryName === 'saveVendorLead') { // Lead save still returns JSON rows
 				$queries['saveVendorLead'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
+			} elseif ($tepPollQueryName === 'getEventAnalytics') { // Pulse still returns JSON zeros
+				$queries['getEventAnalytics'] = query_definition('', '', array(), array(array( // HTTP 200 empty metrics
+					'ok' => '0',
+					'checkin_total' => '0',
+					'checkin_in' => '0',
+					'checkin_percent' => '0',
+					'lead_count' => '0',
+					'polls_json' => '[]'
+				)));
 			} else {
 				$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
 			}

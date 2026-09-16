@@ -2,6 +2,20 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 10] — Phase 7 Event Pulse live analytics — 2026-09-16
+
+Phase 7 adds a touch-optimized Event Pulse card on the AngularJS dashboard with real-time check-in percentage, vendor lead totals, and live poll vote breakdowns (no Workbox, no Node, no Angular 2+).
+
+### [Added]
+- **PDO aggregates (`query=getEventAnalytics`):** Session-scoped COUNT of registrations (checked-in vs total) with a 0–100 percent, COUNT of `tep_vendor_leads`, and active-poll option tallies from `tep_poll_votes`. Optional bound `eventid` (0 = all events). Empty session returns HTTP 200 zeros instead of leaking other accounts.
+- **AngularJS UI (`index.php` Event Pulse card):** `regController` binds `$scope.eventPulse` from HTTP 200 `rows` (`ok`, `checkin_percent`, `checkin_in`, `checkin_total`, `lead_count`, `polls_json`). 48px Refresh Pulse button, large metric tiles, check-in bar. Loads after accountid, on pull-to-refresh, after check-in / lead save / poll vote, and every 20 seconds via `$interval` (`$applyAsync`). Fail-soft message; `hideLoading()` on success and error.
+
+### [Refactored]
+- `data_access/getQueryResults.php` treats `getEventAnalytics` like Instant Polling and staff/vendor ops: always HTTP 200 JSON `{"rows":[...]}` so AngularJS `dataSvc.getArray` and the PWA Network-First cache see success. Other queries still use 400/500.
+
+### [Security Fix]
+- Event Pulse SQL uses PDO prepared statements with bound `accountid` / `eventid` only (no concatenated request data). Aggregates JOIN `events` so another account’s registrations cannot appear in the percentage.
+
 ## [Sprint 9] — Phase 6 Offline Resiliency & Production Security Hardening — 2026-09-10
 
 Phase 6 hardens the vanilla PWA offline path and locks the developer session bypass on live hosts (no Workbox, no Node, no Angular 2+).

@@ -15,6 +15,7 @@
 		.tep-dashboard input,
 		.tep-dashboard select,
 		.tep-dashboard textarea { min-height: 48px; } /* Same floor for form controls if this view adds them */
+		.tep-pulse-metric { min-height: 48px; } /* Event Pulse tiles stay tappable-height on phones */
 		.navbar-toggler { min-height: 48px; min-width: 48px; } /* Mobile nav hamburger on this page */
 		.tep-ptr-indicator { min-height: 48px; line-height: 48px; text-align: center; color: #E65100; font-weight: bold; } /* Pull-to-refresh status row */
 	</style>
@@ -35,7 +36,7 @@
 
 	<script type="text/javascript">
 		var app = angular.module('regApp', ['easyRegDataModule','erSvc', 'navMod']);
-		app.controller('regController', function($scope, $http, dataSvc, erSvc, $element, $timeout) { // $element = PTR host; $timeout = check-in search debounce
+		app.controller('regController', function($scope, $http, dataSvc, erSvc, $element, $timeout, $interval) { // $element = PTR host; $timeout = check-in search debounce; $interval = Event Pulse live refresh
 			function hideLoading() { // Explicit dismiss for every dashboard AJAX success and error
 				if (erSvc && typeof erSvc.hideLoading === 'function') { // Preferred helper
 					erSvc.hideLoading(); // jQuery UI loadingDialog + legacy $.unblockUI
@@ -49,6 +50,7 @@
 			$scope.pullRefresh = { dy: 0, busy: false, message: '' }; // Pull-to-refresh indicator bound on the dashboard view
 			$scope.checkIn = { q: '', rows: [], busy: false, message: '', searchTimer: null }; // Staff check-in card; never throws into the layout
 			$scope.vendorOps = { booth: null, leads: [], form: { attendee_name: '', email: '', company: '', ticket: '', notes: '' }, busy: false, message: '' }; // Vendor booth + lead capture
+			$scope.eventPulse = { checkin_total: 0, checkin_in: 0, checkin_percent: 0, lead_count: 0, polls: [], busy: false, message: '' }; // Event Pulse live metrics; never throws into the layout
 			erSvc.getAccountIdFromURL().then(function(urlAcct){
 				getAccountEvents();
 				dataSvc.getArray({'query':'accountInfo'}).then(function(resp){
@@ -61,6 +63,7 @@
 					$scope.loadPolls(); // Live poll widget after accountid is on $scope; PDO uses the session account
 					$scope.refreshPushNotifyState(); // Reflect existing permission/subscription without prompting
 					$scope.loadVendorStatus(); // Booth assignment + recent leads for Vendor Operations
+					$scope.loadEventPulse(); // Event Pulse aggregates after accountid is on $scope
 					$scope.$applyAsync();
 				}).catch(function () { // accountInfo transport/parse failure
 					hideLoading(); // Do not leave "Loading Event Data" on screen
@@ -156,6 +159,7 @@
 						poll.total_votes = Number(poll.total_votes || 0) + 1; // Update local total
 						poll.voted = true; // Show results; lock buttons
 						poll.message = 'Thanks for voting.'; // Confirm without reload
+						$scope.loadEventPulse(true); // Refresh poll vote breakdowns on Event Pulse
 					} else if (result.reason === 'already_voted') { // Unique (pollid, voter_key)
 						poll.voted = true; // Show existing counts; lock buttons
 						poll.message = 'You already voted in this poll.'; // Honest status
@@ -335,6 +339,7 @@
 				$scope.loadPolls(); // Same Network-First poll path as first paint
 				$scope.refreshPushNotifyState(); // Re-read permission/subscription; no prompt
 				$scope.loadVendorStatus(); // Refresh booth + lead list
+				$scope.loadEventPulse(); // Refresh check-in %, leads, and poll breakdowns
 				dataSvc.getArray({'query':'currentSeasonPassCount'}).then(function (resp) { // Same season-pass flag as first paint
 					if (resp[0] && resp[0].curPassCount) { // Truthy count
 						$scope.hasSeasonPasses = resp[0].curPassCount > 0; // Card visibility
@@ -486,6 +491,7 @@
 					if (result.ok === '1') { // Toggle stored
 						row.checked_in = result.checked_in; // Flip the button label
 						$scope.checkIn.message = (result.checked_in === '1') ? 'Checked in.' : 'Check-in cleared.'; // Confirm without reload
+						$scope.loadEventPulse(true); // Refresh check-in % without a full page reload
 					} else { // invalid / not_found / unavailable
 						$scope.checkIn.message = 'Check-in could not be saved. Try again.'; // Stay on the dashboard
 					}
@@ -515,6 +521,44 @@
 					$scope.$applyAsync(); // Digest
 				}).finally(hideLoading); // Success or error: never leave "Loading Event Data" up
 			};
+			$scope.loadEventPulse = function (silent) { // getEventAnalytics: check-in %, vendor leads, poll vote breakdowns
+				if (silent && $scope.eventPulse.busy) { // Skip overlapping silent ticks
+					return; // Keep the in-flight GET
+				}
+				$scope.eventPulse.busy = true; // Disable the 48px Refresh Pulse button
+				if (!silent) { // Manual tap / first paint
+					$scope.eventPulse.message = ''; // Clear prior status
+				}
+				dataSvc.getArray({'query':'getEventAnalytics'}).then(function (rows) { // HTTP 200 JSON rows
+					var row = (angular.isArray(rows) && rows[0]) ? rows[0] : {}; // Single aggregate payload
+					$scope.eventPulse.checkin_total = Number(row.checkin_total || 0); // Registrations
+					$scope.eventPulse.checkin_in = Number(row.checkin_in || 0); // Checked in
+					$scope.eventPulse.checkin_percent = Number(row.checkin_percent || 0); // 0–100
+					$scope.eventPulse.lead_count = Number(row.lead_count || 0); // Vendor leads
+					var polls = []; // polls_json
+					try { polls = JSON.parse(row.polls_json || '[]'); } catch (pulseErr) { polls = []; } // Fail-soft
+					$scope.eventPulse.polls = angular.isArray(polls) ? polls : []; // ng-repeat source
+					$scope.eventPulse.message = ''; // Clear error after a good load
+					$scope.eventPulse.busy = false; // Unlock Refresh Pulse
+					$scope.$applyAsync(); // Digest metrics
+				}).catch(function () { // getEventAnalytics rejection
+					$scope.eventPulse.busy = false; // Unlock Refresh Pulse
+					if (!silent) { // Do not flash errors on the 20s tick
+						$scope.eventPulse.message = 'Live metrics could not be loaded. Try again.'; // Fail-soft
+					}
+					$scope.$applyAsync(); // Digest
+				}).finally(hideLoading); // Success or error: never leave "Loading Event Data" up
+			};
+			var tepPulseTimer = $interval(function () { // Live Event Pulse without location.reload
+				if ($scope.accountRetrieved) { // Wait until the dashboard is showing
+					$scope.loadEventPulse(true); // Silent GET; $applyAsync inside
+				}
+			}, 20000); // 20s Network-First refresh
+			$scope.$on('$destroy', function () { // Controller teardown
+				if (tepPulseTimer) { // Cancel the live tick
+					$interval.cancel(tepPulseTimer); // Do not leak timers
+				}
+			});
 			$scope.saveVendorLead = function () { // saveVendorLead; HTTP 200 ok/reason
 				if ($scope.vendorOps.busy) { // Ignore double-taps
 					hideLoading(); // Do not leave a spinner over an ignored tap
@@ -545,6 +589,7 @@
 						$scope.vendorOps.form = { attendee_name: '', email: '', company: '', ticket: '', notes: '' }; // Clear for the next attendee
 						$scope.vendorOps.message = 'Lead saved.'; // Confirm without reload
 						$scope.loadVendorStatus(); // Refresh count + recent list
+						$scope.loadEventPulse(true); // Refresh lead COUNT on Event Pulse
 					} else { // invalid / unavailable
 						$scope.vendorOps.message = 'Lead could not be saved. Check the name and email.'; // Fail-soft
 					}
@@ -573,6 +618,44 @@
 				<div class='alert alert-danger' role='alert' ng-show="attendeeMessage"
 					style="font-size:large">
 					{{attendeeMessage}}
+				</div>
+			</div>
+			<!-- Event Pulse: getEventAnalytics check-in %, vendor leads, live poll breakdowns; $scope.eventPulse; 48px taps -->
+			<div class="col-md-6" ng-cloak>
+				<div class="card">
+					<div class="card-header bold">
+						<h5 class="card-title">Event Pulse</h5>
+						<div>Live check-in, vendor leads, and poll votes.</div>
+					</div>
+					<div class="card-body">
+						<div class="tep-pulse-metric" style="margin-bottom:12px;">
+							<div class="bold" style="font-size:2em;line-height:1.2;">{{eventPulse.checkin_percent}}%</div>
+							<div>checked in ({{eventPulse.checkin_in}} of {{eventPulse.checkin_total}})</div>
+							<div style="height:12px;background:#eee;border-radius:4px;margin-top:8px;overflow:hidden;">
+								<div ng-style="{'width': (eventPulse.checkin_percent || 0) + '%', 'height': '12px', 'background': '#E65100', 'max-width': '100%'}"></div>
+							</div>
+						</div>
+						<div class="tep-pulse-metric" style="margin-bottom:12px;">
+							<div class="bold" style="font-size:2em;line-height:1.2;">{{eventPulse.lead_count}}</div>
+							<div>vendor lead<span ng-show="eventPulse.lead_count != 1">s</span> logged</div>
+						</div>
+						<div ng-repeat="poll in eventPulse.polls" style="margin-bottom:12px;">
+							<div class="bold">{{poll.question}}</div>
+							<div ng-repeat="opt in poll.options" class="tep-pulse-metric" style="display:flex;align-items:center;justify-content:space-between;">
+								<span>{{opt.label}}</span>
+								<span class="bold">{{opt.votes}}</span>
+							</div>
+							<div>{{poll.total_votes}} vote<span ng-show="poll.total_votes != 1">s</span></div>
+						</div>
+						<div ng-show="!eventPulse.polls.length" style="margin-bottom:8px;">No live polls yet.</div>
+						<button type="button" class="btn btn-primary"
+							style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
+							ng-click="loadEventPulse()"
+							ng-disabled="eventPulse.busy">
+							Refresh Pulse
+						</button>
+						<div ng-show="eventPulse.message" style="margin-top:8px;">{{eventPulse.message}}</div>
+					</div>
 				</div>
 			</div>
 			<!-- Web Push toggle: Notification.requestPermission + pushManager.subscribe + savePushSubscription -->
