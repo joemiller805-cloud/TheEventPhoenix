@@ -21,6 +21,7 @@
 	</style>
 	<?php
 		include("common_functions.php");
+		$tepAdminSession = (!empty($_SESSION['accountid']) && !empty($_SESSION['userid']) && isset($_SESSION['useraccount']) && (string)$_SESSION['accountid'] === (string)$_SESSION['useraccount']); // Same admin.php gate: staff account matches login
 		include("commonStyles.php");
 		include("commonJs.php");
 		if (!defined('BASE_URL')) { // Sprint 1: tep_config is outside htdocs and may omit BASE_URL locally
@@ -38,12 +39,15 @@
 		var app = angular.module('regApp', ['easyRegDataModule','erSvc', 'navMod']);
 		app.controller('regController', function($scope, $http, dataSvc, erSvc, $element, $timeout, $interval) { // $element = PTR host; $timeout = check-in search debounce; $interval = Event Pulse live refresh
 			function hideLoading() { // Explicit dismiss for every dashboard AJAX success and error
+				$scope.loadingData = false; // Overlay flag; always cleared from .finally on first-paint promises
 				if (erSvc && typeof erSvc.hideLoading === 'function') { // Preferred helper
 					erSvc.hideLoading(); // jQuery UI loadingDialog + legacy $.unblockUI
 				} else if (erSvc && typeof erSvc.closeLoading === 'function') { // Older erSvc without hideLoading
 					erSvc.closeLoading(); // Dialog only
 				}
+				$scope.$applyAsync(); // Digest loadingData after .finally even when the GET threw
 			}
+			$scope.loadingData = true; // First-paint overlay until every initial GET hits .finally(hideLoading)
 			erSvc.loadingDialog("Loading Event Data");
 			$scope.polls = []; // Live poll widget rows; ng-repeat is empty until loadPolls runs
 			$scope.pushNotify = { supported: false, busy: false, enabled: false, blocked: false, message: '' }; // Dashboard Web Push toggle; never throws into the layout
@@ -51,6 +55,8 @@
 			$scope.checkIn = { q: '', rows: [], busy: false, message: '', searchTimer: null }; // Staff check-in card; never throws into the layout
 			$scope.vendorOps = { booth: null, leads: [], form: { attendee_name: '', email: '', company: '', ticket: '', notes: '' }, busy: false, message: '' }; // Vendor booth + lead capture
 			$scope.eventPulse = { checkin_total: 0, checkin_in: 0, checkin_percent: 0, lead_count: 0, polls: [], busy: false, message: '' }; // Event Pulse live metrics; never throws into the layout
+			$scope.tepAdminSession = <?= $tepAdminSession ? 'true' : 'false' ?>; // Hide Export Event Snapshot for attendee / empty sessions
+			$scope.snapshotExport = { busy: false, message: '' }; // Admin SQL snapshot; never throws into the layout
 			erSvc.getAccountIdFromURL().then(function(urlAcct){
 				getAccountEvents();
 				dataSvc.getArray({'query':'accountInfo'}).then(function(resp){
@@ -58,33 +64,34 @@
 					if(!$scope.accountid) window.location = "/landing.php";
 					else $scope.accountRetrieved = true;
 					setTimeout(() => $('.navbar').show() , 200);
-					$scope.accountName = resp[0].name;
-					$scope.attendeeMessage = resp[0].home_pg_msg;
+					if (angular.isArray(resp) && resp[0]) { // Empty HTTP 200 rows or dataSvc "error" string must not throw
+						$scope.accountName = resp[0].name; // Dashboard title from accounts.name
+						$scope.attendeeMessage = resp[0].home_pg_msg; // Home banner; missing row stays blank
+					}
 					$scope.loadPolls(); // Live poll widget after accountid is on $scope; PDO uses the session account
 					$scope.refreshPushNotifyState(); // Reflect existing permission/subscription without prompting
 					$scope.loadVendorStatus(); // Booth assignment + recent leads for Vendor Operations
 					$scope.loadEventPulse(); // Event Pulse aggregates after accountid is on $scope
 					$scope.$applyAsync();
 				}).catch(function () { // accountInfo transport/parse failure
-					hideLoading(); // Do not leave "Loading Event Data" on screen
 					$scope.$applyAsync(); // Digest
-				});
+				}).finally(hideLoading); // Success, empty rows, or throw: never leave "Loading Event Data" up
 				dataSvc.getArray({'query':'currentSeasonPassCount'}).then(function(resp){
-					if(resp[0] && resp[0].curPassCount) $scope.hasSeasonPasses = resp[0].curPassCount > 0;
+					if(angular.isArray(resp) && resp[0] && resp[0].curPassCount) $scope.hasSeasonPasses = resp[0].curPassCount > 0;
 				}).catch(function () { // Season-pass flag failed
-					hideLoading(); // Spinner must not stick if this GET is the last one standing
-				});
+					$scope.hasSeasonPasses = $scope.hasSeasonPasses || false; // Keep last known flag
+				}).finally(hideLoading); // Success or error: overlay cannot stick on this GET
 			}).catch(function () { // URL/account helper failed before events were requested
-				hideLoading(); // getAccountEvents never ran; dismiss the modal here
 				$scope.$applyAsync(); // Digest
-			});
+			}).finally(hideLoading); // getAccountIdFromURL reject still dismisses the modal
 
 			function getAccountEvents(){
 				return dataSvc.getObject({'query':'accountEvents'}).then(function(resp){ // Return the promise so pull-to-refresh can wait
 					$scope.events = resp;
 					$scope.recentEvents = [];
 					angular.forEach($scope.events,function(evt){
-						evt.datesPending = evt.startdate.indexOf('0000-00') >= 0;
+						var startStr = (evt && evt.startdate != null && evt.startdate !== '') ? String(evt.startdate) : ''; // Null/undefined dates must not call indexOf
+						evt.datesPending = (startStr === '' || startStr.indexOf('0000-00') >= 0); // Placeholder or missing start
 						if(['recent','past'].includes(evt.status) && evt.hide_after_start != '1' && evt.visible == '1' && evt.archived != '1'){
 							$scope.recentEvents.push(evt);
 						} 
@@ -204,6 +211,7 @@
 					state.enabled = false; // Cannot subscribe
 					state.message = 'Notifications are not available in this browser.'; // Honest empty state
 					$scope.$applyAsync(); // Digest the message
+					hideLoading(); // First-paint early exit still dismisses "Loading Event Data"
 					return; // Leave events/polls alone
 				}
 				if (Notification.permission === 'denied') { // User or browser blocked the site
@@ -211,12 +219,14 @@
 					state.enabled = false; // Treat as off
 					state.message = 'Notifications are blocked in this browser. Allow them in site settings to enable.'; // Recovery hint
 					$scope.$applyAsync(); // Digest
+					hideLoading(); // First-paint denied path still dismisses the overlay
 					return; // Do not call requestPermission (it will not re-prompt)
 				}
 				state.blocked = false; // default or granted
 				if (!navigator.serviceWorker.ready) { // No ready promise
 					state.enabled = false; // Treat as off
 					$scope.$applyAsync(); // Digest
+					hideLoading(); // First-paint missing SW still dismisses the overlay
 					return; // SW IIFE still registers on load
 				}
 				navigator.serviceWorker.ready.then(function (reg) { // Wait for /sw.js
@@ -230,7 +240,7 @@
 				}).catch(function () { // getSubscription can fail if SW is broken
 					state.enabled = false; // Stay off; dashboard remains usable
 					$scope.$applyAsync(); // Digest
-				});
+				}).finally(hideLoading); // First-paint push probe must still drop "Loading Event Data"
 			};
 			$scope.togglePushNotifications = function () { // Permission prompt + subscribe or unsubscribe; fail-soft
 				var state = $scope.pushNotify; // Bound toggle model
@@ -341,15 +351,15 @@
 				$scope.loadVendorStatus(); // Refresh booth + lead list
 				$scope.loadEventPulse(); // Refresh check-in %, leads, and poll breakdowns
 				dataSvc.getArray({'query':'currentSeasonPassCount'}).then(function (resp) { // Same season-pass flag as first paint
-					if (resp[0] && resp[0].curPassCount) { // Truthy count
+					if (angular.isArray(resp) && resp[0] && resp[0].curPassCount) { // Guard empty rows / "error" string
 						$scope.hasSeasonPasses = resp[0].curPassCount > 0; // Card visibility
 					} else {
 						$scope.hasSeasonPasses = false; // Hide if the refresh returns empty
 					}
 					$scope.$applyAsync(); // Digest season-pass card
 				}).catch(function () { // Season-pass refresh failed
-					hideLoading(); // Do not leave the initial modal up
-				});
+					$scope.hasSeasonPasses = $scope.hasSeasonPasses || false; // Keep dashboard usable
+				}).finally(hideLoading); // Overlay cannot stick on this GET
 				Promise.resolve(getAccountEvents()).then(function () { // Events list is the slow path
 					$scope.pullRefresh.busy = false; // Hide the spinner row
 					$scope.pullRefresh.message = ''; // Clear status
@@ -559,6 +569,30 @@
 					$interval.cancel(tepPulseTimer); // Do not leak timers
 				}
 			});
+			$scope.exportEventSnapshot = function () { // POST /admin/backup_db.php with CSRF; timestamped .sql download
+				if (!$scope.tepAdminSession) { // Attendee sessions never call the endpoint
+					hideLoading(); // Do not leave a spinner over a hidden control
+					return; // Server would 403 anyway
+				}
+				if ($scope.snapshotExport.busy) { // Ignore double-taps
+					hideLoading(); // Do not leave a spinner over an ignored tap
+					return; // One download at a time
+				}
+				if (typeof window.erPostRedirect !== 'function') { // commonJs.php helper missing
+					$scope.snapshotExport.message = 'Export is not available in this browser.'; // Fail-soft
+					$scope.$applyAsync(); // Digest
+					hideLoading(); // Spinner must not stick
+					return; // Do not GET the backup URL
+				}
+				$scope.snapshotExport.busy = true; // Disable the 48px button
+				$scope.snapshotExport.message = 'Preparing snapshot…'; // Status while the POST starts
+				$scope.$applyAsync(); // Digest
+				window.erPostRedirect('/admin/backup_db.php', {}); // POST + csrf_token; Content-Disposition attachment
+				$scope.snapshotExport.busy = false; // Unlock after the form submit
+				$scope.snapshotExport.message = ''; // Clear; the browser handles the file
+				$scope.$applyAsync(); // Digest
+				hideLoading(); // Form POST must not leave "Loading Event Data" up
+			};
 			$scope.saveVendorLead = function () { // saveVendorLead; HTTP 200 ok/reason
 				if ($scope.vendorOps.busy) { // Ignore double-taps
 					hideLoading(); // Do not leave a spinner over an ignored tap
@@ -655,6 +689,24 @@
 							Refresh Pulse
 						</button>
 						<div ng-show="eventPulse.message" style="margin-top:8px;">{{eventPulse.message}}</div>
+					</div>
+				</div>
+			</div>
+			<!-- Event Snapshot: admin-only POST /admin/backup_db.php; $scope.tepAdminSession; 48px tap -->
+			<div class="col-md-6" ng-show="tepAdminSession" ng-cloak>
+				<div class="card">
+					<div class="card-header bold">
+						<h5 class="card-title">Event Snapshot</h5>
+						<div>Download a timestamped SQL backup of this account.</div>
+					</div>
+					<div class="card-body">
+						<button type="button" class="btn btn-primary"
+							style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
+							ng-click="exportEventSnapshot()"
+							ng-disabled="snapshotExport.busy">
+							Export Event Snapshot
+						</button>
+						<div ng-show="snapshotExport.message" style="margin-top:8px;">{{snapshotExport.message}}</div>
 					</div>
 				</div>
 			</div>

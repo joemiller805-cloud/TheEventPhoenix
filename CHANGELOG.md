@@ -2,6 +2,29 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 12] — Query error boundary HTTP 200 empty rows — 2026-09-16
+
+### [Refactored]
+- `data_access/getQueryResults.php` catches PHP 8.2 `mysqli_sql_exception` from `database_connect()` (Apache log: connection refused at `common_functions.php:182`, uncaught at `getQueryResults.php:73`) and from prepare/execute. Missing tables, SQL errors, and a down MySQL now return HTTP 200 JSON `{"rows":[]}` so AngularJS `dataSvc` and `hideLoading()` still run. Unknown query names remain 400.
+- **M3 local check-in seed:** `tep_checkin_ensure_local_demo` reflects `registrations` columns via bound `information_schema` and INSERTs only whitelist columns that exist (`eventid`, `attendeeid`, `confirmation`, plus optional `deleted` / `checkin` / `checkin_userid` / `registration_typeid` / `userid`). Extra production NOT NULL columns are skipped per-row (`Throwable` log). The whole local demo (events/attendees seed included) is wrapped in `try/catch` so a schema mismatch cannot abort check-in or Event Pulse HTTP 200.
+- **Dashboard first paint (`index.php`):** `$scope.loadingData` is set true with “Loading Event Data” and cleared in `hideLoading()`. `getAccountIdFromURL`, `accountInfo`, `currentSeasonPassCount`, `accountEvents`, polls, vendor, Pulse, and the push probe all `.finally(hideLoading)` (early push exits call `hideLoading()` too). `evt.startdate.indexOf` runs only after a null/empty check; missing dates mark `datesPending`.
+
+### [Security Fix]
+- PDO connect/execute in `data_access/queries.php` (`tep_poll_pdo` and the poll/check-in/vendor/pulse block) catch `Throwable`. Failures log the exception and still emit HTTP 200 empty `rows` (or `ok:0` for writes). SQL error text is never printed to the browser.
+
+## [Sprint 11] — Phase 8 Event Snapshot SQL backup — 2026-09-16
+
+Phase 8 adds a secure admin SQL snapshot download so staff can export this account’s TEP tables without dumping other tenants (no Workbox, no Node, no Angular 2+).
+
+### [Added]
+- **Admin utility (`admin/backup_db.php`):** PDO `information_schema` reflection lists BASE tables in the current TEP schema. Each table name/column is regex-checked before backtick quoting. The response is a timestamped `.sql` download (`tep_event_snapshot_{accountid}_{UTC}.sql`) with `SHOW CREATE TABLE` plus account-scoped `INSERT` rows (`accountid`, or `eventid` via `events`, or `pollid` via `tep_polls`). Tables with no tenant key dump structure only.
+- **AngularJS UI (`index.php`):** Added an **Export Event Snapshot** card on `regController` (48px button) shown only when `$scope.tepAdminSession` is true (`accountid` matches `useraccount`, same as `admin.php`). The click uses existing `erPostRedirect` so the request is POST with `csrf_token`. `$applyAsync` / `hideLoading()` keep the dashboard digest and loader lifecycle intact.
+
+### [Security Fix]
+- Snapshot export requires POST + CSRF (`require_csrf_request`) and an admin session. GET is 405. Attendee sessions are 403. SQL identifiers are never taken from request parameters. Data selects bind session `accountid` only. The dump is `Cache-Control: no-store` so the service worker does not cache it.
+- **H1 (`index.php`):** `accountInfo` only reads `resp[0].name` / `home_pg_msg` when `angular.isArray(resp) && resp[0]`. Empty HTTP 200 `rows` (down MySQL) and dataSvc `"error"` no longer TypeError; polls, vendor, and Event Pulse still load.
+- **H2 (`admin/backup_db.php`):** Schema reflection, the table loop, and streaming sit in one `try/catch (Throwable)`. Failures are logged; the download stays a `.sql` file with `-- TEP Event Snapshot backup failed.` comments (no exception text, no 500 HTML in the stream).
+
 ## [Sprint 10] — Phase 7 Event Pulse live analytics — 2026-09-16
 
 Phase 7 adds a touch-optimized Event Pulse card on the AngularJS dashboard with real-time check-in percentage, vendor lead totals, and live poll vote breakdowns (no Workbox, no Node, no Angular 2+).

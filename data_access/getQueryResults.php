@@ -31,32 +31,37 @@
 	function execute_query_definition($resourceID, $queryDefinition){
 		if(!is_array($queryDefinition)) return false;
 
-		$stmt = mysqli_prepare($resourceID, $queryDefinition['sql']);
-		if(!$stmt){
-			error_log('TEP query prepare failed: ' . mysqli_error($resourceID));
-			return false;
-		}
+		try { // PHP 8.2 mysqli throws mysqli_sql_exception on missing tables / bad SQL
+			$stmt = mysqli_prepare($resourceID, $queryDefinition['sql']);
+			if(!$stmt){
+				error_log('TEP query prepare failed: ' . mysqli_error($resourceID));
+				return false;
+			}
 
-		$types = $queryDefinition['types'] ?? '';
-		$params = $queryDefinition['params'] ?? array();
-		if(!bind_stmt_params($stmt, $types, $params)){
-			error_log('TEP query bind failed for query.');
+			$types = $queryDefinition['types'] ?? '';
+			$params = $queryDefinition['params'] ?? array();
+			if(!bind_stmt_params($stmt, $types, $params)){
+				error_log('TEP query bind failed for query.');
+				mysqli_stmt_close($stmt);
+				return false;
+			}
+
+			if(!mysqli_stmt_execute($stmt)){
+				error_log('TEP query execute failed: ' . mysqli_stmt_error($stmt));
+				mysqli_stmt_close($stmt);
+				return false;
+			}
+
+			$resultID = mysqli_stmt_get_result($stmt);
+			if($resultID === false && mysqli_stmt_errno($stmt)){
+				error_log('TEP query result fetch failed: ' . mysqli_stmt_error($stmt));
+			}
 			mysqli_stmt_close($stmt);
-			return false;
+			return $resultID;
+		} catch (Throwable $sqlEx) { // Missing table, connection drop, or SQL error mid-prepare
+			error_log('TEP query SQL exception: ' . $sqlEx->getMessage()); // Log only — no HTML 500
+			return false; // Caller emits HTTP 200 empty rows
 		}
-
-		if(!mysqli_stmt_execute($stmt)){
-			error_log('TEP query execute failed: ' . mysqli_stmt_error($stmt));
-			mysqli_stmt_close($stmt);
-			return false;
-		}
-
-		$resultID = mysqli_stmt_get_result($stmt);
-		if($resultID === false && mysqli_stmt_errno($stmt)){
-			error_log('TEP query result fetch failed: ' . mysqli_stmt_error($stmt));
-		}
-		mysqli_stmt_close($stmt);
-		return $resultID;
 	}
 
 	$queryName = $inputs['query'] ?? '';
@@ -70,7 +75,13 @@
 		exit; // Skip mysqli
 	}
 
-	$resourceID = database_connect(); // Existing queries still use mysqli prepared statements
+	try { // PHP 8.2 mysqli_real_connect throws mysqli_sql_exception when MySQL refuses the port
+		$resourceID = database_connect(); // Existing queries still use mysqli prepared statements
+	} catch (Throwable $connectEx) { // Connection refused / missing schema
+		error_log('TEP query DB connect failed: ' . $connectEx->getMessage()); // Same fatal previously uncaught at line 73
+		json_poll_rows(array()); // HTTP 200 empty rows so AngularJS dataSvc and hideLoading still run
+		exit; // No mysqli handle to close
+	}
 
 	try{
 		if($queryName === '' || !isset($queries[$queryName])){
@@ -95,11 +106,11 @@
 			}
 			print json_encode(array("rows" => $response));
 		}else{
-			json_error_response(500, 'Query execution failed.');
+			json_poll_rows(array()); // Missing table / SQL error: HTTP 200 empty rows, never 500
 		}
-	}catch(Exception $e){
+	}catch(Throwable $e){
 		error_log('TEP query exception for ' . $queryName . ': ' . $e->getMessage());
-		json_error_response(500, 'Query execution error.');
+		json_poll_rows(array()); // HTTP 200 empty rows instead of an unhandled 500
 	}
 	mysqli_close($resourceID);
 ?>

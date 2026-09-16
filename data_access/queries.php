@@ -2914,11 +2914,16 @@
 			$pass = defined('DB_PASS_LOCAL') ? DB_PASS_LOCAL : ''; // XAMPP empty root password
 		}
 		$dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $dbname . ';charset=utf8mb4'; // Constants only — never request data
-		return new PDO($dsn, $user, $pass, array( // Exceptions so callers can still emit HTTP 200 rows
-			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Catch and convert to {"rows":[]}
-			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // dataSvc-friendly associative rows
-			PDO::ATTR_EMULATE_PREPARES => false, // Real server-side prepares
-		));
+		try { // PHP 8.2 PDO throws PDOException when MySQL is down or the schema is missing
+			return new PDO($dsn, $user, $pass, array( // Exceptions so callers can still emit HTTP 200 rows
+				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Catch and convert to {"rows":[]}
+				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // dataSvc-friendly associative rows
+				PDO::ATTR_EMULATE_PREPARES => false, // Real server-side prepares
+			));
+		} catch (Throwable $pdoConnectEx) { // Connection refused / unknown database
+			error_log('TEP poll PDO connect failed: ' . $pdoConnectEx->getMessage()); // Log only
+			throw $pdoConnectEx; // Re-throw so the outer query try/catch can emit empty rows
+		}
 	}
 
 	function tep_poll_ensure_schema($pdo) { // CREATE IF NOT EXISTS so tep_local can serve polls without a manual import
@@ -2972,6 +2977,7 @@
 		if (!function_exists('tep_is_local_host') || !tep_is_local_host()) { // Never DDL/seed on production hosts
 			return; // Production already has attendees/registrations
 		}
+		try { // M3: extra production NOT NULL columns must not abort check-in / Event Pulse
 		$pdo->exec('CREATE TABLE IF NOT EXISTS attendees (
 			id INT NOT NULL AUTO_INCREMENT,
 			accountid INT NOT NULL DEFAULT 0,
@@ -2995,19 +3001,51 @@
 		if ($regCount === 0 && $evtId > 0) { // Pair tickets to the hidden demo event
 			$janeId = (int)$pdo->query("SELECT id FROM attendees WHERE email = 'jane@localhost' LIMIT 1")->fetchColumn(); // Demo attendee
 			$johnId = (int)$pdo->query("SELECT id FROM attendees WHERE email = 'john@localhost' LIMIT 1")->fetchColumn(); // Demo attendee
-			$regIns = $pdo->prepare('INSERT INTO registrations (eventid, deleted, attendeeid, confirmation, checkin, checkin_userid, registration_typeid) VALUES (:eventid, 0, :attendeeid, :confirmation, NULL, 0, 0)'); // Bound seed
-			if ($janeId > 0) { // Jane ticket
-				$regIns->bindValue(':eventid', $evtId, PDO::PARAM_INT); // Hidden demo event
-				$regIns->bindValue(':attendeeid', $janeId, PDO::PARAM_INT); // Name JOIN
-				$regIns->bindValue(':confirmation', 'TEPJANE1', PDO::PARAM_STR); // Ticket code
-				$regIns->execute(); // Insert
+			$colStmt = $pdo->prepare('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :tname'); // Reflect live registrations columns
+			$colStmt->bindValue(':tname', 'registrations', PDO::PARAM_STR); // Table name as data, not SQL
+			$colStmt->execute(); // Column list
+			$regCols = $colStmt->fetchAll(PDO::FETCH_COLUMN); // Existing names
+			$seedPairs = array(); // Only insert columns that exist (skip extra production NOT NULL we cannot fill)
+			foreach (array('eventid', 'deleted', 'attendeeid', 'confirmation', 'checkin', 'checkin_userid', 'registration_typeid', 'userid') as $seedCol) { // Whitelist; never request data
+				if (in_array($seedCol, $regCols, true)) { // Column present on this schema
+					$seedPairs[] = $seedCol; // Include in INSERT
+				}
 			}
-			if ($johnId > 0) { // John ticket
-				$regIns->bindValue(':eventid', $evtId, PDO::PARAM_INT); // Hidden demo event
-				$regIns->bindValue(':attendeeid', $johnId, PDO::PARAM_INT); // Name JOIN
-				$regIns->bindValue(':confirmation', 'TEPJOHN2', PDO::PARAM_STR); // Ticket code
-				$regIns->execute(); // Insert
+			if (!empty($seedPairs) && in_array('eventid', $seedPairs, true) && in_array('attendeeid', $seedPairs, true) && in_array('confirmation', $seedPairs, true)) { // Need ticket JOIN keys
+				$colSql = array(); // Backticked names
+				$phSql = array(); // Named placeholders
+				foreach ($seedPairs as $seedCol) { // Safe identifiers from whitelist ∩ reflection
+					$colSql[] = '`' . $seedCol . '`'; // Quoted column
+					$phSql[] = ':' . $seedCol; // Bound value
+				}
+				$regIns = $pdo->prepare('INSERT INTO registrations (' . implode(',', $colSql) . ') VALUES (' . implode(',', $phSql) . ')'); // Bound seed; columns from information_schema only
+				foreach (array($janeId => 'TEPJANE1', $johnId => 'TEPJOHN2') as $attId => $confCode) { // Two demo tickets
+					if ((int)$attId < 1) { // Missing attendee
+						continue; // Skip
+					}
+					try { // Extra NOT NULL columns without defaults must not abort check-in / Pulse
+						foreach ($seedPairs as $seedCol) { // Bind each present column
+							if ($seedCol === 'eventid') { // Hidden demo event
+								$regIns->bindValue(':eventid', $evtId, PDO::PARAM_INT); // Event
+							} elseif ($seedCol === 'attendeeid') { // Name JOIN
+								$regIns->bindValue(':attendeeid', (int)$attId, PDO::PARAM_INT); // Attendee
+							} elseif ($seedCol === 'confirmation') { // Ticket code
+								$regIns->bindValue(':confirmation', $confCode, PDO::PARAM_STR); // TEPJANE1 / TEPJOHN2
+							} elseif ($seedCol === 'checkin') { // Not checked in yet
+								$regIns->bindValue(':checkin', null, PDO::PARAM_NULL); // NULL timestamp
+							} elseif ($seedCol === 'deleted' || $seedCol === 'checkin_userid' || $seedCol === 'registration_typeid' || $seedCol === 'userid') { // Integer defaults
+								$regIns->bindValue(':' . $seedCol, 0, PDO::PARAM_INT); // 0
+							}
+						}
+						$regIns->execute(); // Insert one demo registration
+					} catch (Throwable $seedEx) { // Production NOT NULL leftover
+						error_log('TEP local check-in seed skipped: ' . $seedEx->getMessage()); // Log only; continue the query
+					}
+				}
 			}
+		}
+		} catch (Throwable $demoEx) { // Events/attendees schema mismatch or information_schema failure
+			error_log('TEP local check-in demo skipped: ' . $demoEx->getMessage()); // Log only; Pulse/check-in still run
 		}
 	}
 
@@ -3429,7 +3467,7 @@
 					)));
 				}
 			}
-		} catch (Exception $pollEx) { // Missing schema, PDO down, etc.
+		} catch (Throwable $pollEx) { // Missing schema, PDO down, missing table, or SQL error
 			error_log('TEP poll query failed: ' . $pollEx->getMessage()); // Log only — no HTML error page
 			if ($tepPollQueryName === 'getActivePoll') { // Safe empty list
 				$queries['getActivePoll'] = query_definition('', '', array(), array()); // HTTP 200
@@ -3454,6 +3492,9 @@
 				)));
 			} else {
 				$queries['submitPollVote'] = query_definition('', '', array(), array(array('ok' => '0', 'reason' => 'unavailable'))); // HTTP 200
+			}
+			if ($tepPollQueryName !== '' && (!isset($queries[$tepPollQueryName]) || !isset($queries[$tepPollQueryName]['rows']))) { // Any PDO query that missed a named branch
+				$queries[$tepPollQueryName] = query_definition('', '', array(), array()); // HTTP 200 empty rows — never fall through to mysqli 500
 			}
 		}
 	}
