@@ -40,8 +40,8 @@
 <script>
 var app = angular.module('regApp', ['easyRegDataModule','erSvc','navMod']);
 app.controller('regController', function($scope, $http, $q, dataSvc, erSvc) {
-	$scope.slug = '<?= $_REQUEST["slug"] ?>';
-	$scope.confirmation = '<?= $_SESSION["confirmation"] ?>' || '<?= $_REQUEST["confirmation"] ?>';
+	$scope.slug = <?= tep_js_string($_REQUEST['slug'] ?? '') ?>;
+	$scope.confirmation = <?= tep_js_string($_SESSION['confirmation'] ?? '') ?> || <?= tep_js_string($_REQUEST['confirmation'] ?? '') ?>;
 	$scope.attendee_first = "<?= $_SESSION['attendee_first'] ?>";
 	$scope.attendee_last = "<?= $_SESSION['attendee_last'] ?>";
 	$scope.eventData;

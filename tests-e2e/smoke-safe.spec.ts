@@ -4,7 +4,7 @@ test.describe('Public smoke coverage', () => {
   test('landing page loads core marketing content', async ({ page }) => {
     await page.goto('/landing.php');
 
-    await expect(page).toHaveTitle(/EasyRegPro Event Management Software/i);
+    await expect(page).toHaveTitle(/The Event Phoenix Event Management Software/i);
     await expect(page.locator('#pgHeader')).toHaveText('Dynamic Event Management Software');
     await expect(page.getByText('Centralized Event Management', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'PSUG Events' })).toBeVisible();

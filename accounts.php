@@ -312,7 +312,7 @@
 <body ng-app="regApp" style="padding-top: 5px;">
 <div ng-controller="regCtrl" style="padding:0px 3em">
 	<section style="display:flex">
-		<h1 style="margin-top:0px;flex:50%">EasyRegPro Support Portal</h1>
+		<h1 style="margin-top:0px;flex:50%">The Event Phoenix Support Portal</h1>
 		<section style="flex:48%;text-align:right">
 			<a href="/supportTickets.php">
 				<button class="btn btn-primary"> {{openTickets}} Open Tickets</button>

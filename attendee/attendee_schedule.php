@@ -42,7 +42,7 @@ app.controller('regController', function($scope, $http, $q, dataSvc, erSvc) {
 	}
 
 	$scope.showW9 = accountid == 1000;
-	dataSvc.getEventData('<?= $_REQUEST["slug"] ?>').then(function(resp){
+	dataSvc.getEventData(<?= tep_js_string($_REQUEST['slug'] ?? '') ?>).then(function(resp){
 		$scope.eventData = resp;
 		accountid = resp.accountid;
 		eventid = resp.eventid;
@@ -68,8 +68,8 @@ app.controller('regController', function($scope, $http, $q, dataSvc, erSvc) {
 	$q.all([eventDataRetrieved.promise, sessionsRetrieved.promise]).then(function(){
 		if($scope.confirmation && $scope.registrationid){
 			$scope.getAttendeeSchedule();
-		}else if('<?= $_REQUEST["confirmation"] ?>'){
-			$scope.loginConfirmationNumber = '<?= $_REQUEST["confirmation"] ?>';
+		}else if(<?= tep_js_string($_REQUEST['confirmation'] ?? '') ?>){
+			$scope.loginConfirmationNumber = <?= tep_js_string($_REQUEST['confirmation'] ?? '') ?>;
 			$scope.logIn();
 		}else{
 			$scope.showLogin = true;

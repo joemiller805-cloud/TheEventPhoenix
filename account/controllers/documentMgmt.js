@@ -230,11 +230,7 @@ regApp.controller('documentMgmt', function($scope, $http, $q, $filter, $rootScop
 
 	$scope.deleteDoc = function(){
 		var doc = $scope.selectedDoc;
-		$http({
-			"url": "/deleteDocument.php",
-			"method": "GET",
-			"params": {'document':doc.filepath}
-		}).then(function(response){
+		erSvc.deleteDocument(doc.filepath).then(function(response){ // POST + CSRF
 			if(response.data == 'success'){
 				angular.forEach(doc.courseAssociations,function(assoc){
 					dataSvc.deleteRecord({"table":"document_association","id":assoc.id});

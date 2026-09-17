@@ -3,24 +3,31 @@
 	require 'phpmailer/SMTP.php';
 	require 'phpmailer/Exception.php';
 	include("common_functions.php");
+	start_secure_session(); // Session tenant for the event row
+	require_once __DIR__ . '/data_access/tep_dml_pdo.php'; // Bound event lookup
 	$inputs = sanitize_inputs($_REQUEST);
 	$confirmation = (string)$inputs['confirmation'];
-	$resourceID = database_connect();
-	$query = "
-		SELECT
-			events.name event,
-			slug,
-			replytoemail, 
-			registration_message
-		FROM events
-		WHERE id = {$inputs['eventid']}
-	";
-	$resultID = mysqli_query($resourceID, $query);
-	$event = mysqli_fetch_assoc($resultID);
+	$eventId = (int)($inputs['eventid'] ?? 0); // Bound
+	$tenant = tep_session_accountid(); // Session only
+	if ($tenant < 1 || $eventId < 1) { // Missing tenant or event
+		exit; // Fail closed
+	}
+	try { // PDO event row; never interpolate eventid
+		$pdo = tep_dml_pdo(); // utf8mb4
+		$stmt = $pdo->prepare('SELECT events.name AS event, slug, replytoemail, registration_message FROM events WHERE id = :eventid AND accountid = :accountid LIMIT 1'); // Bound + tenant
+		$stmt->execute(array('eventid' => $eventId, 'accountid' => $tenant)); // Session tenant
+		$event = $stmt->fetch(PDO::FETCH_ASSOC); // One row
+	} catch (Throwable $regEx) { // Connect
+		error_log('TEP save_registration_ticketing event lookup failed: ' . $regEx->getMessage()); // Log only
+		$event = false; // Fall through
+	}
+	if (!$event) { // Missing event
+		exit; // Stop without sending
+	}
 
-	$sender = 'EasyRegPro';
-	if(!is_null($inputs['sender'])){
-		$sender = $inputs['sender'];
+	$sender = tep_mail_from_name(); // Sweep B legal display name
+	if(!empty($inputs['sender'])){
+		$sender = (string)$inputs['sender']; // Event override
 	}
 	$mail = new PHPMailer\PHPMailer\PHPMailer(true);
 	$mail->isSMTP();                                            //Send using SMTP
@@ -30,8 +37,8 @@
 	$mail->Password   = SMTP_PASS;                            //SMTP password
 	$mail->SMTPSecure = SMTP_SECURE;            						//Enable implicit TLS encryption
 	$mail->Port       = SMTP_PORT;  
-	$mail->setFrom('postmaster@easyregpro.com', $sender);
-	$mail->addReplyTo('postmaster@easyregpro.com', $sender);
+	$mail->setFrom(tep_mail_from_address(), $sender); // SMTP mailbox; display name is TEP or event
+	$mail->addReplyTo(tep_mail_from_address(), $sender);
 	$mail->isHTML(true);                                  		
 	$mail->Subject = "{$event['event']} Registration"; 
 	$mail->addAddress($inputs['email']); 
@@ -50,5 +57,5 @@
 	$_SESSION['confirmation'] = $confirmation;
 	touch_session_activity(true);
 	$mail->send();
-	mysqli_close($resourceID);
+	// mysqli handle removed; PDO is request-scoped
 ?>

@@ -37,7 +37,7 @@
 	const meetConfig = {
 		"apiKey": 'Yp7WjcuWSA69gjQj-dEcuA',
 		"meeting_number": mtgid,
-		"leaveUrl": 'https://www.easyregpro.com',
+		"leaveUrl": 'https://www.easyregpro.com', // Production leave URL hostname — not display branding
 		"userName": username,
 		"userEmail": email,
 		"passWord": mtgpass,

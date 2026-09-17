@@ -10,9 +10,9 @@
 		<div>Event Management Made Easy!</div>
 		<H1 style="font-size:40pt">FEATURES</H1>
 		<p style="margin-bottom: 0px;">
-			EasyRegPro is your one stop shop for all your event planning needs. <br/>
-			Whether it is an in person event, virtual or hybrid, EasyRegPro is what you need.  <br/>
-			Check out just some of the great feature EasyRegPro has to offer.
+			The Event Phoenix is your one stop shop for all your event planning needs. <br/>
+			Whether it is an in person event, virtual or hybrid, The Event Phoenix is what you need.  <br/>
+			Check out just some of the great feature The Event Phoenix has to offer.
 		</p>
 	</section>
 	<section class="lightGreen center twoCol" style="font-size:12pt;padding-top: 0px;">
@@ -43,7 +43,7 @@
 					<li>& More!</li>
 				</ul>
 				<H4>Made "BY" Event Planners "FOR" Event Planners</H4>
-				<p><a href="/freeTrial.php" class="button">Try EasyRegPro for Free!</a></p>
+				<p><a href="/freeTrial.php" class="button">Try The Event Phoenix for Free!</a></p>
 			</section>
 		</div>
 	</section>

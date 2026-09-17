@@ -13,14 +13,14 @@
 				}
 				let subject = 'EasyReg Contact Request';
 				let body = `
-					${$scope.first_name} ${$scope.last_name} has completed the EasyRegPro contact form.
+					${$scope.first_name} ${$scope.last_name} has completed the The Event Phoenix contact form.
 					\n
 					Email - ${$scope.email} \n
 					${$scope.message || ''} 
 				`;
 				erSvc.sendEmail('Joe.Miller@psugevents.com', subject, body).then(function(){
 					$scope.messageSent = true;
-					let txt = `Thank you for your interest in EasyRegPro.  We will be in contact soon.`;
+					let txt = `Thank you for your interest in The Event Phoenix.  We will be in contact soon.`;
 					erSvc.easyRegAlert({"text":txt,"title":"Message Submitted"});
 				});
 			};
@@ -33,7 +33,7 @@
 		<div>Event Management Made Easy!</div>
 		<H1 style="font-size:40pt">Contact Us</H1>
 		<p style="margin-bottom: 0px;">
-			Please fill out the form below if you would like more info or pricing on our EasyRegPro Event Management & Ticketing Management System.
+			Please fill out the form below if you would like more info or pricing on our The Event Phoenix Event Management & Ticketing Management System.
 		</p>
 	</section>
 	<section class="lightGreen center" style="font-size:12pt;padding-top: 10px;">

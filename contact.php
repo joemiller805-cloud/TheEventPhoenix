@@ -13,7 +13,7 @@
 		var app = angular.module('regApp', ['easyRegDataModule','erSvc','navMod']);
 		app.controller('regController', function($scope, $http, dataSvc, erSvc) {
 			$scope.eventData;
-			dataSvc.getEventData('<?= $_REQUEST["slug"] ?>').then(function(resp){
+			dataSvc.getEventData(<?= tep_js_string($_REQUEST['slug'] ?? '') ?>).then(function(resp){
 				$scope.hasEvtPage = resp.pages.length > 0;
 				$scope.eventData = resp;
 				dataSvc.getArray({

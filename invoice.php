@@ -1,6 +1,6 @@
 <?php
 include("common_functions.php");
-$resourceID = database_connect();
+start_secure_session(); // Session tenant for invoice rows
 $inputs = sanitize_inputs($_REQUEST);
 // Include the main TCPDF library (search for installation path).
 require_once('tcpdf/tcpdf.php');
@@ -27,10 +27,17 @@ $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 $confirmations = array();
 foreach (explode(",", $inputs['confirmation']) as $confirmation){
-	$confirmations[] = "'$confirmation'";
+	$confirmations[] = trim($confirmation); // Raw codes; bound below
 }
-$confirmations = implode(",", $confirmations);
-$query = "
+require_once __DIR__ . '/data_access/tep_dml_pdo.php'; // Bound IN list
+$in = tep_pdo_in_list($confirmations); // Placeholders
+if (!$in) { // No tickets
+	$pdf->Output('invoice.pdf', 'I');
+	exit; // Stop
+}
+try { // PDO invoice rows; never interpolate confirmation CSV
+	$pdo = tep_dml_pdo(); // utf8mb4
+	$stmt = $pdo->prepare("
 	SELECT
 		registrations.*,
 		format(ROUND(registrations.registration_price_num,2) - ROUND(registrations.payment_total_num,2),2) balance
@@ -98,14 +105,26 @@ $query = "
 				LEFT JOIN preferences ON preferences.accountid = accounts.id
 					AND preferences.name = 'basysEnabled'
 			WHERE
-				registrations.confirmation in ($confirmations)
+				registrations.confirmation in (" . $in['sql'] . ")
+				AND events.accountid = ?
 		) registrations
 		ORDER BY last_name,	first_name
-	";
+	"); // Bound IN + session tenant
+	$invParams = $in['params']; // Ticket codes
+	$invParams[] = tep_session_accountid(); // Session only
+	if (tep_session_accountid() < 1) { // No tenant
+		error_log('TEP invoice.php missing session tenant'); // Log only
+		$invoiceRows = array(); // Empty PDF
+	} else {
+	$stmt->execute($invParams); // Ticket codes as data
+	$invoiceRows = $stmt->fetchAll(PDO::FETCH_ASSOC); // All invoices
+	}
+} catch (Throwable $invEx) { // Connect
+	error_log('TEP invoice.php lookup failed: ' . $invEx->getMessage()); // Log only
+	$invoiceRows = array(); // Empty PDF
+}
 
-$resultID = mysqli_query($resourceID, $query);
-
-while ($registration = mysqli_fetch_assoc($resultID)){
+foreach ($invoiceRows as $registration){
 	$pdf->AddPage();
 	$pdf->setCellPaddings(0, 0, 0, 0);
 	$pdf->setCellMargins(0, 0, 0, 0);
@@ -156,4 +175,3 @@ while ($registration = mysqli_fetch_assoc($resultID)){
 $pdf->lastPage();
 //Close and output PDF document
 $pdf->Output('invoice.pdf', 'I');
-mysqli_close($resourceID);

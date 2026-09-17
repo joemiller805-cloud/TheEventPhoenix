@@ -15,7 +15,7 @@ regApp.controller('acmeMgmt', function($scope, $http, dataSvc, erSvc) {
 			});
 			if(request.approved != 1) return;
 			let subject = "ACME Plugin Access Request Approved";
-			let body = `Your request for access to ACME PowerSchool Plugins at EasyRegPro has been approved. <br/>
+			let body = `Your request for access to ACME PowerSchool Plugins at The Event Phoenix has been approved. <br/>
 			You may download the plugins at https://easyregpro.com/acme.php?auth=${request.email}`;
 			erSvc.sendEmail(request.email, subject, body);
 		});

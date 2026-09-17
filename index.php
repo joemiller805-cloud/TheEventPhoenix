@@ -155,7 +155,7 @@
 				}
 				poll.busy = true; // Disable buttons immediately
 				poll.message = ''; // Clear prior status
-				dataSvc.getArray({ // Existing GET query endpoint (PDO insert server-side)
+				dataSvc.postArray({ // POST + X-CSRF-Token; GET mutations are 405
 					'query': 'submitPollVote', // Vote write
 					'pollid': poll.id, // Active poll id
 					'option_index': opt.index // 0-based choice
@@ -304,7 +304,7 @@
 						$scope.$applyAsync(); // Digest
 						return; // Do not call savePushSubscription
 					}
-					return dataSvc.getArray({ // Existing GET query path (PDO upsert server-side)
+					return dataSvc.postArray({ // POST + X-CSRF-Token; GET mutations are 405
 						'query': 'savePushSubscription', // Sprint 6 endpoint
 						'endpoint': endpoint, // Bound HTTPS URL
 						'p256dh': p256dh, // Bound key
@@ -479,7 +479,7 @@
 				}
 				row.busy = true; // Disable this 48px button
 				$scope.checkIn.message = ''; // Clear list-level status
-				dataSvc.getArray({ // Existing GET query path (PDO update server-side)
+				dataSvc.postArray({ // POST + X-CSRF-Token; GET mutations are 405
 					'query': 'checkInAttendee', // Toggle write
 					'id': row.id // registrations.id
 				}).then(function (rows) { // HTTP 200 JSON rows
@@ -598,7 +598,7 @@
 				}
 				$scope.vendorOps.busy = true; // Disable the 48px save button
 				$scope.vendorOps.message = ''; // Clear prior status
-				dataSvc.getArray({ // Existing GET query path (PDO insert server-side)
+				dataSvc.postArray({ // POST + X-CSRF-Token; GET mutations are 405
 					'query': 'saveVendorLead', // Lead write
 					'attendee_name': name, // Bound name
 					'email': (form.email || '').trim(), // Optional

@@ -16,8 +16,9 @@ $scope.selectImage = function(input){
 	if($scope.selectedStaff.photo){
 		$http({
 			"url": "/deleteDocument.php",
-			"method": "GET",
-			"params": {"document":$scope.selectedStaff.photo.substr(1)}
+			"method": "POST",
+			"data": $.param({"document":$scope.selectedStaff.photo.substr(1)}),
+			"headers": {"Content-Type": "application/x-www-form-urlencoded"}
 		});
 	}
 	var imgDestination = "img/account" + $scope.vendor.accountid + "/users";

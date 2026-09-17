@@ -1,7 +1,6 @@
 <?php
-session_start(); // Cookie session before common_functions seeds localhost admin
-require_once $_SERVER['DOCUMENT_ROOT'] . '/common_functions.php'; // CSRF helpers + local DB constants
-require_csrf_request(); // POST + matching csrf_token only — never GET (CSRF / cache)
+require_once $_SERVER['DOCUMENT_ROOT'] . '/common_functions.php'; // CSRF helpers + local DB constants before session_start
+require_csrf_request(); // POST + matching csrf_token only — never GET (CSRF / cache); starts secure session
 
 $accountId = (string)($_SESSION['accountid'] ?? ''); // Tenant for the snapshot
 $userAccount = (string)($_SESSION['useraccount'] ?? ''); // Staff/admin account on admin.php

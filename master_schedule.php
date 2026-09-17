@@ -75,7 +75,7 @@
 		app.controller('regController', function($scope, $http, $timeout, dataSvc, erSvc) {
 			$scope.eventData;
 			var eventid;
-			dataSvc.getEventData('<?= $_REQUEST["slug"] ?>').then(function(resp){
+			dataSvc.getEventData(<?= tep_js_string($_REQUEST['slug'] ?? '') ?>).then(function(resp){
 				$scope.eventData = resp;
 				eventid = resp.eventid;
 

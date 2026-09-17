@@ -2,7 +2,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="img/about.css" rel="stylesheet">
-<title>EasyRegPro Event Management Software</title>
+<title>The Event Phoenix Event Management Software</title>
 <?php
 	$root = $_SERVER['DOCUMENT_ROOT'];
 	include($root."/common_functions.php");

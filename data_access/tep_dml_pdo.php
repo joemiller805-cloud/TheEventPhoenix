@@ -200,10 +200,29 @@ function tep_dml_bind_token($stmt, $ph, $token) { // Bind one parsed value; NOW(
 	$stmt->bindValue($ph, (string)($token['val'] ?? ''), PDO::PARAM_STR); // All other values as bound strings
 }
 
+function tep_pdo_in_list($values) { // Build bound IN (...) lists; never interpolate CSV
+	$clean = array(); // Bound values
+	foreach ((array)$values as $v) { // Each token
+		$s = trim((string)$v); // Drop empties
+		if ($s !== '') { // Keep
+			$clean[] = $s; // As data
+		}
+	}
+	if (!$clean) { // Nothing to bind
+		return null; // Caller skips the statement
+	}
+	return array( // Placeholders + parallel params
+		'sql' => implode(',', array_fill(0, count($clean), '?')), // ?,?,?
+		'params' => $clean, // Bound in order
+	);
+}
+
 function tep_dml_fail($code, $message) { // Structured JSON; never echo SQL, stack traces, or credentials
 	header('Content-Type: application/json'); // AngularJS / dataSvc can parse the body
-	$code = (int)$code; // 403 vs connect/parse/execute
-	if ($code === 403) { // Authorization still fails closed for $http interceptors
+	$code = (int)$code; // 401 / 403 vs connect/parse/execute
+	if ($code === 401) { // No logged-in principal
+		http_response_code(401); // Unauthenticated API
+	} elseif ($code === 403) { // Authorization still fails closed for $http interceptors
 		http_response_code(403); // Keep Not Authorized as 403
 	} else { // Connect, parse, or execute failure (was plain-text 400/500)
 		http_response_code(200); // Fail-soft so a down MySQL does not reject AngularJS $http

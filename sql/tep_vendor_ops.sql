@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS tep_vendor_booths (
 	hall VARCHAR(128) NOT NULL DEFAULT '',
 	notes VARCHAR(255) NOT NULL DEFAULT '',
 	PRIMARY KEY (id),
-	KEY idx_tep_vendor_booth_acct (accountid, sponsorid)
+	KEY idx_tep_vendor_booth_acct (accountid, sponsorid),
+	KEY idx_tep_vendor_booth_eventid (eventid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS tep_vendor_leads (
@@ -24,5 +25,7 @@ CREATE TABLE IF NOT EXISTS tep_vendor_leads (
 	notes VARCHAR(500) NOT NULL DEFAULT '',
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (id),
-	KEY idx_tep_vendor_leads_acct (accountid, sponsorid)
+	KEY idx_tep_vendor_leads_acct (accountid, sponsorid),
+	KEY idx_tep_vendor_leads_eventid (eventid),
+	KEY idx_tep_vendor_leads_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

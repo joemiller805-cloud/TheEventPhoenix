@@ -20,9 +20,9 @@
 				  <source src="img/conf2.mp4" type="video/mp4">
 				</video>
 			</span>
-			<H2>EasyRegPro Demo</H2>
+			<H2>The Event Phoenix Demo</H2>
 			<div style="font-size:13pt;width:30em;margin:auto;text-align:left">
-				See for yourself just how easy our EasyRegPro Event Management System really is.  More features than you may ever use but you get them ALL with ALL of our subscription plans.  Just use what you want and grow into the other features and functionality at your own pace.  EasyRegPro truly is an event planner's best friend!
+				See for yourself just how easy our The Event Phoenix Event Management System really is.  More features than you may ever use but you get them ALL with ALL of our subscription plans.  Just use what you want and grow into the other features and functionality at your own pace.  The Event Phoenix truly is an event planner's best friend!
 			</div>
 		</div>
 		<div>
@@ -33,16 +33,16 @@
 			</span>
 			<H2>Mobile App Demo</H2>
 			<div style="font-size:13pt;width:30em;margin:auto;text-align:left">
-				See why everyone is talking about our NEW Mobile App. EasyRegPro was designed by event planners so we made this so easy to use.  Use our built in templates to import data from other Event Management Systems or use our own EasyRegPro software to build your app. You can even import all of your data from files of your own! So easy to do!
+				See why everyone is talking about our NEW Mobile App. The Event Phoenix was designed by event planners so we made this so easy to use.  Use our built in templates to import data from other Event Management Systems or use our own The Event Phoenix software to build your app. You can even import all of your data from files of your own! So easy to do!
 			</div>
 		</div>
 	</section>
 	<section class="darkGreen center" style="padding-bottom:3em">
 		<H2>TRY IT YOURSELF FOR FREE!!!</H2>
 		<p style="width:20em;margin:auto">
-			Click the button below to get started on creating your next event! We are so confident you will love EasyRegPro that we will let you try it for free.  Then, when ready, choose the plan that is best for you to publish your events!
+			Click the button below to get started on creating your next event! We are so confident you will love The Event Phoenix that we will let you try it for free.  Then, when ready, choose the plan that is best for you to publish your events!
 		</p>
-		<div style="margin:2em"><a href="/freeTrial.php" class="button">Try EasyRegPro for Free!</a></div>
+		<div style="margin:2em"><a href="/freeTrial.php" class="button">Try The Event Phoenix for Free!</a></div>
 	</section>
 	<?php 
 		include($root."/about/includes/footer.html");

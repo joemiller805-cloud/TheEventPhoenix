@@ -1,19 +1,11 @@
-<script type="text/javascript">
-	console.log('session account before load - <?=$_SESSION['accountid'] ?>');
-	console.log(`request <?=json_encode($_REQUEST, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>`);
-
-</script>
 <?php
-	include_once("common_functions.php");
-	start_secure_session();
-	if(!empty($_REQUEST['accountid'])){
-		$_SESSION['accountid'] = $_REQUEST['accountid'];
-	}
-;?>
+	include_once __DIR__ . '/config/bootstrap.php'; // Secure session; do not copy ?accountid= over a login
+	$tepJsonHex = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT; // Block </script> breakout in JSON
+?>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-FBGZ4T6LJK"></script>
 <script>
-	if(window.location.href.includes('/easyregpro.com/')){
+	if(window.location.href.includes('/easyregpro.com/')){ // Production hostname detector — not display branding
 		window.dataLayer = window.dataLayer || [];
 		function gtag(){dataLayer.push(arguments);}
 		gtag('js', new Date());
@@ -21,8 +13,7 @@
 	}
 </script>
 <script type="text/javascript">
-	console.log('session account after load - <?=$_SESSION['accountid'] ?>');
-	window.erCsrfToken = <?= json_encode($_SESSION['csrf_token'] ?? '') ?>;
+	window.erCsrfToken = <?= json_encode((string)($_SESSION['csrf_token'] ?? ''), $tepJsonHex) ?>; // HEX flags on token literal
 	window.erGetCsrfToken = function(){
 		return window.erCsrfToken || (window.erSessionData && window.erSessionData.csrf_token) || '';
 	};
@@ -46,11 +37,15 @@
 		window.erPostRedirect('/logout.php', data);
 	};
 	if(window.location.href.indexOf('/events/') > 0 || window.location.href.indexOf('/account/') > 0 ){
-		if(!window.location.href.includes('invoice.php') && "<?=$_SESSION['accountid'] ?>" != "<?=$_SESSION['useraccount'] ?>"){
+		if(!window.location.href.includes('invoice.php') && <?= json_encode((string)($_SESSION['accountid'] ?? ''), $tepJsonHex) ?> != <?= json_encode((string)($_SESSION['useraccount'] ?? ''), $tepJsonHex) ?>){ // Encoded session ids
 			window.erLogout();
 		}
 	}
-	let erSessionData = <?= json_encode($_SESSION) ?>;
+	<?php
+	$tepSessionClient = $_SESSION; // Copy for the AngularJS bootstrap bag
+	unset($tepSessionClient['pass'], $tepSessionClient['password']); // Never ship credential columns
+	?>
+	let erSessionData = <?= json_encode($tepSessionClient, $tepJsonHex) ?>; // HEX flags so session strings cannot break the script tag
 	erSessionData.csrf_token = erSessionData.csrf_token || window.erCsrfToken;
 	erSessionData.sponsors_enabled = erSessionData.sponsors_enabled == 'true';
 </script>

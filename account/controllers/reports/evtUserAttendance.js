@@ -141,7 +141,7 @@ regApp.controller('rptEvtUserAttendance', function($scope, $http, $q, dataSvc, e
 		});//end user loop
 	};
 
-	$scope.replytoemails = ['postmaster@easyregpro.com'];
+	$scope.replytoemails = ['postmaster@easyregpro.com']; // Routing mailbox — not display branding
 	dataSvc.getArray({'query':'getCurrentUserData'}).then(function(resp){
 		if(resp[0]) $scope.replytoemails.push(resp[0].email);
 	});

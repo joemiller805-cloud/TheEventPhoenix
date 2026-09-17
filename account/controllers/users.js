@@ -8,7 +8,7 @@ regApp.controller('users', function($scope, $http, dataSvc, erSvc) {
 	dataSvc.getObject({'query':'getUsers'}).then(function(users){
 		$scope.users = users;
 		angular.forEach($scope.users,function(user){
-			if(user.email == 'support@easyregpro.com'){
+			if(user.email == 'support@easyregpro.com'){ // DB identity; not display branding
 				delete $scope.users[user.id];
 				return;
 			}
@@ -175,10 +175,11 @@ regApp.controller('users', function($scope, $http, dataSvc, erSvc) {
 	$scope.selectImage = function(input){
 		erSvc.loadingDialog();
 		if($scope.editUser.photo){
-			$http({
+		$http({
 				"url": "/deleteDocument.php",
-				"method": "GET",
-				"params": {"document":$scope.editUser.photo.substr(1)}
+				"method": "POST",
+				"data": $.param({"document":$scope.editUser.photo.substr(1)}),
+				"headers": {"Content-Type": "application/x-www-form-urlencoded"}
 			});
 		}
 		var imgDestination = "img/account" + $scope.accountid + "/users";

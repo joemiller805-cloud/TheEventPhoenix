@@ -29,7 +29,7 @@
 			$scope.showAttendees = true;
 			$scope.showSessions = true;
 
-			dataSvc.getEventData('<?= $_REQUEST["slug"] ?>').then(function(resp){
+			dataSvc.getEventData(<?= tep_js_string($_REQUEST['slug'] ?? '') ?>).then(function(resp){
 				$scope.eventData = resp;
 				getAttendees();
 				getUserEventData();

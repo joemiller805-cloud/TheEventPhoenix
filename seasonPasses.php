@@ -149,22 +149,22 @@
 					$('form[name="attendeeForm"]').addClass('submitted');
 					return;
 				}
-				erSvc.encrypt($scope.regAttendee.password).then(function(pw){
-					dataSvc.getArray({'query':'checkAttendeeExists','email':$scope.regAttendee.email}).then(function(resp){
-						let attendeeFound = resp.length > 0;
-						let matchedAttendee;
-						resp.forEach(att => { if(att.password == pw) matchedAttendee = att });
-						if(matchedAttendee){ //log in attendee
-							loginAttendee($scope.regAttendee.email, $scope.regAttendee.password).then(function(resp){
-								if(resp.data == 'success'){
-									$scope.attendee = matchedAttendee;
+				dataSvc.getArray({'query':'checkAttendeeExists','email':$scope.regAttendee.email}).then(function(resp){ // Email lookup only; never compare hashes in JS
+					let attendeeFound = resp.length > 0;
+					if(attendeeFound){ // Existing attendee — authenticate on the server
+						loginAttendee($scope.regAttendee.email, $scope.regAttendee.password).then(function(loginResp){ // password_verify + bcrypt upgrade
+							if(loginResp.data == 'success'){
+								dataSvc.getArray({'query':'checkAttendeeCredentials','email':$scope.regAttendee.email}).then(function(att){ // Session tenant; no posted password
+									$scope.attendee = att[0];
 									submitPayment().then(() => {if(!$scope.paymentFailure) createRegistrations()});
-								}
-							});							
-						}else if(attendeeFound){ //notify attendee exists but wrong password
-							matchedEmail = $scope.regAttendee.email;
-							$('#foundLoginWrongPass').dialog({modal:true,title:`Account Found`,width:600});
-						}else{ //crate attendee
+								});
+							}else{ // Email exists, password wrong
+								matchedEmail = $scope.regAttendee.email;
+								$('#foundLoginWrongPass').dialog({modal:true,title:`Account Found`,width:600});
+							}
+						});
+					}else{ // New attendee — hash on the server (bcrypt)
+						erSvc.encrypt($scope.regAttendee.password).then(function(pw){ // tep_password_hash
 							let newAttendee = angular.copy($scope.regAttendee);
 							newAttendee.password = pw;
 							dataSvc.createVideoAttendee(newAttendee).then(function(res){
@@ -175,13 +175,13 @@
 											$scope.attendee = angular.copy(newAttendee)
 											submitPayment().then(() => { if(!$scope.paymentFailure) createRegistrations() });
 										}
-									});							
+									});
 								}else{
 									erSvc.easyRegAlert({"text": "Error creating account","title": "Error"});
 								}
 							});
-						}
-					});
+						});
+					}
 				});
 			}; //$scope.completePurchase()
 
@@ -194,12 +194,10 @@
 						if(res.data == 'success'){
 							erSvc.easyRegAlert({"text":"You have successfully logged in","title":"Log In Success"});
 							$('#loginForm').dialog('close');
-							erSvc.encrypt($scope.login.pass).then(function(pw){
-								let params = {'query':'checkAttendeeCredentials','email':$scope.login.email};
-								dataSvc.getArray(params).then(function(att){
-									$scope.attendee = att[0];
-									getAttendeePasses(true);
-								});
+							let params = {'query':'checkAttendeeCredentials','email':$scope.login.email}; // Session lookup; no client hash compare
+							dataSvc.getArray(params).then(function(att){
+								$scope.attendee = att[0];
+								getAttendeePasses(true);
 							});
 						}else{
 							dataSvc.getArray({'query':'checkAttendeeExists','email':$scope.login.email}).then(function(resp){
@@ -686,11 +684,10 @@
 					return;
 				}
 				erSvc.loadingDialog();
-				erSvc.encrypt($scope.currentPw).then(function(encrypted){
-					dataSvc.getArray({
+				dataSvc.getArray({ // Plaintext; getQueryResults runs tep_password_verify
 						'query': 'checkAttendeeCredentials',
 						'email': $scope.attendee.email,
-						'password': encrypted
+						'password': $scope.currentPw
 					}).then(function(resp){
 						if (resp.length == 0){
 							$scope.invalidCurrentPw = true;
@@ -716,7 +713,6 @@
 							}, 30);
 						});
 					});
-				});
 			}; // End submitPwChange()
 		});//End Controller
 	</script>

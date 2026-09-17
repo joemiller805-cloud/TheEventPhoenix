@@ -230,13 +230,16 @@
 	);
 
 	$queries["checkUserExists"] = query_definition("
-		SELECT last_name, first_name FROM users
+		SELECT id FROM users
 		WHERE accountid = ?
 		AND email = ?
 	",
 		"ss",
-		array($inputs['accountid'], $inputs['email'])
-	);
+		array(
+			(string)(tep_session_accountid() > 0 ? tep_session_accountid() : (int)($inputs['accountid'] ?? 0)),
+			$inputs['email'] ?? ''
+		)
+	); // Session tenant wins; login-form picker only when unbound; id only (no names)
 
 	$queries["checkSponsorExists"] = query_definition("
 		SELECT count(*) AS count
@@ -973,15 +976,11 @@
 
 	/** --------------------------  Attendee Queries  -------------------------------**/
 
-	$queries["checkAttendeeExists"] = query_definition("
-		SELECT *
-		FROM attendees 
-		WHERE email = ?
-		AND accountid = ?
-	",
+	$queries["checkAttendeeExists"] = query_definition(
+		"SELECT id FROM attendees WHERE email = ? AND accountid = ?",
 		"ss",
-		array($inputs['email'], $_SESSION['accountid'])
-	);
+		array($inputs['email'] ?? '', (string)tep_session_accountid())
+	); // Exists-only; no PII or hash columns
 
 	$queries["currentAttendeeInfo"] = query_definition("
 		SELECT *
@@ -1011,20 +1010,11 @@
 		array($_SESSION['accountid'], $inputs['student_number'])
 	);
 
-	$queries["checkAttendeeCredentials"] = query_definition("
-		SELECT *
-		FROM attendees 
-		WHERE email = ?
-		AND (
-			password = ? OR 
-			? = '' OR 
-			(? = 'PSwAQwBDOr3hY' AND password IS NOT NULL AND password != '')
-		)
-		AND accountid = ?
-	",
-		"sssss",
-		array($inputs['email'], $inputs['password'], $inputs['password'], $inputs['password'], $_SESSION['accountid'])
-	);
+	$queries["checkAttendeeCredentials"] = query_definition(
+		"SELECT * FROM attendees WHERE email = ? AND accountid = ?",
+		"ss",
+		array($inputs['email'] ?? '', (string)tep_session_accountid())
+	); // Session tenant only; password_verify is applied in getQueryResults for posted passwords
 
 	$queries["attendeeMatchQuery"] = query_definition("
 		SELECT *
@@ -2983,7 +2973,9 @@
 			first_name VARCHAR(255) NOT NULL DEFAULT "",
 			last_name VARCHAR(255) NOT NULL DEFAULT "",
 			email VARCHAR(255) NOT NULL DEFAULT "",
-			PRIMARY KEY (id)
+			PRIMARY KEY (id),
+			KEY idx_attendees_accountid (accountid),
+			KEY idx_attendees_email (email)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // Minimal JOIN target for name search on tep_local
 		$evtStmt = $pdo->query("SELECT id FROM events WHERE slug = 'local-checkin-demo' AND accountid = 1000 LIMIT 1"); // Bound-free constants only
 		$evtId = $evtStmt ? (int)$evtStmt->fetchColumn() : 0; // Demo event id
@@ -3059,7 +3051,8 @@
 			hall VARCHAR(128) NOT NULL DEFAULT "",
 			notes VARCHAR(255) NOT NULL DEFAULT "",
 			PRIMARY KEY (id),
-			KEY idx_tep_vendor_booth_acct (accountid, sponsorid)
+			KEY idx_tep_vendor_booth_acct (accountid, sponsorid),
+			KEY idx_tep_vendor_booth_eventid (eventid)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // One booth row per vendor/event
 		$pdo->exec('CREATE TABLE IF NOT EXISTS tep_vendor_leads (
 			id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -3073,7 +3066,9 @@
 			notes VARCHAR(500) NOT NULL DEFAULT "",
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
-			KEY idx_tep_vendor_leads_acct (accountid, sponsorid)
+			KEY idx_tep_vendor_leads_acct (accountid, sponsorid),
+			KEY idx_tep_vendor_leads_eventid (eventid),
+			KEY idx_tep_vendor_leads_email (email)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'); // Floor-captured attendee leads
 		if (function_exists('tep_is_local_host') && tep_is_local_host()) { // Demo booth only on XAMPP
 			$n = (int)$pdo->query('SELECT COUNT(*) FROM tep_vendor_booths')->fetchColumn(); // No user input
@@ -3098,10 +3093,64 @@
 		}
 	}
 
+	function tep_ensure_tenant_indexes($pdo) { // Add lookup indexes when missing; never drop or rename
+		$wanted = array( // Hardcoded identifiers only — not request data
+			array('attendees', 'idx_attendees_accountid', '`accountid`'),
+			array('attendees', 'idx_attendees_email', '`email`'),
+			array('events', 'idx_events_accountid', '`accountid`'),
+			array('registrations', 'idx_registrations_eventid', '`eventid`'),
+			array('registrations', 'idx_registrations_attendeeid', '`attendeeid`'),
+			array('users', 'idx_users_accountid', '`accountid`'),
+			array('users', 'idx_users_email', '`email`'),
+			array('sponsors', 'idx_sponsors_accountid', '`accountid`'),
+			array('sponsors', 'idx_sponsors_email', '`email`'),
+			array('pages', 'idx_pages_eventid', '`eventid`'),
+			array('preferences', 'idx_preferences_accountid', '`accountid`'),
+			array('documents', 'idx_documents_accountid', '`accountid`'),
+			array('signups', 'idx_signups_registrationid', '`registrationid`'),
+			array('tep_vendor_leads', 'idx_tep_vendor_leads_eventid', '`eventid`'),
+			array('tep_vendor_leads', 'idx_tep_vendor_leads_email', '`email`'),
+			array('tep_vendor_booths', 'idx_tep_vendor_booth_eventid', '`eventid`'),
+			array('accounts', 'idx_accounts_contact_email', '`contact_email`'),
+		);
+		$chkTbl = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :t'); // Bound table
+		$chkIdx = $pdo->prepare('SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = :t AND index_name = :i'); // Bound names
+		$chkCol = $pdo->prepare('SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = :t AND column_name = :c'); // Bound column
+		foreach ($wanted as $spec) { // Each index
+			$table = $spec[0]; // Literal
+			$index = $spec[1]; // Literal
+			$cols = $spec[2]; // Literal backticked list
+			try { // Table/column may be missing on stub schemas
+				if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $table) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $index)) { // Safety
+					continue; // Skip
+				}
+				$chkTbl->execute(array('t' => $table)); // Exists?
+				if ((int)$chkTbl->fetchColumn() < 1) { // No table
+					continue; // Skip
+				}
+				$colName = trim($cols, '`'); // First column for existence (single-col indexes in this list)
+				if (strpos($colName, ',') === false) { // Single column
+					$chkCol->execute(array('t' => $table, 'c' => $colName)); // Column?
+					if ((int)$chkCol->fetchColumn() < 1) { // Missing column
+						continue; // Skip
+					}
+				}
+				$chkIdx->execute(array('t' => $table, 'i' => $index)); // Index?
+				if ((int)$chkIdx->fetchColumn() > 0) { // Already there
+					continue; // Skip
+				}
+				$pdo->exec('ALTER TABLE `' . $table . '` ADD INDEX `' . $index . '` (' . $cols . ')'); // Identifier from literals
+			} catch (Throwable $idxEx) { // Duplicate key name / engine
+				error_log('TEP index skip ' . $table . '.' . $index . ': ' . $idxEx->getMessage()); // Log only
+			}
+		}
+	}
+
 	$tepPollQueryName = (string)($inputs['query'] ?? ''); // Only open PDO for poll, push-save, check-in, vendor-ops, and Event Pulse endpoints
 	if ($tepPollQueryName === 'getActivePoll' || $tepPollQueryName === 'submitPollVote' || $tepPollQueryName === 'savePushSubscription' || $tepPollQueryName === 'getAttendeeCheckInStatus' || $tepPollQueryName === 'checkInAttendee' || $tepPollQueryName === 'getVendorStatus' || $tepPollQueryName === 'saveVendorLead' || $tepPollQueryName === 'getEventAnalytics') { // Skip extra connect on every other query
 		try {
 			$pollPdo = tep_poll_pdo(); // Separate PDO handle; mysqli path unused when rows are prebuilt
+			tep_ensure_tenant_indexes($pollPdo); // Idempotent INDEX on accountid/eventid/attendeeid/email
 			if ($tepPollQueryName === 'savePushSubscription') { // Push save does not need poll tables
 				tep_push_ensure_schema($pollPdo); // Idempotent DDL for tep_push_subscriptions
 			} elseif ($tepPollQueryName === 'getAttendeeCheckInStatus' || $tepPollQueryName === 'checkInAttendee') { // Staff check-in uses registrations
@@ -3115,7 +3164,7 @@
 			} else {
 				tep_poll_ensure_schema($pollPdo); // Idempotent DDL for Instant Polling
 			}
-			$pollAccountId = (int)($_SESSION['accountid'] ?? ($inputs['accountid'] ?? 0)); // Session first; optional request override
+			$pollAccountId = tep_session_accountid(); // Session tenant only — never posted accountid
 			$pollEventId = (int)($inputs['eventid'] ?? 0); // 0 means any event for this account
 			if ($tepPollQueryName === 'getActivePoll') { // Fetch active polls for AngularJS dataSvc.getArray
 				if ($pollAccountId < 1) { // Do not leak other accounts when session is empty

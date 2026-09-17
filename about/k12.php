@@ -10,9 +10,9 @@
 		<div>EK12 Ticketing Made Easy!</div>
 		<H1 style="font-size:40pt">K12 Schools</H1>
 		<p style="margin-bottom: 0px;">
-			EasyRegPro is your one stop shop for event ticket sales, <br/>
+			The Event Phoenix is your one stop shop for event ticket sales, <br/>
 			Community Ed and Adult Ed course scheduling.  <br/>
-			Check out just some of the great feature EasyRegPro has to offer.
+			Check out just some of the great feature The Event Phoenix has to offer.
 		</p>
 	</section>
 	<section class="lightGreen center twoCol" style="font-size:12pt;padding-top: 0px;">
@@ -34,7 +34,7 @@
 					<li>& More!</li>
 				</ul>
 				<H4>Made "BY" Event Planners "FOR" Event Planners</H4>
-				<p style="margin-top:1.5em"><a href="/freeTrial.php" class="button">Try EasyRegPro for Free!</a></p>
+				<p style="margin-top:1.5em"><a href="/freeTrial.php" class="button">Try The Event Phoenix for Free!</a></p>
 			</section>
 		</div>
 	</section>

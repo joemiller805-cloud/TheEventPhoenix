@@ -1,7 +1,8 @@
 <?php
-session_start(); // Existing cookie session before common_functions
-include $_SERVER['DOCUMENT_ROOT'] . '/common_functions.php'; // CSRF helpers + DB constants
+include $_SERVER['DOCUMENT_ROOT'] . '/common_functions.php'; // CSRF helpers + DB constants before session_start
 require_once $_SERVER['DOCUMENT_ROOT'] . '/data_access/tep_dml_pdo.php'; // Bound PDO parsers; no concatenated SQL
+start_secure_session(); // SameSite=Lax + HTTPS-aware Secure
+tep_require_csrf_token(); // POST body or X-CSRF-Token from dataAccess.js
 touch_session_activity(true); // Existing idle timer
 $openAccess = array('acme_access_requests'); // Unchanged public insert table
 $userAccess = explode(',', (string)($_SESSION['tableAccess'] ?? '')); // Existing staff table list
@@ -16,6 +17,9 @@ $whereRaw = (string)($inputs['whereClause'] ?? ''); // Existing whereClause para
 $assignments = ($command === 'update') ? tep_dml_parse_assignments($updateRaw) : array(); // Parsed SET list
 $whereId = ($command === 'update') ? tep_dml_parse_where_id($whereRaw) : null; // id = N only
 $authorized = false; // Same gates as before
+if (!tep_session_has_principal() && $tableName !== 'acme_access_requests') { // Public ACME insert only; all other DML needs a login
+	tep_dml_fail(401, 'Unauthorized'); // Standardized JSON 401
+}
 if ($tableName === null) { // Reject table=users;DROP
 	$authorized = false; // Stay closed
 } elseif ((string)$master === '1') { // Master staff

@@ -48,22 +48,17 @@
 
 		$scope.submitReset = function(){
 			if($scope.pwForm.$valid){
-				if($scope.email == 'support@easyregpro.com') window.location = "login.php"; 
+				if($scope.email == 'support@easyregpro.com') window.location = "login.php"; // DB identity; not display branding
 				dataSvc.getArray({'query':'checkUserExists', 'accountid':$scope.accountid, 'email':$scope.email}).then(resp => {
 					if(resp.length){
-						erSvc.encrypt(newPass).then(function(response){
-							dataSvc.userPasswordReset($scope.email, response).then(function(resp){
-								let link = 'https://<?= $_SERVER['HTTP_HOST']?>/login.php';
-								var url = "/send_pw_reset_email.php?email=" + $scope.email;
-								url += "&password=" + newPass + '&link=' + link;
-								$http({
-									"url":  url,
-									"method": "POST"
-								}).then(function(){
-									passwordReset = true;
-									erSvc.easyRegAlert({"text":"Your password has been reset. An email has been sent with your temporary password.  Please check your inbox for this message","title":"Password Reset"});
-								});
-							});
+						$http({
+							"url": "/send_pw_reset_email.php",
+							"method": "POST",
+							"data": $.param({"email": $scope.email, "accountid": $scope.accountid}), // Server hashes; no client password
+							"headers" : {"Content-Type": "application/x-www-form-urlencoded"}
+						}).then(function(){
+							passwordReset = true;
+							erSvc.easyRegAlert({"text":"Your password has been reset. An email has been sent with your temporary password.  Please check your inbox for this message","title":"Password Reset"});
 						});
 					}else{
 						erSvc.easyRegAlert({"text":"No user with that email address could be found.","title":"User Not Found"});

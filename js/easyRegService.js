@@ -57,19 +57,6 @@ angular.module("erSvc",['alertModule','easyRegDataModule','gridWidget'])
 	} 
 	checkSession();
 
-	//for troubleshooting, log session and scope when double-click on element
-	$(document).on('dblclick','.copyright',function(e){
-		console.log("SESSION");
-		console.log(erSessionData);
-		console.log("$scope");
-		console.log(angular.element(this).scope());
-		$('div').dblclick(function(e){
-			console.log(angular.element(this).scope());
-			e.stopPropagation();
-		});
-		e.stopPropagation();
-	});
-
 	//ensure user has access to the page they've landed on 
 	//if not, redirect to an accessible page
 	this.checkAccess = function(){
@@ -423,7 +410,7 @@ angular.module("erSvc",['alertModule','easyRegDataModule','gridWidget'])
 	/************* Email ************/
 	//recipient can be single address or comma-delimited list
 	this.sendEmail = function(recipient, subject, body, replytoemail){
-		if(!replytoemail) replytoemail = "postmaster@easyregpro.com";
+		if(!replytoemail) replytoemail = "postmaster@easyregpro.com"; // Routing mailbox — not display branding
 		body = body.replace(/(?:\r\n|\r|\n)/g, '<br>');
 		var emailSent = $q.defer();
 		var emailData = {
@@ -433,12 +420,14 @@ angular.module("erSvc",['alertModule','easyRegDataModule','gridWidget'])
 			"replytoemail":replytoemail
 		}
 		$http({
-			"url": '/send_email_simple.php',
+			"url": '/send_email.php', // Staff-gated; send_email_simple.php removed
 			"method": 'POST',
 			"data": $.param(emailData),
 			"headers" : {"Content-Type": "application/x-www-form-urlencoded" }
 		}).then(function(){
 			emailSent.resolve();
+		}, function(){ // 401 for anonymous register/contact; do not hang checkout
+			emailSent.resolve(); // Fail-soft; transactional mail should move server-side
 		});
 		return emailSent.promise;
 	};
@@ -475,6 +464,15 @@ angular.module("erSvc",['alertModule','easyRegDataModule','gridWidget'])
 		return response.promise;
 	}
 
+	this.deleteDocument = function(documentPath){ // POST + X-CSRF-Token; GET deletes are rejected
+		return $http({ // Same success/error string as the old GET
+			url: '/deleteDocument.php', // Path-jailed account storage
+			method: 'POST', // CSRF + staff/sponsor role
+			data: $.param({document: documentPath || ''}), // Former GET document=
+			headers: {'Content-Type': 'application/x-www-form-urlencoded'} // Match other form posts
+		});
+	}
+
 	this.getStateOptions = function(){
 		return ['','AA','AB','AE','AK','AL','AP','AR','AS','AZ','BC','CA','CO','CT','DC','DE','FL','FM','GA','GU','HI','IA','ID','IL','IN','KS','KY','LA','MA','MB','MD','ME','MH','MI','MN','MO','MP','MS','MT','NB','NC','ND','NE','NH','NJ','NL','NM','NS','NT','NU','NV','NY','OH','OK','ON','OR','PA','PE','PR','PW','QC','RI','SC','SD','SK','TN','TX','UT','VA','VI','VT','WA','WI','WV','WY','YT'];
 	};
@@ -502,15 +500,26 @@ angular.module("erSvc",['alertModule','easyRegDataModule','gridWidget'])
 		}
 	};
 
-	this.encrypt = function(str){
+	this.encrypt = function(str){ // Server bcrypt hash for new password sets
 		var deferredResponse = $q.defer();
 		$http({
 			"url": '/er_encrypt.php',
 			"method": 'POST',
-			"data": $.param({"value":str}),
+			"data": $.param({"value":str}), // Default mode=hash
 			"headers" : {"Content-Type": "application/x-www-form-urlencoded" }
 		}).then( res => deferredResponse.resolve(res.data) );
 		
+		return deferredResponse.promise;
+	};
+
+	this.verifyPassword = function(str){ // bcrypt is non-deterministic; never compare hashes in JS
+		var deferredResponse = $q.defer();
+		$http({
+			"url": '/er_encrypt.php',
+			"method": 'POST',
+			"data": $.param({"value":str,"mode":"verify"}), // Session principal only
+			"headers" : {"Content-Type": "application/x-www-form-urlencoded" }
+		}).then( res => deferredResponse.resolve(res.data) ); // '1' or '0'
 		return deferredResponse.promise;
 	};
 
@@ -943,7 +952,7 @@ angular.module("erSvc",['alertModule','easyRegDataModule','gridWidget'])
 	if(erSessionData?.accountType == 'ticketing') logo = 'K12-Logo.png';
 	var footer = `<div class="noPrint" style="clear:both;width:95%;margin:auto;padding:1em"><hr/>
 		<div class="row"><div class="col-lg-12 copyright">
-		<p style="float:left">Copyright &copy; 2015 - ${yr} Easy Reg Pro, LLC. All rights reserved.</p>
+		<p style="float:left">Copyright &copy; 2015 - ${yr} The Event Phoenix. All rights reserved.</p>
 		<div style="float:right;margin-right:3em">
 		<span style="color:black;margin-right:2em;vertical-align:top">Powered By </span>\
 		<a href="/about/home.php">

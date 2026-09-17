@@ -12,7 +12,7 @@
 	<script type="text/javascript">
 		var app = angular.module('regApp', ['easyRegDataModule','erSvc','navMod']);
 		app.controller('regController', function($scope, $http, dataSvc, erSvc) {
-			let accountid = '<?= $_REQUEST["accountid"] ?>';
+			let accountid = <?= tep_js_string($_REQUEST['accountid'] ?? '') ?>;
 			if(accountid) $.post('/set_session_account.php',{'accountid':accountid});
 			$scope.login = function(){
 				if(!$scope.loginform.$valid) return false;
@@ -66,19 +66,14 @@
 			};
 			
 			function resetPassword(){
-				let newPW = getNewPw();
-				erSvc.encrypt(newPW).then(function(encryptedPW){
-					dataSvc.userPasswordReset($scope.resetEmail, encryptedPW, true).then(function(resp){
-						let link = 'https://<?= $_SERVER['HTTP_HOST']?>/sponsor/login.php';
-						var url = `/send_pw_reset_email.php?email=${$scope.resetEmail}&password=${newPW}&link=${link}`;
-						$http({
-							"url":  url,
-							"method": "POST"
-						}).then(function(){
-							erSvc.closeLoading();
-							erSvc.easyRegAlert({"text":"Your password has been reset. An email has been sent with your temporary password.  Please check your inbox for this message","title":"Password Reset"});
-						});
-					});
+				$http({
+					"url": "/send_pw_reset_email.php",
+					"method": "POST",
+					"data": $.param({"email": $scope.resetEmail, "sponsor": "1"}), // Server hashes; no client password
+					"headers" : {"Content-Type": "application/x-www-form-urlencoded"}
+				}).then(function(){
+					erSvc.closeLoading();
+					erSvc.easyRegAlert({"text":"Your password has been reset. An email has been sent with your temporary password.  Please check your inbox for this message","title":"Password Reset"});
 				});
 			}
 		});//end controller

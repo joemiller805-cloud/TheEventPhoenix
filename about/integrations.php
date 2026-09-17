@@ -13,7 +13,7 @@
 		<div>
 			<H1 style="font-size:40pt">Payment Processing</H1>
 			<p style="margin-top:1em;width:15em;margin:auto">
-				Check out our list of preferred vendors we can partner with so you can accept credit card payments.  Money goes directly into your account. EasyRegPro does NOT handle your money. You work directly with these vendors to set up your account.<br/>
+				Check out our list of preferred vendors we can partner with so you can accept credit card payments.  Money goes directly into your account. The Event Phoenix does NOT handle your money. You work directly with these vendors to set up your account.<br/>
 				<p style="font-size:12pt;margin-top: 1em;">*Setup fees may apply.</p>
 			</p>
 		</div>

@@ -136,8 +136,9 @@ regApp.controller('acctDetailsCtrl', function($scope, $http, $location, dataSvc,
 	$scope.confirmDelete = function(){
 		$http({
 			"url": "/deleteDocument.php",
-			"method": "GET",
-			"params": {"document":'img/account' + $scope.accountid + '/' + $scope.selectedImage.name}
+			"method": "POST",
+			"data": $.param({"document":'img/account' + $scope.accountid + '/' + $scope.selectedImage.name}),
+			"headers": {"Content-Type": "application/x-www-form-urlencoded"}
 		}).then(function(response){
 			if(response.data == 'success'){
 				erSvc.easyRegAlert({"text":"The image has been deleted.","title":"Image Deleted"}, true);

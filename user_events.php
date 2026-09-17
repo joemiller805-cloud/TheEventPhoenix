@@ -90,7 +90,7 @@
 		var rolesRetrieved = $q.defer();
 		var userDataRetrieved = $q.defer();
 
-		var replytoemail = "postmaster@easyregpro.com";
+		var replytoemail = "postmaster@easyregpro.com"; // Routing mailbox — not display branding
 		dataSvc.getArray({'query':'accountInfo'}).then(function(resp){
 			if(resp[0]) replytoemail = resp[0].email;
 		});

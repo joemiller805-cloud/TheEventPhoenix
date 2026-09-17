@@ -1,0 +1,4 @@
+# Block HTTP to PDO helper libraries; PHP include() still works
+<FilesMatch "^(db|queries|tep_dml_pdo)\.php$">
+	Require all denied
+</FilesMatch>

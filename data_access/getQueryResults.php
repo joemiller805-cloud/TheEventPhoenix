@@ -1,7 +1,20 @@
-<?php session_start();
-	include "{$_SERVER['DOCUMENT_ROOT']}/common_functions.php";
+<?php
+	include "{$_SERVER['DOCUMENT_ROOT']}/common_functions.php"; // Cookie helpers before session_start
+	start_secure_session(); // SameSite=Lax + HTTPS Secure instead of raw session_start
 	touch_session_activity(true);
 	$inputs = sanitize_inputs($_REQUEST);
+	$queryName = $inputs['query'] ?? ''; // Needed before queries.php so poll PDO does not run unauthenticated
+	if (tep_is_write_query($queryName)) { // submitPollVote / checkInAttendee / saveVendorLead / savePushSubscription
+		if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? '')) !== 'POST') { // Writes are POST-only
+			tep_json_fail(405, 'Method not allowed.'); // Block GET mutations
+		}
+		tep_require_csrf_token(); // Strict X-CSRF-Token header
+		if (!tep_session_has_principal()) { // accountid alone is not enough
+			tep_json_fail(401, 'Unauthorized'); // Standardized JSON 401
+		}
+	} elseif (!tep_is_public_query($queryName) && !tep_session_has_principal()) { // Non-public SELECTs need a real login
+		tep_json_fail(401, 'Unauthorized'); // Do not unlock on session accountid alone
+	}
 	include "{$_SERVER['DOCUMENT_ROOT']}/data_access/queries.php";
 	header('Content-Type: application/json');
 
@@ -103,6 +116,24 @@
 			$response = array();
 			while ($responseInfo = mysqli_fetch_assoc($resultID)){
 				array_push($response, $responseInfo);
+			}
+			if ($queryName === 'checkAttendeeCredentials') { // Magic hash gone; verify in PHP
+				$postedPw = (string)($inputs['password'] ?? ''); // Optional; empty = post-login lookup
+				if ($postedPw !== '') { // Current-password check from seasonPasses / learningCenter
+					$filtered = array(); // Rows that match
+					foreach ($response as $credRow) { // Each attendee
+						$stored = (string)($credRow['password'] ?? ''); // Column
+						if (tep_password_verify($postedPw, $stored) || hash_equals($stored, $postedPw)) { // Plaintext bcrypt/crypt or leftover client crypt hash
+							$filtered[] = $credRow; // Keep
+						}
+					}
+					$response = $filtered; // Fail closed when no verify
+				}
+			}
+			foreach ($response as $rowIdx => $rowOut) { // Never return credential columns to the browser
+				if (is_array($rowOut)) { // Assoc row
+					unset($response[$rowIdx]['password'], $response[$rowIdx]['pass']); // Strip hashes
+				}
 			}
 			print json_encode(array("rows" => $response));
 		}else{

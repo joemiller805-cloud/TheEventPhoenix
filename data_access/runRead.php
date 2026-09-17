@@ -1,16 +1,13 @@
 <?php
-session_start();
-
-include "{$_SERVER['DOCUMENT_ROOT']}/common_functions.php";
+include "{$_SERVER['DOCUMENT_ROOT']}/common_functions.php"; // Cookie helpers before session_start
+start_secure_session(); // SameSite=Lax + HTTPS-aware Secure
+if (!tep_session_has_principal() && empty($_SESSION['accountid'])) { // Reads need a tenant or login
+	header('Content-Type: application/json'); // Match existing JSON body
+	tep_json_fail(401, 'Unauthorized'); // Standardized JSON 401
+}
 touch_session_activity(true);
 
 header('Content-Type: application/json');
-
-// if (!isset($_SESSION['userid'])) {
-// 	http_response_code(403);
-// 	print json_encode(["error" => "Unauthorized"]);
-// 	exit;
-// }
 
 $inputs = sanitize_inputs($_REQUEST);
 $resourceID = database_connect();

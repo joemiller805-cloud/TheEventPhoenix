@@ -15,7 +15,7 @@
 <script type="text/javascript">
 var app = angular.module('regApp', ['easyRegDataModule','erSvc','navMod']);
 app.controller('regController', function($scope, $http, $q, dataSvc, erSvc){
-	dataSvc.getEventData('<?= $_REQUEST["slug"] ?>').then(function(resp){
+	dataSvc.getEventData(<?= tep_js_string($_REQUEST['slug'] ?? '') ?>).then(function(resp){
 		$scope.eventData = resp;
 		var eventid = $scope.eventData.eventid;
 		var accountid = $scope.eventData.accountid;

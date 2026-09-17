@@ -125,22 +125,22 @@ regApp.controller('profile', function($scope, $http, $q, accountid, dataSvc, erS
 			erSvc.closeLoading();
 			return;
 		}
-		erSvc.encrypt($scope.currentPassword).then(function(res){
-			$scope.badCurrentPw = res != $scope.vendor.pass;
+		erSvc.verifyPassword($scope.currentPassword).then(function(res){ // Server password_verify; bcrypt cannot be compared in JS
+			$scope.badCurrentPw = (res != '1' && res != 1); // er_encrypt verify prints 1/0
 			if($scope.badCurrentPw){
 				erSvc.closeLoading();
 				return;
 			}
-			erSvc.encrypt($scope.newPassword).then(function(hashedPw){
+			erSvc.encrypt($scope.newPassword).then(function(hashedPw){ // New hash is bcrypt from the server
 				var updateData = {"id":$scope.vendor.id,"pass":hashedPw};
 				dataSvc.createOrUpdateRecord({"table":"sponsors","record":updateData}).then(function(resp){
 					if(resp == 'error'){
 						erSvc.easyRegAlert({"text":"There was an error with your update. Please contact the event administrator.","title":"Error"});
 						erSvc.closeLoading();
 					}else{
-						var subject = "EasyRegPro Password Reset Notification";
+						var subject = "The Event Phoenix Password Reset Notification"; // Sweep B legal name
 						var body = "The password for the " + $scope.vendor.name + " \
-							EasyRegPro sponsor account has been reset. \
+							The Event Phoenix sponsor account has been reset. \
 							If you did not request this action, please contact the site administrator.";
 						erSvc.sendEmail($scope.vendor.email, subject, body,$scope.replytoemail).then(function(){
 							erSvc.closeLoading();

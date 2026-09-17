@@ -1230,6 +1230,29 @@ angular.module("easyRegDataModule",['alertModule','easyRegDateModule'])
 		}
 	}
 
+	this.postArray = async function(parameters, indexField){ // POST + X-CSRF-Token for getQueryResults writes
+		var arry = []; // Same row shape as getArray so $scope bindings stay unchanged
+		try{
+			const resp = await $http({ // POST; common X-CSRF-Token header already set
+				"url": '/data_access/getQueryResults.php', // Same PDO query endpoint
+				"method": 'POST', // Mutations are GET-blocked server-side
+				"data": formEncode(parameters || {}), // query + bound fields
+				"headers": {"Content-Type": "application/x-www-form-urlencoded"} // Match insert_or_update
+			});
+			if(resp.data.rows){ // HTTP 200 {"rows":[...]}
+				angular.forEach(resp.data.rows,function(record){ // Preserve getArray indexing
+					if(indexField) arry[record[indexField]] = record; // Optional id map
+					else arry.push(record); // Default list
+				});
+				return arry; // Caller reads rows[0].ok
+			}else{
+				return await handleGenericGetFailure(resp); // Same fail-soft as GET
+			}
+		}catch(err){ // 401/403/405
+			return "error"; // Existing dashboard .then checks ok; .catch also used
+		}
+	}
+
 	//replace single quote with two single quotes for sql
 	//@param val - string or object to be cleaned
 	function noQuotes(val){

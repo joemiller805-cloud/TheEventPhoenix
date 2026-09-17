@@ -297,11 +297,10 @@
 		checkCredentials = function(email, pw){
 			if (!pw) return;
 			let attendee = $.Deferred();
-			erSvc.encrypt(pw).then(function(encrypted){
-				dataSvc.getArray({
+			dataSvc.getArray({ // Plaintext; getQueryResults runs tep_password_verify
 					'query': 'checkAttendeeCredentials',
 					'email': email,
-					'password': encrypted
+					'password': pw
 				}).then(function(resp){
 					let att = resp[0];
 					attendee.resolve(att);
@@ -322,7 +321,6 @@
 						}
 					}
 				});
-			});
 			return attendee;
 		};	
 
@@ -886,11 +884,10 @@
 				return;
 			}
 			erSvc.loadingDialog();
-			erSvc.encrypt($scope.currentPw).then(function(encrypted){
-				dataSvc.getArray({
+			dataSvc.getArray({ // Plaintext; getQueryResults runs tep_password_verify
 					'query': 'checkAttendeeCredentials',
 					'email': $scope.account.email,
-					'password': encrypted
+					'password': $scope.currentPw
 				}).then(function(resp){
 					if (resp.length == 0){
 						$scope.invalidCurrentPw = true;
@@ -914,7 +911,6 @@
 						}, 30);
 					});
 				});
-			});
 		}; // End submitPwChange()
 
 		$scope.closeRightDialog = () => $('.dialogRight').hide(500);

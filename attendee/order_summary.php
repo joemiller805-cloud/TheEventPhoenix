@@ -53,7 +53,7 @@ app.controller('regController', function($scope, $http, $q, dataSvc, erSvc) {
 	$scope.attendee_first = "<?= $_SESSION['attendee_first'] ?>";
 	$scope.attendee_last = "<?= $_SESSION['attendee_last'] ?>";
 	$scope.attendee_email;
-	dataSvc.getEventData('<?= $_REQUEST["slug"] ?>').then(function(resp){
+	dataSvc.getEventData(<?= tep_js_string($_REQUEST['slug'] ?? '') ?>).then(function(resp){
 		$scope.eventData = resp;
 		if(!$scope.confirmation) $('#loginDiv').dialog({"title":"Log In","modal":true});
 		else lookupReg();

@@ -13,7 +13,7 @@
 <script type="text/javascript">
 	var app = angular.module('regApp', ['easyRegDataModule','erSvc','navMod','loginMod']);
 	app.controller('regController', function($scope, $http, $q, dataSvc, erSvc) {
-		let id = '<?= $_REQUEST["id"] ?>';
+		let id = <?= tep_js_string($_REQUEST['id'] ?? '') ?>;
 		let accountid = '<?= $_SESSION["accountid"] ?>';
 		id = id || location.pathname.split('/')[2];
 		document.addEventListener("loginSuccess", e => {
@@ -39,19 +39,19 @@
 				dataSvc.createOrUpdateRecord({"table":"sponsors","record":$scope.sponsor})
 				.then(res => {
 					let emailData = {
-						subject:'EasyRegPro Vendor Request',
+						subject:'The Event Phoenix Vendor Request', // Sweep B legal name
 						address:$scope.sponsor.email,
-						replytoemail: 'no-reply@easyregpro.com'
+						replytoemail: 'no-reply@easyregpro.com' // Routing mailbox — not display branding
 					};
 					let url = `https://${location.host}/sponsor/login.php?accountid=${accountid}`;
 					let msg = `
-						Your vendor request for EasyRegPro has been approved.<br/>
+						Your vendor request for The Event Phoenix has been approved.<br/>
 						Your temporary password is ${newPw}. <br/>
 						Please log in as soon as possible and update your password.<br/>
 						Log in at <a href="${url}">${url}</a>
 					`;
 					
-					erSvc.sendEmail($scope.sponsor.email, 'EasyRegPro Vendor Request', msg).then(() => {
+					erSvc.sendEmail($scope.sponsor.email, 'The Event Phoenix Vendor Request', msg).then(() => {
 						$scope.status = 'approved';
 					});
 				});

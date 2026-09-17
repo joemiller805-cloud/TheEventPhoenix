@@ -1,15 +1,26 @@
 <?php
 include("common_functions.php");
+start_secure_session(); // Session tenant for Basys key — never posted accountid
+require_once __DIR__ . '/data_access/tep_dml_pdo.php'; // Bound Basys key + payment DML
 $inputs = sanitize_inputs($_REQUEST);
-
-// get api key
-$resource = database_connect();
-$query = "SELECT value FROM preferences WHERE name = 'basysPrivateKey' AND accountid = {$inputs['accountid']}";
-$result = mysqli_query($resource, $query);
-while ($row = mysqli_fetch_assoc($result)){
-	$api_key = decryptthis($row['value']);
+$accountid = tep_session_accountid(); // Session only
+if ($accountid < 1) { // No tenant bound
+	error_log('TEP process_basys_pymt missing session tenant'); // Log only
+	fail_request(422, 'Unable to process payment.'); // Generic
 }
-mysqli_close($resource);
+
+$api_key = '';
+try { // Bound preferences lookup
+	$pdo = tep_dml_pdo(); // utf8mb4
+	$stmt = $pdo->prepare("SELECT value FROM preferences WHERE name = 'basysPrivateKey' AND accountid = :accountid LIMIT 1"); // Bound
+	$stmt->execute(array('accountid' => $accountid)); // Session tenant
+	$row = $stmt->fetch(PDO::FETCH_ASSOC); // One row
+	if ($row) { // Found
+		$api_key = decryptthis($row['value']);
+	}
+} catch (Throwable $basysEx) { // Connect
+	error_log('TEP process_basys_pymt key lookup failed: ' . $basysEx->getMessage()); // Log only
+}
 
 if (empty($api_key)) {
 	fail_request(422, 'Unable to decrypt Basys API key.');
@@ -73,44 +84,73 @@ if($json->data->status == 'pending_settlement') createPaymentRecord($json->data-
 
 function createPaymentRecord($confirmationNum){
 	global $inputs;
-	$resourceID = database_connect();
-	if($inputs['sponsorid']){
-		$query = "
-			INSERT INTO vendor_payments
-				(vendor_orders_id, amount, method, cc_confirmation_number, entered_by, payment_date, note)
-			VALUES
-				(".$inputs['orderid'].",".$inputs["trueAmount"].",'CC','".$confirmationNum."',-1,now(),'')
-		";
-
-		if($inputs['eventid']){
-			$query = "
-				INSERT INTO vendor_payments
+	try { // Bound payment writes
+		$pdo = tep_dml_pdo(); // utf8mb4
+		$tenant = tep_session_accountid(); // Session tenant
+		$ownReg = $pdo->prepare('SELECT registrations.id FROM registrations JOIN events ON events.id = registrations.eventid WHERE registrations.id = :rid AND events.accountid = :accountid LIMIT 1'); // IDOR
+		$ownSponsor = $pdo->prepare('SELECT id FROM sponsors WHERE id = :sid AND accountid = :accountid LIMIT 1'); // IDOR
+		$ownEvent = $pdo->prepare('SELECT id FROM events WHERE id = :eid AND accountid = :accountid LIMIT 1'); // IDOR
+		if($inputs['sponsorid']){
+			$sid = (int)$inputs['sponsorid']; // Posted sponsor
+			$ownSponsor->execute(array('sid' => $sid, 'accountid' => $tenant)); // Session
+			if (!$ownSponsor->fetchColumn()) { // Cross-tenant
+				return; // Fail closed
+			}
+			if($inputs['eventid']){
+				$eid = (int)$inputs['eventid']; // Posted event
+				$ownEvent->execute(array('eid' => $eid, 'accountid' => $tenant)); // Session
+				if (!$ownEvent->fetchColumn()) { // Cross-tenant
+					return; // Fail closed
+				}
+				$stmt = $pdo->prepare('INSERT INTO vendor_payments
 					(sponsorid, eventid, amount, method, cc_confirmation_number, entered_by, payment_date, note)
-				VALUES
-					(".$inputs['sponsorid'].",".$inputs['eventid'].",".$inputs["amount"].",'CC',".$confirmationNum.",-1,now(),'')
-			";
+					VALUES (:sponsorid, :eventid, :amount, \'CC\', :cc, -1, NOW(), \'\')'); // Bound
+				$stmt->execute(array( // No concat
+					'sponsorid' => $sid,
+					'eventid' => $eid,
+					'amount' => $inputs['amount'],
+					'cc' => $confirmationNum,
+				));
+			} else {
+				$stmt = $pdo->prepare('INSERT INTO vendor_payments
+					(vendor_orders_id, amount, method, cc_confirmation_number, entered_by, payment_date, note)
+					VALUES (:orderid, :amount, \'CC\', :cc, -1, NOW(), \'\')'); // Bound
+				$stmt->execute(array( // No concat
+					'orderid' => (int)$inputs['orderid'],
+					'amount' => $inputs['trueAmount'],
+					'cc' => $confirmationNum,
+				));
+			}
+		}else{
+			$regs = $inputs["registrations"];
+			$regs = str_replace("\\","",$regs);
+			$regs = json_decode($regs);
+			$payStmt = $pdo->prepare('INSERT INTO registration_payments
+				(registrationid, amount, payment_type, ref_nbr, entered_by, entered_date, note)
+				VALUES (:registrationid, :amount, \'CC\', :ref, -1, NOW(), \'\')'); // Bound
+			$regStmt = $pdo->prepare('UPDATE registrations
+				SET payment_number = CONCAT(COALESCE(payment_number,\'\'), CASE WHEN COALESCE(payment_number,\'\') = \'\' THEN :ref1 ELSE CONCAT(\', \', :ref2) END)
+				WHERE id = :id'); // Bound
+			foreach($regs as $r=>$val) {
+				$rid = (int)$val->id; // Posted registration
+				$ownReg->execute(array('rid' => $rid, 'accountid' => $tenant)); // Session
+				if (!$ownReg->fetchColumn()) { // Cross-tenant
+					continue; // Skip foreign row
+				}
+				$payStmt->execute(array( // No concat
+					'registrationid' => $rid,
+					'amount' => $val->total,
+					'ref' => (string)$confirmationNum,
+				));
+				$regStmt->execute(array( // Bound confirmation
+					'ref1' => (string)$confirmationNum,
+					'ref2' => (string)$confirmationNum,
+					'id' => $rid,
+				));
+			}
 		}
-		mysqli_query($resourceID, $query);
-	}else{
-		$regs = $inputs["registrations"];
-		$regs = str_replace("\\","",$regs);
-		$regs = json_decode($regs);
-		foreach($regs as $r=>$val) {
-			$query = "
-				INSERT INTO registration_payments
-					(registrationid, amount, payment_type, ref_nbr, entered_by, entered_date, note)
-				VALUES
-					(".$val->id.",".$val->total.",'CC','".$confirmationNum."',-1,now(),'')
-			";
-			mysqli_query($resourceID, $query);
-			$regQuery = "
-				UPDATE registrations
-				SET payment_number = CONCAT(COALESCE(payment_number,''), CASE WHEN COALESCE(payment_number,'') = '' THEN '".$confirmationNum."' ELSE ', ".$confirmationNum."' END)
-				WHERE id =". $val->id
-			;
-			mysqli_query($resourceID, $regQuery);
-		}
+	} catch (Throwable $basysRecEx) { // Connect
+		error_log('TEP process_basys_pymt record failed: ' . $basysRecEx->getMessage()); // Log only
 	}
-	mysqli_close($resourceID);
 }
 ?>

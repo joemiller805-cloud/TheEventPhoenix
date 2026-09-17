@@ -1,76 +1,82 @@
 <?php
-	require 'phpmailer/PHPMailer.php';
-	require 'phpmailer/SMTP.php';
-	require 'phpmailer/Exception.php';
-	session_start();
-	include("common_functions.php");
-	$inputs = sanitize_inputs($_REQUEST);
-	if($_SESSION['master'] == '1' OR $_SESSION['userid'] != ''){
-		$resourceID = database_connect();
-		$query = "
-			SELECT first_name, last_name, email
-			FROM users
-			WHERE id = {$_SESSION['userid']}
-		";
-		$resultID = mysqli_query($resourceID, $query);
-		$user = mysqli_fetch_assoc($resultID);
+require 'phpmailer/PHPMailer.php';
+require 'phpmailer/SMTP.php';
+require 'phpmailer/Exception.php';
+require_once __DIR__ . '/config/bootstrap.php'; // Secure session
+require_once __DIR__ . '/data_access/tep_dml_pdo.php'; // Bound lookups
+$inputs = sanitize_inputs($_REQUEST);
+$master = $_SESSION['master'] ?? '';
+$userid = (int)($_SESSION['userid'] ?? 0); // Bound
+if ($master != '1' && $userid < 1) { // Existing staff gate
+	exit; // Stop
+}
 
-		//Create an instance; passing `true` enables exceptions
-		$mail = new PHPMailer\PHPMailer\PHPMailer(true);
-
-		try {
-			//Server settings
-			$mail->isSMTP();                                            //Send using SMTP
-			$mail->Host       = SMTP_HOST;            //Set the SMTP server to send through
-			$mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-			$mail->Username   = SMTP_USER;              //SMTP username
-			$mail->Password   = SMTP_PASS;                            //SMTP password
-			$mail->SMTPSecure = SMTP_SECURE;            						//Enable implicit TLS encryption
-			$mail->Port       = SMTP_PORT;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
-
-			$mail->setFrom($inputs['replytoemail'], 'Mailer');
-			$mail->addReplyTo($inputs['replytoemail'], 'Information');
-			$mail->isHTML(true);                                  		//Set email format to HTML
-			$mail->Subject = $_REQUEST['subject'];
-			if ($inputs['bcc'] == "1"){	$mail->addBCC($user['email']); }
-
-			foreach(explode(",", $inputs['confirmations']) as $confirmation){
-				$query = "
-					SELECT 
-						COALESCE(attendees.email,users.email) AS email, 
-						events.slug AS slug,
-						events.accountid AS accountid
-					FROM registrations
-					LEFT JOIN attendees ON attendees.id = registrations.attendeeid
-					LEFT JOIN users ON users.id = registrations.userid
-					JOIN events ON events.id = registrations.eventid
-					WHERE registrations.confirmation = '$confirmation'
-				";
-				$resultID = mysqli_query($resourceID, $query);
-				$registration = mysqli_fetch_assoc($resultID);
-				$mail->clearAddresses();
-				$mail->addAddress($registration['email']); //Add a recipient
-				
-				$body = $_REQUEST['body'];
-				$body = str_replace("[eventurl]", "<a href=\"{$_SERVER['HTTP_HOST']}/e/{$registrations['accountid']}/{$registration['slug']}\">{$_SERVER['HTTP_HOST']}/e/{$registrations['accountid']}/{$registration['slug']}</a>", $body);
-				$body = str_replace("[registrationurl]", "<a href=\"{$_SERVER['HTTP_HOST']}/e/{$registrations['accountid']}/{$registration['slug']}/register/$confirmation\">{$_SERVER['HTTP_HOST']}/e/{$registrations['accountid']}/{$registration['slug']}/register/$confirmation</a>", $body);
-				$body = str_replace("[sessionsignupurl]", "<a href=\"{$_SERVER['HTTP_HOST']}/e/{$registrations['accountid']}/{$registration['slug']}/signup/$confirmation\">{$_SERVER['HTTP_HOST']}/e/{$registrations['accountid']}/{$registration['slug']}/signup/$confirmation</a>", $body);
-				$body = str_replace("[invoiceurl]", "<a href=\"{$_SERVER['HTTP_HOST']}/events/invoice.php?confirmation=$confirmation\">{$_SERVER['HTTP_HOST']}/invoice.php?confirmation=$confirmation</a>", $body);
-				$body = str_replace("[confirmation]", "$confirmation", $body);
-				$mail->Body    = $body;
-				$mail->AltBody = $body;
-				$mail->send();
-				echo 'Message has been sent ' . $registration['email'];
-			}
-			mysqli_close($resourceID);
-			
-
-			// //Attachments
-			// $mail->addAttachment('/var/tmp/file.tar.gz');         		//Add attachments
-			// $mail->addAttachment('/tmp/image.jpg', 'new.jpg');    		//Optional name			
-		} catch (Exception $e) {
-			echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-		}
+try { // PDO user + confirmation lookups
+	$pdo = tep_dml_pdo(); // utf8mb4
+	$userStmt = $pdo->prepare('SELECT first_name, last_name, email FROM users WHERE id = :id AND accountid = :accountid LIMIT 1'); // Bound + tenant
+	$userStmt->execute(array('id' => $userid, 'accountid' => tep_session_accountid())); // Session user + tenant
+	$user = $userStmt->fetch(PDO::FETCH_ASSOC); // Maybe empty
+	$mail = new PHPMailer\PHPMailer\PHPMailer(true); // Exceptions
+	$mail->isSMTP(); // SMTP
+	$mail->Host = SMTP_HOST; // Config
+	$mail->SMTPAuth = true; // Auth
+	$mail->Username = SMTP_USER; // Config
+	$mail->Password = SMTP_PASS; // Config
+	$mail->SMTPSecure = SMTP_SECURE; // TLS
+	$mail->Port = SMTP_PORT; // Port
+	$mail->setFrom($inputs['replytoemail'], 'Mailer'); // Existing from
+	$mail->addReplyTo($inputs['replytoemail'], 'Information'); // Reply-to
+	$mail->isHTML(true); // HTML
+	$mail->Subject = $_REQUEST['subject'] ?? ''; // Existing subject
+	if (($inputs['bcc'] ?? '') == '1' && !empty($user['email'])) { // Optional BCC
+		$mail->addBCC($user['email']); // Staff copy
 	}
-	else{}
-?>
+	$confStmt = $pdo->prepare('SELECT
+			COALESCE(attendees.email, users.email) AS email,
+			events.slug AS slug,
+			events.accountid AS accountid
+		FROM registrations
+		LEFT JOIN attendees ON attendees.id = registrations.attendeeid
+		LEFT JOIN users ON users.id = registrations.userid
+		JOIN events ON events.id = registrations.eventid
+		WHERE registrations.confirmation = :confirmation
+		AND events.accountid = :accountid
+		LIMIT 1'); // Bound ticket + session tenant
+	$mailTenant = tep_session_accountid(); // Session only
+	if ($mailTenant < 1) { // No tenant
+		exit; // Fail closed
+	}
+	foreach (explode(',', (string)($inputs['confirmations'] ?? '')) as $confirmation) { // Each ticket
+		$confirmation = trim($confirmation); // One code
+		if ($confirmation === '') { // Skip blanks
+			continue; // Next
+		}
+		$confStmt->execute(array('confirmation' => $confirmation, 'accountid' => $mailTenant)); // Bound
+		$registration = $confStmt->fetch(PDO::FETCH_ASSOC); // One row
+		if (!$registration || empty($registration['email'])) { // Missing
+			continue; // Next ticket
+		}
+		$mail->clearAddresses(); // One send each
+		$mail->addAddress($registration['email']); // Recipient
+		$host = $_SERVER['HTTP_HOST'] ?? ''; // Host
+		$acct = $registration['accountid']; // Tenant
+		$slug = $registration['slug']; // Event
+		$body = $_REQUEST['body'] ?? ''; // Template
+		$eventUrl = $host . '/e/' . $acct . '/' . $slug; // Existing placeholder
+		$body = str_replace('[eventurl]', '<a href="' . $eventUrl . '">' . $eventUrl . '</a>', $body); // Placeholder
+		$regUrl = $eventUrl . '/register/' . $confirmation; // Register
+		$body = str_replace('[registrationurl]', '<a href="' . $regUrl . '">' . $regUrl . '</a>', $body); // Placeholder
+		$signUrl = $eventUrl . '/signup/' . $confirmation; // Signup
+		$body = str_replace('[sessionsignupurl]', '<a href="' . $signUrl . '">' . $signUrl . '</a>', $body); // Placeholder
+		$invUrl = $host . '/events/invoice.php?confirmation=' . $confirmation; // Invoice
+		$body = str_replace('[invoiceurl]', '<a href="' . $invUrl . '">' . $host . '/invoice.php?confirmation=' . $confirmation . '</a>', $body); // Placeholder
+		$body = str_replace('[confirmation]', $confirmation, $body); // Ticket
+		$mail->Body = $body; // HTML
+		$mail->AltBody = $body; // Text
+		$mail->send(); // Send
+		echo 'Message has been sent ' . $registration['email']; // Existing success echo
+	}
+} catch (Exception $e) { // PHPMailer or PDO
+	error_log('TEP mail.php failed: ' . $e->getMessage()); // Log only — never ErrorInfo on HTTP
+	echo 'Message could not be sent.'; // Generic
+}

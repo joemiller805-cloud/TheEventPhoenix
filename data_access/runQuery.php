@@ -1,12 +1,9 @@
 <?php
-session_start();
-
-include "{$_SERVER['DOCUMENT_ROOT']}/common_functions.php";
-
-if (!isset($_SESSION['userid'])) {
-	http_response_code(403);
-	print "Unauthorized";
-	exit;
+include "{$_SERVER['DOCUMENT_ROOT']}/common_functions.php"; // Cookie helpers before session_start
+start_secure_session(); // SameSite=Lax + HTTPS-aware Secure
+tep_require_csrf_token(); // POST + X-CSRF-Token from dataAccess.js
+if (!tep_session_has_principal()) { // Writes need a logged-in principal
+	tep_json_fail(401, 'Unauthorized'); // Standardized JSON 401
 }
 
 touch_session_activity(true);

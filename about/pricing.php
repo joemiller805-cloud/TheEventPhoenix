@@ -13,7 +13,7 @@
 			We have been doing conferences, workshops, trade shows, and other events ourselves
 			for quite some time. <br/>
 			We know how every purchase affects your overall budget. <br/>
-			EasyRegPro is priced in a way to make planners HAPPY!
+			The Event Phoenix is priced in a way to make planners HAPPY!
 		</p>
 	</section>
 	<section class="lightGreen" style="font-size:12pt;padding-top: 0px;">
@@ -79,7 +79,7 @@
 			</div>
 		</section>
 		<p style="margin:2.5em;text-align: center;width:100%;">
-			<a href="/freeTrial.php" class="button">Try EasyRegPro for Free!</a>
+			<a href="/freeTrial.php" class="button">Try The Event Phoenix for Free!</a>
 		</p>
 		<section style="width:60em;margin:auto">
 			<div class="optionDiv center">
@@ -87,7 +87,7 @@
 				<b>*Excludes</b> Mobile App Only Purchases-(See Mobile App Features)
 			</div>
 			<ul style="display:inline-block;vertical-align:top;list-style: disc;">
-				<li>Full Version of EasyRegPro</li>
+				<li>Full Version of The Event Phoenix</li>
 				<li>All Features and Functionality</li>
 				<li>Mobile App</li>
 				<li>Event Management</li>
@@ -98,13 +98,13 @@
 			</ul>
 			<ul style="display:inline-block;list-style: disc;margin-left:3em">
 				<li>Ticket & Add-on Sales</li>
-				<li>EasyRegPro Schedule Builder</li>
+				<li>The Event Phoenix Schedule Builder</li>
 				<li>Reports</li>
 				<li>Document & Video Management</li>
 				<li>Name Badge Functions</li>
 				<li>On-Site or Manual Check-in/Ticket Redemption</li>
 				<li>Unlimited Registration Types</li>
-				<li>& The rest of EasyRegPro's Amazing Features</li>
+				<li>& The rest of The Event Phoenix's Amazing Features</li>
 				<li>Full Built In Product Support In The App</li>
 			</ul>
 		</section>

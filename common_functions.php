@@ -52,6 +52,10 @@ tep_define_from_env('DB_PASS', 'TEP_DB_PASS', ''); // live password
 tep_define_from_env('DB_CONNECT_TIMEOUT', 'TEP_DB_CONNECT_TIMEOUT', ''); // mysqli timeout seconds
 tep_define_from_env('TEP_ENC_KEY_RAW', 'TEP_ENC_KEY_RAW', ''); // AES key material
 tep_define_from_env('LEGACY_SALT', 'TEP_LEGACY_SALT', ''); // crypt() salt for existing hashes
+tep_define_from_env('TEP_BACKUP_DIR', 'TEP_BACKUP_DIR', ''); // CLI snapshot directory; empty keeps the production path
+if (!defined('TEP_PRODUCT_NAME')) { // User-facing product string (mail From name, titles, footers)
+	define('TEP_PRODUCT_NAME', 'The Event Phoenix'); // Sweep B legal name
+}
 tep_define_from_env('TEP_SESSION_NAME', 'TEP_SESSION_NAME', ''); // Session cookie name for start_secure_session
 tep_define_from_env('TEP_VAPID_PUBLIC_KEY', 'TEP_VAPID_PUBLIC_KEY', ''); // Web Push public key
 tep_define_from_env('BASE_URL', 'TEP_BASE_URL', ''); // index.php <base href>
@@ -157,6 +161,9 @@ function tep_apply_local_dev_session() { // Lightweight localhost auto-login so 
 	if (empty($_SESSION['last_activity'])) { // Existing session-timeout helper reads this key
 		$_SESSION['last_activity'] = time(); // Mark the seeded session as active
 	}
+	if (empty($_SESSION['role'])) { // Gateway role for staff vs attendee gates
+		$_SESSION['role'] = TEP_ROLE_STAFF; // Local autologin is a staff principal
+	}
 	ensure_session_csrf_token(); // Keep CSRF token in the seeded session for AngularJS posts
 }
 
@@ -226,6 +233,208 @@ function require_csrf_request() {
 	}
 }
 
+function tep_json_fail($code, $message) { // Standardized API error; never echo SQL or stack traces
+	header('Content-Type: application/json'); // AngularJS dataSvc can parse the body
+	http_response_code((int)$code); // 401 unauthenticated / 403 forbidden / 405 method
+	print json_encode(array('ok' => false, 'error' => (string)$message)); // {"ok":false,"error":"Unauthorized"}
+	exit; // Stop
+}
+
+function tep_js_string($value) { // JSON string literal for inline JS; blocks XSS from request params
+	return json_encode((string)$value, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); // Quoted; safe inside JS
+}
+
+function tep_h($value) { // HTML-escape user text for attributes
+	return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); // Attribute-safe
+}
+
+if (!defined('TEP_ROLE_STAFF')) { // Staff users.id from login_process.php
+	define('TEP_ROLE_STAFF', 'staff'); // Explicit role string in $_SESSION['role']
+}
+if (!defined('TEP_ROLE_ATTENDEE')) { // Attendee portal from login_attendee.php
+	define('TEP_ROLE_ATTENDEE', 'attendee'); // Not interchangeable with staff
+}
+if (!defined('TEP_ROLE_SPONSOR')) { // Vendor portal
+	define('TEP_ROLE_SPONSOR', 'sponsor'); // File uploads for vendor logos
+}
+if (!defined('TEP_ROLE_SUPPORT')) { // login_er.php super-user
+	define('TEP_ROLE_SUPPORT', 'support'); // ER support session
+}
+
+function tep_session_role() { // Single role for gateway checks; explicit $_SESSION['role'] wins
+	$stored = (string)($_SESSION['role'] ?? ''); // Set on login_regenerate
+	if ($stored === TEP_ROLE_STAFF || $stored === TEP_ROLE_ATTENDEE || $stored === TEP_ROLE_SPONSOR || $stored === TEP_ROLE_SUPPORT) { // Known roles
+		return $stored; // Do not infer a higher privilege from leftover keys
+	}
+	if (($_SESSION['erSupport'] ?? '') === 'true') { // Legacy ER flag
+		return TEP_ROLE_SUPPORT; // Super-user
+	}
+	if (!empty($_SESSION['sponsorid'])) { // Vendor
+		return TEP_ROLE_SPONSOR; // Sponsor portal
+	}
+	if (!empty($_SESSION['attendeeid']) || !empty($_SESSION['registrationid'])) { // Ticket / attendee
+		return TEP_ROLE_ATTENDEE; // Not staff even if userid was copied from a registration
+	}
+	if (!empty($_SESSION['userid'])) { // Staff users.id
+		return TEP_ROLE_STAFF; // Admin / event staff
+	}
+	return ''; // Anonymous
+}
+
+function tep_session_is_staff() { // Staff or ER support may manage files and staff APIs
+	$role = tep_session_role(); // Explicit role
+	return ($role === TEP_ROLE_STAFF || $role === TEP_ROLE_SUPPORT); // Attendee tickets are not staff
+}
+
+function tep_session_is_attendee() { // Attendee portal / confirmation session
+	return tep_session_role() === TEP_ROLE_ATTENDEE; // login_attendee.php
+}
+
+function tep_session_can_manage_files() { // deleteDocument / saveDocument
+	$role = tep_session_role(); // Explicit role
+	return ($role === TEP_ROLE_STAFF || $role === TEP_ROLE_SUPPORT || $role === TEP_ROLE_SPONSOR); // Not attendees
+}
+
+function tep_session_has_principal() { // Logged-in staff, attendee, vendor, or ER support
+	return tep_session_role() !== ''; // Role map covers userid / attendee / sponsor / support
+}
+
+function tep_bind_request_accountid() { // Public event tenant from ?accountid=; never hijack a login
+	$requested = trim((string)($_GET['accountid'] ?? '')); // Query string only; ignore POST login fields
+	if ($requested === '' || !preg_match('/^[0-9]+$/', $requested)) { // Digits only
+		return; // Missing or junk
+	}
+	if (tep_session_has_principal()) { // Staff / attendee / vendor already bound
+		return; // Do not overwrite useraccount / attendee tenant
+	}
+	$_SESSION['accountid'] = $requested; // Anonymous public event pages only
+}
+
+function tep_login_regenerate($role) { // Call after credentials succeed; kills session fixation
+	tep_session_rotate(); // New id; delete the old session file
+	$_SESSION['role'] = (string)$role; // TEP_ROLE_STAFF / ATTENDEE / SPONSOR / SUPPORT
+}
+
+function tep_session_rotate() { // Password reset and other privilege changes without assigning a role
+	if (session_status() === PHP_SESSION_ACTIVE) { // Cookie already issued
+		session_regenerate_id(true); // New id; delete the old session file
+	}
+	ensure_session_csrf_token(); // Keep CSRF for the same page until the next full load
+}
+
+function tep_session_accountid() { // Tenant id from the session only — never from GET/POST
+	return (int)($_SESSION['accountid'] ?? 0); // 0 means no tenant bound
+}
+
+function tep_password_hash($plain) { // New passwords and seamless upgrades
+	return password_hash((string)$plain, PASSWORD_BCRYPT); // Modern hash; not crypt()
+}
+
+function tep_password_is_bcrypt($hash) { // password_get_info algo 0 means unknown / crypt
+	$info = password_get_info((string)$hash); // PHP 8.2
+	return !empty($info['algo']); // Non-zero algo = bcrypt/argon2
+}
+
+function tep_password_verify($plain, $stored) { // bcrypt first, then legacy crypt()
+	$plain = (string)$plain; // Posted password
+	$stored = (string)$stored; // Column value
+	if ($plain === '' || $stored === '') { // Empty never matches
+		return false; // Fail closed
+	}
+	if (tep_password_is_bcrypt($stored)) { // Modern row
+		return password_verify($plain, $stored); // Timing-safe
+	}
+	$legacy = crypt($plain, LEGACY_SALT); // Deterministic DES crypt used by TEP
+	if (hash_equals($stored, $legacy)) { // Existing LEGACY_SALT hashes
+		return true; // Match
+	}
+	$native = crypt($plain, $stored); // crypt() can use the stored hash as the salt
+	return hash_equals($stored, $native); // Legacy row that used its own salt
+}
+
+function tep_password_upgrade($pdo, $sql, $params) { // Re-hash after a successful legacy login
+	try { // Never fail the login if UPDATE cannot run
+		$stmt = $pdo->prepare($sql); // Caller supplies bound UPDATE
+		$stmt->execute($params); // bcrypt value + id + tenant
+	} catch (Throwable $upEx) { // Missing column / connect
+		error_log('TEP password rehash skipped: ' . $upEx->getMessage()); // Log only
+	}
+}
+
+function tep_mail_from_address() { // Envelope address; SMTP mailbox may still be the live postmaster
+	if (defined('SMTP_USER') && SMTP_USER !== '') { // Configured transport user
+		return (string)SMTP_USER; // Dynamic from config
+	}
+	return 'postmaster@' . preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost')); // Host-derived fallback
+}
+
+function tep_mail_from_name() { // Display name on every outbound message
+	return defined('TEP_PRODUCT_NAME') ? TEP_PRODUCT_NAME : 'The Event Phoenix'; // Legal product name
+}
+
+function tep_account_storage_relative($relative, $accountId) { // Jail uploads/deletes to one account prefix
+	$relative = str_replace('\\', '/', (string)$relative); // Windows slashes
+	$relative = ltrim($relative, '/'); // Drop leading slash from photo paths
+	if ($relative === '' || strpos($relative, '..') !== false || strpos($relative, "\0") !== false) { // Traversal
+		return null; // Reject
+	}
+	$accountId = (string)(int)$accountId; // Session tenant
+	if ($accountId === '0') { // No account
+		return null; // Reject
+	}
+	$prefixes = array( // Existing AngularJS folder layout
+		'documents/account' . $accountId,
+		'img/account' . $accountId,
+		'videos/account' . $accountId,
+	);
+	$ok = false; // Prefix match
+	foreach ($prefixes as $prefix) { // Account-scoped roots only
+		if ($relative === $prefix || strpos($relative, $prefix . '/') === 0) { // Exact folder or child
+			$ok = true; // Allowed
+			break; // Done
+		}
+	}
+	if (!$ok) { // Wrong account or path outside the three roots
+		return null; // Reject
+	}
+	return $relative; // Relative from document root
+}
+
+function tep_session_has_tenant() { // Principal or a bound accountid (public event pages)
+	if (tep_session_has_principal()) { // Staff / attendee / vendor
+		return true; // Authenticated
+	}
+	return !empty($_SESSION['accountid']); // Tenant context from URL / autologin
+}
+
+function tep_require_csrf_token() { // CSRF for API writes: X-CSRF-Token header only (dataAccess.js $http default)
+	start_secure_session(); // Cookie flags before token compare
+	$sessionToken = ensure_session_csrf_token(); // Session copy
+	$headerToken = (string)($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''); // Strict header; POST body is not enough
+	if ($headerToken === '' || !hash_equals($sessionToken, $headerToken)) { // Timing-safe
+		tep_json_fail(403, 'Security validation failed.'); // Standardized JSON
+	}
+}
+
+function tep_is_write_query($queryName) { // getQueryResults names that INSERT/UPDATE and must never run on GET
+	$writes = array('submitPollVote', 'checkInAttendee', 'saveVendorLead', 'savePushSubscription'); // Dashboard mutations
+	return in_array((string)$queryName, $writes, true); // Exact name match
+}
+
+function tep_is_public_query($queryName) { // getQueryResults names allowed without a principal (login / public event / ACME)
+	$public = array( // PII lookups are not listed; they require tep_session_has_principal()
+		'accountList', 'allEventSummary', 'acmeCheck', 'usedAcctSlugs', 'usedSlugs', // Login / landing / trial
+		'eventData', 'eventDataRaw', 'eventPagesFromSlug', 'eventPagesFromId', // Public event pages
+		'registrationTypes', 'registrationExtras', 'extraRegFields', // Register form shape (not answers)
+		'eventDiscountsAvailable', 'ccProvider', 'ccChargeRt', 'ccEnabled', // Checkout
+		'eventCourses', 'eventSectionsAggregated', 'eventSessions', // Catalog / schedule
+		'confirmationNumberPrefix', 'confirmationCount', 'extraRegFieldExists', // Register helpers
+		'checkAttendeeExists', // Email-exists check only; no password or full attendee row
+		'tableColumns', 'accountContactInfo', 'accountWebLogo', // ACME insert + contact page
+	);
+	return in_array((string)$queryName, $public, true); // Exact name match
+}
+
 function database_connect() {
 	if(substr(str_replace('www.','',$_SERVER['HTTP_HOST']), 0, 4) == "easy") {
 		$database = DB_NAME_PROD;
@@ -260,6 +469,9 @@ function database_connect() {
 			$tepMysqlHost = '127.0.0.1'; // Same as PDO mysql:host=127.0.0.1
 		}
 		$linkID = mysqli_real_connect($linkID, $tepMysqlHost, $username, $password, $database, $tepDbPort) ? $linkID : false;
+	}
+	if ($linkID) { // Connected
+		mysqli_set_charset($linkID, 'utf8mb4'); // Match PDO DSN; block charset-mismatch SQLi on leftover concat
 	}
 	if (!$linkID) {
 		// [SEC-3] Log error, never print it — DB errors expose server info

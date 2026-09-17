@@ -14,7 +14,7 @@
 		<div style="background:#2e2d2d"><img src="img/mobile2.webp" style="width:100%" /></div>
 		<div>
 			<section style="width:25em;margin:auto;">
-				<h2> EasyRegPro Mobil App</h2>
+				<h2> The Event Phoenix Mobil App</h2>
 				<ul style="text-align:left;list-style: disc;margin-bottom: 2em;">
 					<li>Seamless Integration w/ Event App</li>
 					<li>Android & iOS</li>
@@ -33,7 +33,7 @@
 					<li>Notifications & Much MORE!</li>
 				</ul>
 				<H4>Made "BY" Event Planners "FOR" Event Planners</H4>
-				<p style="margin-top:1.5em"><a href="/freeTrial.php" class="button">Try EasyRegPro for Free!</a></p>
+				<p style="margin-top:1.5em"><a href="/freeTrial.php" class="button">Try The Event Phoenix for Free!</a></p>
 			</section>
 		</div>
 	</section>

@@ -26,25 +26,29 @@
 <script type="text/javascript">
 	let eventInfo;
 	<?php 
-		$attendeeQuery =  "
-			SELECT
-				events.logo,
-				accounts.web_logo,
-				events.replytoemail,
-				accounts.id accountid,
-				accounts.cc_charge_rt,
-				events.apply_cc_fee
-			FROM registrations
-			JOIN events ON registrations.eventid = events.id
-			JOIN accounts ON accounts.id = events.accountid
-			WHERE registrations.id = {$_REQUEST['rid']}
-		";
-		$resourceID = database_connect();
-		$resultID = mysqli_query($resourceID, $attendeeQuery);
-		if($resultID){
-			while ($attendeeInfo = mysqli_fetch_assoc($resultID)){
-				print('eventInfo = ' .json_encode($attendeeInfo) .';');
+		require_once __DIR__ . '/data_access/tep_dml_pdo.php'; // Bound registration lookup
+		$rid = (int)($_REQUEST['rid'] ?? 0); // Bound
+		try { // PDO event logos; never interpolate rid
+			$pdo = tep_dml_pdo(); // utf8mb4
+			$stmt = $pdo->prepare('SELECT
+					events.logo,
+					accounts.web_logo,
+					events.replytoemail,
+					accounts.id AS accountid,
+					accounts.cc_charge_rt,
+					events.apply_cc_fee
+				FROM registrations
+				JOIN events ON registrations.eventid = events.id
+				JOIN accounts ON accounts.id = events.accountid
+				WHERE registrations.id = :rid
+				LIMIT 1'); // Bound
+			$stmt->execute(array('rid' => $rid)); // Posted registration
+			$attendeeInfo = $stmt->fetch(PDO::FETCH_ASSOC); // One row
+			if ($attendeeInfo) { // Found
+				print('eventInfo = ' . json_encode($attendeeInfo) . ';'); // Unchanged AngularJS assign
 			}
+		} catch (Throwable $payPgEx) { // Connect
+			error_log('TEP payRegistration lookup failed: ' . $payPgEx->getMessage()); // Log only
 		}
 	?>
 

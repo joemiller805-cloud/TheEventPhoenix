@@ -42,7 +42,7 @@
 			coursesRetrieved.resolve();
 		});
 
-		var replytoemail = "postmaster@easyregpro.com";
+		var replytoemail = "postmaster@easyregpro.com"; // Routing mailbox — not display branding
 		dataSvc.getArray({'query':'accountInfo'}).then(res => { if(res[0]) replytoemail = res[0].email });
 
 		dataSvc.getArray({'query':'master_email_alerts'}).then(res => $scope.master_email_alerts = res);
@@ -135,12 +135,8 @@
 
 		$scope.selectImage = function(input){
 			erSvc.loadingDialog();
-			if($scope.userData.photo){
-				$http({
-					"url": "/deleteDocument.php",
-					"method": "GET",
-					"params": {"document":$scope.userData.photo.substr(1)}
-				});
+		if($scope.userData.photo){
+				erSvc.deleteDocument($scope.userData.photo.substr(1)); // POST + CSRF; path jailed
 			}
 			var imgDestination = "img/account" + $scope.accountid + "/users";
 			var imgName =  input.val().replace(/\\/g, '/').replace(/.*\//, '');
@@ -176,13 +172,10 @@
 			$scope.noPasswordMatch = $scope.newPassword != $scope.newPasswordConfirm;
 			if(!erSvc.validatePassword($scope.newPassword)) return;
 			if($scope.pwResetForm.$valid){
-				$http({
-					"url": "/er_encrypt.php?value=" + $scope.currentPassword,
-					"method": "POST"
-				}).then(function(response){
-					$scope.badCurrentPw = response.data != $scope.userData.pass;
+				erSvc.verifyPassword($scope.currentPassword).then(function(response){ // Server password_verify; bcrypt cannot be compared in JS
+					$scope.badCurrentPw = (response != '1' && response != 1); // er_encrypt verify prints 1/0
 					if(!$scope.badCurrentPw && !$scope.noPasswordMatch){
-						erSvc.encrypt($scope.newPassword).then(function(hashedPw){
+						erSvc.encrypt($scope.newPassword).then(function(hashedPw){ // New hash is bcrypt from the server
 							dataSvc.userPasswordReset($scope.userData.email, hashedPw).then(function(resp){
 								if(resp == 'error'){
 									erSvc.easyRegAlert({"text":"There was an error with your update. Please contact the event administrator.","title":"Error"});
@@ -228,8 +221,8 @@
 		}
 
 		sendEmail = function(){
-			var subject = "EasyRegPro Password Reset Notification";
-			var body = "Your password for EasyRegPro has been reset.  If you did \
+			var subject = "The Event Phoenix Password Reset Notification"; // Sweep B legal name
+			var body = "Your password for The Event Phoenix has been reset.  If you did \
 				not request this action, please contact the site administrator.";
 			erSvc.sendEmail($scope.userData.email, subject, body, replytoemail);
 		};
@@ -291,7 +284,7 @@
 			let curDoc = $scope.documents[$scope.tempDoc.id];
 			//if document changed, delete previous document
 			if(curDoc && curDoc.filepath != $scope.tempDoc.filepath){
-				$http({"url": "/deleteDocument.php","method":"GET","params":{'document':curDoc.filepath}});
+				erSvc.deleteDocument(curDoc.filepath); // POST + CSRF
 			}
 			if(!curDoc && !$scope.uploadDocName){
 				erSvc.easyRegAlert({"text":"No Document Selected","title":"Error"});
@@ -358,7 +351,7 @@
 		$scope.deleteDoc = function(){
 			var doc = $scope.selectedDoc;
 			docNames.splice(docNames.indexOf($filter('nameFromFilepath')(doc.filepath)),1);
-			$http({"url": "/deleteDocument.php","method": "GET","params": {'document':doc.filepath}})
+			erSvc.deleteDocument(doc.filepath) // POST + CSRF
 			.then(function(response){
 				if(response.data == 'success'){
 					dataSvc.deleteRecord({"table":"documents","id":doc.id});

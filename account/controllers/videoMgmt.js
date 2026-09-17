@@ -128,8 +128,9 @@ regApp.controller('videoMgmt', function($scope, $http, $filter, $q, erSvc, dataS
 					erSvc.loadingDialog();
 					$http({
 						"url": "/deleteDocument.php",
-						"method": "GET",
-						"params": {'document':$scope.modVideo.filepath}
+						"method": "POST",
+						"data": $.param({'document':$scope.modVideo.filepath}),
+						"headers": {"Content-Type": "application/x-www-form-urlencoded"}
 					}).then(function(response){
 						erSvc.uploadDocument($('#replacementVideo'), folder).then(function(res){
 							erSvc.closeLoading();
@@ -357,8 +358,9 @@ regApp.controller('videoMgmt', function($scope, $http, $filter, $q, erSvc, dataS
 		let video = $scope.selectedVideo;
 		$http({
 			"url": "/deleteDocument.php",
-			"method": "GET",
-			"params": {'document':video.filepath}
+			"method": "POST",
+			"data": $.param({'document':video.filepath}),
+			"headers": {"Content-Type": "application/x-www-form-urlencoded"}
 		}).then(function(response){
 			if(response.data == 'success'){
 				dataSvc.deleteRecord({"table":"videos","id":video.id});

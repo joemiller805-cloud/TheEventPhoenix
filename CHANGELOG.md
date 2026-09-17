@@ -2,6 +2,88 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 22] — Phase 11 Final Lock and full-schema staging seed — 2026-09-17
+
+### [Added]
+- **`sql/tep_staging_seed.sql`:** Idempotent MariaDB staging seed for tenant 1000 (Phoenix Enterprise Events). Creates the full product schema discovered from PHP/JS DML plus live `tep_local` tables, seeds relational dummy rows, bcrypt-hashes dummy logins with `password_hash()`, and adds B-tree indexes on `accountid`, `eventid`, `attendeeid`, and `email`. No payment-processor secrets.
+
+## [Sprint 21] — Sweep B: bcrypt, tenant isolation, branding restore — 2026-09-17
+
+### [Added]
+- **`tep_password_hash()` / `tep_password_verify()` / `tep_password_upgrade()`:** New passwords use `password_hash(PASSWORD_BCRYPT)`. Logins accept legacy `crypt()` once, then re-hash the same plaintext to bcrypt and update the tenant-bound row. `erSvc.verifyPassword()` posts `mode=verify` so AngularJS never compares bcrypt hashes in the browser.
+
+### [Refactored]
+- **Mail display name:** Outbound From display name is `TEP_PRODUCT_NAME` (`The Event Phoenix`) via `tep_mail_from_name()`. SMTP envelope still uses `SMTP_USER` or `postmaster@{host}` via `tep_mail_from_address()`.
+- **CLI backup path:** `bin/backup_db.php` writes to `TEP_BACKUP_DIR` when set; otherwise `/home/easyregpro/private/backups`.
+- **Marketing copy:** User-facing titles, footers, invoices, certificates, and email bodies say **The Event Phoenix**. Production hostnames and mailbox identities stay `easyregpro.com`.
+
+### [Security Fix]
+- **IDOR:** Payment, invoice, certificate, signup, mail, and confirmation paths bind `events.accountid` (or `sponsors.accountid`) from `tep_session_accountid()`. Attendee and sponsor sessions cannot hop tenants through `set_session_account.php` or `event.php` query strings.
+- **Fail closed:** Gateway curl errors, XML parse failures, and PDO exceptions log to `error_log` only. They return generic JSON/text, never `mysqli_error`, PHPMailer `ErrorInfo`, or curl strings.
+- **Branding replace rollback:** Case-insensitive PowerShell replace had overwritten mailboxes, the GA host detector, ER support identity, Zoom leave URL, and the CLI backup directory. Those identifiers are restored.
+- **Query JSON:** `getQueryResults.php` strips `password` / `pass` columns from every row so hashes never leave the server. Public `checkAttendeeExists` returns `id` only.
+- **PII dumps closed:** `commonJs.php` no longer console.logs `$_REQUEST` / session. `sendErrorEmail.php` no longer emails `$_SESSION` to a mailbox. Poll queries bind `tep_session_accountid()` only.
+
+## [Sprint 20] — Sweep A: remaining PDO binds, session rotation, indexes — 2026-09-17
+
+### [Added]
+- **`sql/tep_tenant_indexes.sql`:** Lookup indexes on `accountid`, `eventid`, `attendeeid`, and `email` for tenant tables. `tep_ensure_tenant_indexes()` in `data_access/queries.php` applies the same indexes at runtime when a table/column exists and the index name is missing.
+- **`tep_session_rotate()`:** Regenerates the session id without changing role. Used after password resets. Logins still call `tep_login_regenerate()`.
+
+### [Refactored]
+- **26 PHP files** that still concatenated request data into `mysqli_query` now use bound PDO via `tep_dml_pdo.php` (sponsor login, confirmation lookup, payments, mail, registrations, ER account tools, invoices, CLI backup, `select_all_table_recs.php`).
+- **`attendee/signup_print.php`:** Stylesheet is `/css/bootstrap/css/bootstrap.css` (the old `/css/bootstrap.css` path 404ed).
+- **Staff/sponsor password reset:** `send_pw_reset_email.php` generates the temp password on the server, updates with a bound `crypt()` hash, and no longer accepts a password from the query string.
+
+### [Security Fix]
+- **`er_encrypt.php`:** POST + CSRF + logged-in principal only. Anonymous GET hash oracle is closed. Logged-in `user_details.php` still hashes through `erSvc.encrypt()`.
+- **Session rotation:** Sponsor login, confirmation-ticket login, ER tenant impersonation, and password resets call `session_regenerate_id(true)`.
+- **HTTP errors:** `save_payment.php`, `save_signup.php`, `mail.php`, and `send_email.php` log exceptions; they no longer echo `mysqli_error`, PHPMailer `ErrorInfo`, or SQL.
+
+## [Sprint 19] — Gateway consolidation: roles, PDO logins, file jail — 2026-09-17
+
+### [Added]
+- **`config/bootstrap.php`:** Single gateway include. Starts `start_secure_session()` (HttpOnly, SameSite=Lax, Secure on HTTPS) and binds `?accountid=` only when nobody is logged in. HTTP to `config/` stays denied.
+
+### [Refactored]
+- **Staff and attendee login:** `login_process.php` and `login_attendee.php` use PDO bound parameters via `tep_dml_pdo.php`, require POST + `X-CSRF-Token`, and call `session_regenerate_id(true)` on success. Staff table-access mapping is unchanged.
+- **Documents:** `deleteDocument.php` is POST-only. `saveDocument.php` and deletes stay under `documents/account{id}`, `img/account{id}`, or `videos/account{id}`. AngularJS callers POST with CSRF. `erSvc.deleteDocument()` is the shared helper.
+- **Mail:** Browser mail goes to `send_email.php` (logged-in + CSRF). Staff registration email dialogs keep working. Public vendor-request UI still saves the sponsor row without a browser mail relay.
+
+### [Security Fix]
+- **Removed from the web tree:** `create_demo_account.php`, `send_email_simple.php` (open mail relay), `dashboard/phpinfo.php`.
+- **Roles:** `TEP_ROLE_STAFF` vs `TEP_ROLE_ATTENDEE` (plus sponsor/support). A confirmation ticket is an attendee, not staff. File uploads require staff, support, or sponsor.
+- **`commonJs.php`:** No longer copies `?accountid=` over an active login.
+- **Attendee login:** The magic crypt hash bypass is gone. Password must match the bound hash.
+- **`login_process_er.php`:** Regenerates the session id and sets the support role after a successful ER login.
+- **`database_connect()`:** Sets mysqli charset to utf8mb4 to match PDO.
+
+## [Sprint 18] — Phase 11 forensic H1–H3, GET mutations, XSS, table allowlist — 2026-09-16
+
+### [Refactored]
+- **`js/dataAccess.js`:** New `postArray()` POSTs to `getQueryResults.php` with the existing `X-CSRF-Token` header. Dashboard poll vote, check-in toggle, vendor lead save, and push subscription save use `postArray` instead of `getArray`.
+- **`index.php`:** `voteOnPoll`, `toggleCheckIn`, `saveVendorLead`, and `savePushSubscription` call `dataSvc.postArray` so AngularJS `$scope` bindings stay the same.
+
+### [Security Fix]
+- **`getQueryResults.php`:** Non-public queries require a real principal (`userid` / `attendeeid` / `sponsorid` / `registrationid` / `erSupport`). Session `accountid` alone no longer unlocks staff dumps. Write queries (`submitPollVote`, `checkInAttendee`, `saveVendorLead`, `savePushSubscription`) reject GET with HTTP 405 and require POST plus `tep_require_csrf_token()`.
+- **Public query allowlist:** `getRegByEmail`, `extraRegData`, `attendeeMatchQuery`, and `checkAttendeeCredentials` are no longer anonymous. Attendee PII cannot be scraped without a login.
+- **`tep_require_csrf_token()`:** Compares `X-CSRF-Token` only (POST body token is not enough).
+- **`commonJs.php`:** `json_encode()` of request parameters (and session dumps into `<script>`) uses `JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT`.
+- **`attendee/signup_print.php`:** Confirmation lookup uses prepared statements. `tep_h()` escapes confirmation and printed fields. Session uses `start_secure_session()`.
+- **`select_all_table_recs.php`:** Table names must match an explicit allowed array before `SHOW COLUMNS` or `SELECT`. Unknown identifiers return HTTP 400 even for master.
+
+## [Sprint 17] — Phase 11 session, API 401, XSS/CSRF baseline — 2026-09-16
+
+### [Refactored]
+- **`login_er.php`:** Uses `start_secure_session()` before any session cookie. Title, header, and footer say **The Event Phoenix**. Logo is `/css/tep-logo.svg` with text fallback. Enter submits the form.
+
+### [Security Fix]
+- **Session cookies:** Super-user login and `data_access/` HTTP endpoints call `start_secure_session()` so HttpOnly, SameSite=Lax, and Secure-on-HTTPS apply.
+- **API auth:** Unauthenticated writes (`insert_or_update`, `delete_record`, `runQuery`, `runUserDML`) return HTTP 401 JSON `{"ok":false,"error":"Unauthorized"}`. Reads (`getQueryResults`, `select_all_table_recs`, `runRead`) require a principal or tenant `accountid`, except a public query allowlist (login, landing, ACME, public event pages). `select_all` `allAccess` no longer grants anonymous table dumps. POST/GET mutating APIs check `X-CSRF-Token` / `csrf_token`.
+- **`data_access/.htaccess`:** Denies HTTP to `db.php`, `queries.php`, and `tep_dml_pdo.php` (PHP include still works).
+- **XSS:** `tep_js_string()` / `tep_h()` wrap request `slug`, `confirmation`, `accountid`, and `id` echoed into JS/HTML on event and attendee views.
+- **`get_data.php` / `export_snapshot.php`:** Not present. Snapshot export remains `admin/backup_db.php` (CSRF + admin session). Remaining High SQL interpolation in login/payment PHP is unchanged (see `DEPLOYMENT.md`).
+
 ## [Sprint 16] — Login HTTPS cookies, relative assets, TEP branding — 2026-09-16
 
 ### [Added]

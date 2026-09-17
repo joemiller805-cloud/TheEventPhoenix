@@ -519,7 +519,12 @@ regApp.controller('registrations', function($scope, $http, $routeParams, $locati
 			emailData.address = curEmails.join(',');
 			emailData.body = msg;
 			erSvc.closeLoading();
-			$.post("/send_email_simple.php", emailData, function(response){
+			$.ajax({ // POST + CSRF header; send_email_simple.php removed
+				url: "/send_email.php",
+				method: "POST",
+				data: emailData,
+				headers: {"X-CSRF-Token": (window.erGetCsrfToken ? window.erGetCsrfToken() : '')}
+			}).always(function(){
 				$("div#email_dialog").modal("hide");
 				erSvc.closeLoading();
 			});

@@ -1,7 +1,11 @@
 <?php
-session_start(); // Existing cookie session before common_functions
-include $_SERVER['DOCUMENT_ROOT'] . '/common_functions.php'; // DB constants + session helpers
+include $_SERVER['DOCUMENT_ROOT'] . '/common_functions.php'; // DB constants + session helpers before session_start
 require_once $_SERVER['DOCUMENT_ROOT'] . '/data_access/tep_dml_pdo.php'; // Bound PDO; no concatenated SQL
+start_secure_session(); // SameSite=Lax + HTTPS-aware Secure
+tep_require_csrf_token(); // Header token on GET delete from dataAccess.js
+if (!tep_session_has_principal()) { // Deletes are never anonymous
+	tep_dml_fail(401, 'Unauthorized'); // Standardized JSON 401
+}
 touch_session_activity(true); // Existing idle timer
 $sponsorAccess = array('sponsor_orders', 'registrations', 'sponsor_pending_pymts', 'vendor_orders', 'vendor_order_details'); // Existing sponsor tables
 $userAccess = explode(',', (string)($_SESSION['tableAccess'] ?? '')); // Existing staff table list

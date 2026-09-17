@@ -47,26 +47,25 @@
 	//Prevent sponsor from landing on this page with the accountid in session having a value other than the sponsor's account
 	<?php 
 		if($_SESSION['sponsorid']){
-			$resourceID = database_connect();
-			$query = "
-				SELECT accounts.id AS accountid, accounts.web_logo
-				FROM sponsors
-				JOIN accounts ON accounts.id = sponsors.accountid
-				WHERE sponsors.id = '{$_SESSION['sponsorid']}'
-			";
-
-			$result = mysqli_query($resourceID, $query);
-			if (mysqli_num_rows($result)){
-				while($row = mysqli_fetch_assoc($result)){
-					if($_SESSION['accountid'] != $row['accountid']){
-						$_SESSION['accountid'] = $row['accountid'];
-						$_SESSION['accountEventsFor'] = $row['accountid'];
-						$_SESSION['accountLogo'] = $row['web_logo'];
-						echo('location.reload()');
-					}
+			require_once __DIR__ . '/../data_access/tep_dml_pdo.php'; // Bound sponsor tenant
+			try { // PDO; never interpolate sponsorid
+				$pdo = tep_dml_pdo(); // utf8mb4
+				$stmt = $pdo->prepare('SELECT accounts.id AS accountid, accounts.web_logo
+					FROM sponsors
+					JOIN accounts ON accounts.id = sponsors.accountid
+					WHERE sponsors.id = :sponsorid
+					LIMIT 1'); // Bound
+				$stmt->execute(array('sponsorid' => (int)$_SESSION['sponsorid'])); // Session principal
+				$row = $stmt->fetch(PDO::FETCH_ASSOC); // One row
+				if ($row && $_SESSION['accountid'] != $row['accountid']) {
+					$_SESSION['accountid'] = $row['accountid'];
+					$_SESSION['accountEventsFor'] = $row['accountid'];
+					$_SESSION['accountLogo'] = $row['web_logo'];
+					echo('location.reload()');
 				}
+			} catch (Throwable $spHomeEx) { // Connect
+				error_log('TEP sponsor/home.php tenant lookup failed: ' . $spHomeEx->getMessage()); // Log only
 			}
-			mysqli_close($resourceID);
 		}
 	?>
 
@@ -147,7 +146,7 @@
 
 		$scope.getSponsorStatus();
 
-		$scope.replytoemail = "postmaster@easyregpro.com";
+		$scope.replytoemail = "postmaster@easyregpro.com"; // Routing mailbox — not display branding
 		dataSvc.getArray({'query':'accountInfo'}).then(function(resp){
 			if(resp[0]) $scope.replytoemail = resp[0].email;
 		});

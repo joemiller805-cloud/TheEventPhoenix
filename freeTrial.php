@@ -5,17 +5,17 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="EasyRegPro event management software was designed by event planners. It has the scalability, convenience, and functionality that event planners love.">
+	<meta name="description" content="The Event Phoenix event management software was designed by event planners. It has the scalability, convenience, and functionality that event planners love.">
 
 	<script type="application/ld+json">
 	{
 	  "@context" : "http://schema.org",
 	  "@type" : "SoftwareApplication",
 	  "url" : "https://easyregpro.com/",
-	  "name": "EasyRegPro Event Registration Software"
+	  "name": "The Event Phoenix Event Registration Software"
 	}
 	</script>
-	<title>EasyRegPro Event Management Software</title>
+	<title>The Event Phoenix Event Management Software</title>
 	<?php
 		$root = $_SERVER['DOCUMENT_ROOT'];
 		include($root."/common_functions.php");
@@ -77,7 +77,7 @@
 			// $scope.createAccount = function(){
 			// 	if(!$scope.accountForm.$valid || !erSvc.validatePassword($scope.account.login_pw)) return;
 			// 	erSvc.loadingDialog("Creating Account");
-			// 	let msg = `A new EasyRegPro trial account has been created.
+			// 	let msg = `A new The Event Phoenix trial account has been created.
 
 			// 		Account Name - ${$scope.account.name}
 					

@@ -1,7 +1,7 @@
 <?php
-session_start();
-
-include "{$_SERVER['DOCUMENT_ROOT']}/common_functions.php";
+include "{$_SERVER['DOCUMENT_ROOT']}/common_functions.php"; // Cookie helpers before session_start
+start_secure_session(); // SameSite=Lax + HTTPS-aware Secure
+tep_require_csrf_token(); // POST + X-CSRF-Token from dataAccess.js
 
 function out_json($status, $insertid = 0, $httpCode = 200) {
 	http_response_code($httpCode);
@@ -38,13 +38,8 @@ $query = in_str($inputs, 'query');
 
 if ($query === '') out_json("error", 0, 400);
 
-if (
-	!isset($_SESSION['userid']) &&
-	!isset($_SESSION['attendeeid']) &&
-	!isset($_SESSION['registrationid']) &&
-	!isset($_SESSION['accountid'])
-) {
-	out_json("error", 0, 403);
+if (!tep_session_has_principal()) { // Writes need staff/attendee/vendor identity
+	tep_json_fail(401, 'Unauthorized'); // Standardized JSON 401
 }
 
 touch_session_activity(true);
@@ -131,10 +126,10 @@ switch ($query) {
 		$ok = exec_stmt($resourceID, "UPDATE attendees SET terms_agreed = 1 WHERE id = ?", "i", array(in_int($inputs, 'attendeeid')));
 		break;
 	case "updateAttendePw":
-		$ok = exec_stmt($resourceID, "UPDATE attendees SET password = ? WHERE id = ?", "si", array(in_str($inputs, 'password'), in_int($inputs, 'id')));
+		$ok = exec_stmt($resourceID, "UPDATE attendees SET password = ? WHERE id = ? AND accountid = ?", "sii", array(in_str($inputs, 'password'), in_int($inputs, 'id'), in_int($_SESSION, 'accountid')));
 		break;
 	case "resetAttendeePw":
-		$ok = exec_stmt($resourceID, "UPDATE attendees SET password = ? WHERE id = ?", "si", array(in_str($inputs, 'password'), in_int($_SESSION, 'attendeeid')));
+		$ok = exec_stmt($resourceID, "UPDATE attendees SET password = ? WHERE id = ? AND accountid = ?", "sii", array(in_str($inputs, 'password'), in_int($_SESSION, 'attendeeid'), in_int($_SESSION, 'accountid')));
 		break;
 
 	case "createVideoOrder":
@@ -312,7 +307,7 @@ switch ($query) {
 		);
 		break;
 	case "userPasswordSelfUpdate":
-		$ok = exec_stmt($resourceID, "UPDATE users SET pass = ? WHERE email = ?", "ss", array(in_str($inputs, 'pass'), in_str($inputs, 'email')));
+		$ok = exec_stmt($resourceID, "UPDATE users SET pass = ? WHERE email = ? AND id = ? AND accountid = ?", "ssii", array(in_str($inputs, 'pass'), in_str($inputs, 'email'), in_int($_SESSION, 'userid'), in_int($_SESSION, 'accountid')));
 		break;
 	case "sponsorPasswordSelfUpdate":
 		$ok = exec_stmt($resourceID, "UPDATE sponsors SET pass = ? WHERE email = ? AND accountid = ?", "ssi", array(in_str($inputs, 'pass'), in_str($inputs, 'email'), in_int($_SESSION, 'accountid')));

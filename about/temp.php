@@ -17,12 +17,12 @@
 		<div><img src="img/Handheld Mobile phone.webp" style="width:100%" /></div>
 		<div>
 			<section style="width:25em;margin:auto;">
-				<h2> EasyRegPro Mobil App</h2>
+				<h2> The Event Phoenix Mobil App</h2>
 				<ul style="text-align:left;list-style: disc;margin-bottom: 2em;">
 					
 				</ul>
 				<H4>Made "BY" Event Planners "FOR" Event Planners</H4>
-				<p style="margin-top:1.5em"><a href="/freeTrial.php" class="button">Try EasyRegPro for Free!</a></p>
+				<p style="margin-top:1.5em"><a href="/freeTrial.php" class="button">Try The Event Phoenix for Free!</a></p>
 			</section>
 		</div>
 	</section>

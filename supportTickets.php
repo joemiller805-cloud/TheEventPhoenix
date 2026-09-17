@@ -45,7 +45,7 @@
 <body ng-app="regApp" style="padding-top: 5px;">
 <div ng-controller="regCtrl" style="padding:0px 3em">
 	<div style="display:flex">
-		<h1 style="margin-top:0px;flex:50%">EasyRegPro Issues/Requests</h1>
+		<h1 style="margin-top:0px;flex:50%">The Event Phoenix Issues/Requests</h1>
 		<section style="flex:48%;text-align:right">
 			<a href="/accounts.php"><button class="btn btn-primary"> Account List</button></a>
 			<a href="" onclick="erUtils.logout(); return false;">

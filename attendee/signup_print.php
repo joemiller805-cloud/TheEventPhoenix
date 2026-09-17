@@ -1,14 +1,16 @@
 <?php
-	session_start();
 	$root = $_SERVER['DOCUMENT_ROOT'];
-	include($root."/common_functions.php");
+	include($root."/common_functions.php"); // Helpers before any session cookie
+	start_secure_session(); // SameSite=Lax instead of raw session_start
 	$inputs = sanitize_inputs($_REQUEST);
 	$resourceID = database_connect();
+	$confirmation = (string)($inputs['confirmation'] ?? ''); // Bound lookup key
+	$safeConfirmation = tep_h($confirmation); // HTML-safe for die() and markup
 ?>
 <html>
 	<head>
 		<!-- Bootstrap Core CSS -->
-		<link href="/css/bootstrap.css" rel="stylesheet">
+		<link href="/css/bootstrap/css/bootstrap.css" rel="stylesheet"> <!-- Sweep A: real Bootstrap path; /css/bootstrap.css 404 -->
 
 		<!-- Custom CSS -->
 		<link href="/css/modern-business.css" rel="stylesheet">
@@ -28,7 +30,7 @@
 	<body>
 
 		<?php
-			$query =
+			$query = // Confirmation is bound; not interpolated
 			"
 				select
 					first_name,
@@ -39,24 +41,33 @@
 					registrations
 					join events on registrations.eventid = events.id
 				where
-					confirmation = '{$inputs['confirmation']}'
+					confirmation = ?
     		";
 
-			$resultID = mysqli_query($resourceID, $query);
+			$stmt = mysqli_prepare($resourceID, $query); // Parameterized lookup
+			if (!$stmt) { // Prepare failed
+				die('The confirmation number ' . $safeConfirmation . ' could not be found.'); // Escaped output
+			}
+			mysqli_stmt_bind_param($stmt, 's', $confirmation); // Bound confirmation
+			mysqli_stmt_execute($stmt); // Run lookup
+			$resultID = mysqli_stmt_get_result($stmt); // mysqlnd result set
 
-			if (mysqli_num_rows($resultID))
+			if ($resultID && mysqli_num_rows($resultID))
 			{
 				$row = mysqli_fetch_assoc($resultID);
+				mysqli_free_result($resultID); // Free header query
 			}
 			else
 			{
-				die("The confirmation number {$inputs['confirmation']} could not be found.");
+				mysqli_stmt_close($stmt); // Close before die
+				die('The confirmation number ' . $safeConfirmation . ' could not be found.'); // Escaped confirmation
 			}
+			mysqli_stmt_close($stmt); // Done with header query
     	?>
 
-		<p><b>Event: </b><?=$row['event']?><br/>
-		<b>Confirmation: </b><?=$row['confirmation']?><br/>
-		<b>Registrant: </b><?=$row['first_name']. ' '. $row['last_name']?></p>
+		<p><b>Event: </b><?= tep_h($row['event']) ?><br/>
+		<b>Confirmation: </b><?= tep_h($row['confirmation']) ?><br/>
+		<b>Registrant: </b><?= tep_h($row['first_name'] . ' ' . $row['last_name']) ?></p>
 
 		<table class="table table-bordered table-condensed" style="font-size:.75em;">
 			<thead>
@@ -84,26 +95,32 @@
 						left outer join courses on sections.courseid = courses.id
 						left outer join rooms on sections.roomid = rooms.id
 					where
-						registrations.confirmation = '{$inputs['confirmation']}'
+						registrations.confirmation = ?
 					order by
 						sessions.starttime asc,
 						sessions.endtime desc
 				";
 
-				$resultID = mysqli_query($resourceID, $query);
-
-				if (mysqli_num_rows($resultID))
-				{
-					while($row = mysqli_fetch_assoc($resultID))
+				$stmt = mysqli_prepare($resourceID, $query); // Parameterized schedule rows
+				if ($stmt) { // Prepare ok
+					mysqli_stmt_bind_param($stmt, 's', $confirmation); // Bound confirmation
+					mysqli_stmt_execute($stmt); // Run schedule query
+					$resultID = mysqli_stmt_get_result($stmt); // mysqlnd result set
+					if ($resultID && mysqli_num_rows($resultID))
 					{
-						print (	"	<tr>
-										<td>{$row['session']}</td>
-										<td>{$row['date']}</td>
-										<td>{$row['room']}</td>
-										<td>{$row['course']}</td>
+						while($row = mysqli_fetch_assoc($resultID))
+						{
+							print (	"	<tr>
+										<td>" . tep_h($row['session']) . "</td>
+										<td>" . tep_h($row['date']) . "</td>
+										<td>" . tep_h($row['room']) . "</td>
+										<td>" . tep_h($row['course']) . "</td>
 									</tr>
 								");
+						}
+						mysqli_free_result($resultID); // Free schedule rows
 					}
+					mysqli_stmt_close($stmt); // Done with schedule query
 				}
 
 				mysqli_close($resourceID);

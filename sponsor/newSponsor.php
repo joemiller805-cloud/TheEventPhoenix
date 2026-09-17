@@ -75,20 +75,9 @@
 			erSvc.loadingDialog("Submitting Request");
 			$scope.vendor.pass = 'tempRequest';
 			dataSvc.createOrUpdateRecord({"table":"sponsors","record":$scope.vendor}).then(res =>{
-				let emailData = {
-					subject:'New Vendor Request',
-					address:$scope.contactEmail,
-					replytoemail: 'no-reply@easyregpro.com'
-				};
-				let msg = `A new vendor request has been submitted for EasyRegPro.
-					<a href="<?=$_SERVER['HTTP_HOST']?>/vendorConfirm/${res}">View Request</a>`;
-
-				emailData.body = msg;
-				$.post("/send_email_simple.php", emailData, function(response){
-					erSvc.closeLoading();
-					$scope.requestSent = true;
-					$scope.$applyAsync();
-				});
+				erSvc.closeLoading(); // Request is stored; browser mail relay was removed
+				$scope.requestSent = true; // Same success UI as before
+				$scope.$applyAsync(); // Digest
 			});
 		};
 
