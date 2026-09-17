@@ -584,6 +584,10 @@
 					hideLoading(); // Do not leave a spinner over an ignored tap
 					return; // Do not fire a second insert
 				}
+				if (!$scope.vendorOps.booth) { // Form Enter must not save when Save lead would be disabled
+					hideLoading(); // Do not leave a spinner over a blocked submit
+					return; // Same gate as ng-disabled on the submit button
+				}
 				var form = $scope.vendorOps.form; // Bound inputs
 				var name = (form.attendee_name || '').trim(); // Required
 				if (name.length < 2) { // Same floor as the PDO endpoint
@@ -766,37 +770,33 @@
 							<div>{{vendorOps.booth.lead_count}} lead<span ng-show="vendorOps.booth.lead_count != 1">s</span> captured</div>
 						</div>
 						<div ng-show="!vendorOps.booth" style="margin-bottom:8px;">No booth assignment for this login.</div>
+						<form ng-submit="saveVendorLead()"> <!-- Enter in a field saves; AngularJS prevents a full page reload -->
 						<input type="text" class="form-control"
 							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
 							placeholder="Attendee name"
-							ng-model="vendorOps.form.attendee_name"
-							ng-disabled="vendorOps.busy || !vendorOps.booth">
+							ng-model="vendorOps.form.attendee_name"> <!-- Stay enabled while busy so typing focus is not kicked -->
 						<input type="email" class="form-control"
 							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
 							placeholder="Email (optional)"
-							ng-model="vendorOps.form.email"
-							ng-disabled="vendorOps.busy || !vendorOps.booth">
+							ng-model="vendorOps.form.email"> <!-- Stay enabled while busy so typing focus is not kicked -->
 						<input type="text" class="form-control"
 							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
 							placeholder="Company (optional)"
-							ng-model="vendorOps.form.company"
-							ng-disabled="vendorOps.busy || !vendorOps.booth">
+							ng-model="vendorOps.form.company"> <!-- Stay enabled while busy so typing focus is not kicked -->
 						<input type="text" class="form-control"
 							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
 							placeholder="Ticket (optional)"
-							ng-model="vendorOps.form.ticket"
-							ng-disabled="vendorOps.busy || !vendorOps.booth">
+							ng-model="vendorOps.form.ticket"> <!-- Stay enabled while busy so typing focus is not kicked -->
 						<textarea class="form-control"
 							style="min-height:72px;margin-bottom:8px;font-size:1.1em;"
 							placeholder="Notes (optional)"
-							ng-model="vendorOps.form.notes"
-							ng-disabled="vendorOps.busy || !vendorOps.booth"></textarea>
-						<button type="button" class="btn btn-primary"
+							ng-model="vendorOps.form.notes"></textarea> <!-- Stay enabled while busy so typing focus is not kicked -->
+						<button type="submit" class="btn btn-primary"
 							style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
-							ng-click="saveVendorLead()"
-							ng-disabled="vendorOps.busy || !vendorOps.booth">
+							ng-disabled="vendorOps.busy || !vendorOps.booth"> <!-- Disable the button only; inputs keep focus -->
 							Save lead
 						</button>
+						</form> <!-- Close lead-capture form; recent-lead list stays outside -->
 						<div ng-repeat="lead in vendorOps.leads" style="margin-bottom:8px;">
 							<div class="bold">{{lead.attendee_name}}</div>
 							<div ng-show="lead.company">{{lead.company}}</div>

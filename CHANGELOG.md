@@ -2,6 +2,14 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 15] — DML 2s timeout JSON errors and vendor lead form Enter — 2026-09-16
+
+### [Refactored]
+- **Vendor Operations (`index.php`):** Lead fields sit in `<form ng-submit="saveVendorLead()">`. **Save lead** is `type="submit"`. Inputs stay enabled while `vendorOps.busy` so typing focus is not lost; `ng-disabled` stays on the button only. Enter in a field saves without a page reload. No booth still cannot save.
+
+### [Security Fix]
+- **`data_access/tep_dml_pdo.php`:** Generic insert/update/delete now uses `tep_pdo_options()` with `PDO::ATTR_TIMEOUT => 2` so a dead MySQL socket cannot stall AngularJS. Connect/parse/execute failures return HTTP 200 JSON `{"ok":false,"error":"Query Execution Error"}` (no stack traces, no credentials). `Not Authorized` stays HTTP 403 JSON.
+
 ## [Sprint 14] — Cap DB waits at 2s and bypass SW for query APIs — 2026-09-16
 
 ### [Added]

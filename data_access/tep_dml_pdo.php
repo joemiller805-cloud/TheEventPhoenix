@@ -19,11 +19,9 @@ function tep_dml_pdo() { // Same host/schema rules as tep_poll_pdo / database_co
 		$pass = defined('DB_PASS_LOCAL') ? DB_PASS_LOCAL : ''; // XAMPP empty root password
 	}
 	$dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $dbname . ';charset=utf8mb4'; // mysql:host=127.0.0.1 locally
-	return new PDO($dsn, $user, $pass, array( // Exceptions; callers catch Throwable
-		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Fail closed
-		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // Named columns
-		PDO::ATTR_EMULATE_PREPARES => false, // Native prepares
-	));
+	$tepPdoOpts = tep_pdo_options(); // Shared ERRMODE / FETCH_ASSOC / native prepares / 2s timeout from db.php
+	$tepPdoOpts[PDO::ATTR_TIMEOUT] = 2; // Cap insert/update/delete waits at 2 seconds when MySQL is down
+	return new PDO($dsn, $user, $pass, $tepPdoOpts); // Callers catch Throwable; no credentials in the HTTP body
 }
 
 function tep_dml_ident($name) { // Table or column name from the existing AngularJS payload
@@ -202,8 +200,14 @@ function tep_dml_bind_token($stmt, $ph, $token) { // Bind one parsed value; NOW(
 	$stmt->bindValue($ph, (string)($token['val'] ?? ''), PDO::PARAM_STR); // All other values as bound strings
 }
 
-function tep_dml_fail($code, $message) { // Generic client error; never echo SQL
-	http_response_code($code); // 400/500
-	print $message; // Same shape as the old "Query Execution Error" / "Not Authorized"
+function tep_dml_fail($code, $message) { // Structured JSON; never echo SQL, stack traces, or credentials
+	header('Content-Type: application/json'); // AngularJS / dataSvc can parse the body
+	$code = (int)$code; // 403 vs connect/parse/execute
+	if ($code === 403) { // Authorization still fails closed for $http interceptors
+		http_response_code(403); // Keep Not Authorized as 403
+	} else { // Connect, parse, or execute failure (was plain-text 400/500)
+		http_response_code(200); // Fail-soft so a down MySQL does not reject AngularJS $http
+	}
+	print json_encode(array('ok' => false, 'error' => (string)$message)); // {"ok":false,"error":"Query Execution Error"}
 	exit; // Stop
 }
