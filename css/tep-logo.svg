@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 56" role="img" aria-label="The Event Phoenix">
+	<circle cx="28" cy="28" r="22" fill="#c45c26"/>
+	<path fill="#f4e6d4" d="M28 10c6 8 4 14 0 18-4-4-6-10 0-18zm-10 16c8 2 14 8 16 16-10-2-16-8-16-16zm20 0c0 8-6 14-16 16 2-8 8-14 16-16z"/>
+	<text x="58" y="36" font-family="Georgia, Times New Roman, serif" font-size="24" fill="#1c1c1c">The Event Phoenix</text>
+</svg>

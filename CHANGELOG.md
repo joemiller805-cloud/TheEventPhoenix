@@ -2,6 +2,17 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 16] — Login HTTPS cookies, relative assets, TEP branding — 2026-09-16
+
+### [Added]
+- **`css/tep-logo.svg`:** Tracked login/header/footer mark. `/img/` is gitignored and empty, so login no longer points at missing `ERP-no-tag.png`.
+
+### [Refactored]
+- **`login.php`:** Includes `common_functions.php` and `start_secure_session()` before any `session_start`. CSS/JS/images stay root-relative or HTTPS CDN (no `http://` assets). Footer copyright is **The Event Phoenix**. Broken logos hide via `onerror` and show text.
+
+### [Security Fix]
+- **`common_functions.php` `start_secure_session()`:** Sets `session.cookie_samesite=Lax`, HttpOnly, and `Secure` only when `is_https_request()` is true (HTTPS env, port 443, or `REQUEST_SCHEME=https`) so local HTTPS cookies are not dropped. Host-only domain (empty) avoids Chrome rejecting `domain=localhost`.
+
 ## [Sprint 15] — DML 2s timeout JSON errors and vendor lead form Enter — 2026-09-16
 
 ### [Refactored]

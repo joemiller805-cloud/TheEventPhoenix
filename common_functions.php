@@ -90,16 +90,19 @@ function apply_security_headers() {
 }
 
 function is_https_request() {
-	if (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') {
-		return true;
+	if (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') { // Apache SSL vhost sets HTTPS=on
+		return true; // Local https://localhost and production TLS
 	}
-	if (!empty($_SERVER['SERVER_PORT']) && (string)$_SERVER['SERVER_PORT'] === '443') {
-		return true;
+	if (!empty($_SERVER['SERVER_PORT']) && (string)$_SERVER['SERVER_PORT'] === '443') { // Port 443 even if HTTPS env is missing
+		return true; // XAMPP Listen 443
+	}
+	if (!empty($_SERVER['REQUEST_SCHEME']) && strtolower((string)$_SERVER['REQUEST_SCHEME']) === 'https') { // PHP 8.2 scheme from the request
+		return true; // Do not miss local HTTPS when HTTPS=on is absent
 	}
 	if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
 		return true;
 	}
-	return false;
+	return false; // HTTP on :80 keeps Secure off so the cookie is not dropped
 }
 
 function tep_is_local_host() { // Local XAMPP detector used by DB fallbacks and the dev session helper
@@ -163,13 +166,17 @@ function start_secure_session() {
 		tep_apply_local_dev_session(); // Seed localhost test account when this page already called session_start()
 		return;
 	}
-	session_set_cookie_params([
-		'lifetime' => 0,
-		'path' => '/',
-		'domain' => '',
-		'secure' => is_https_request(),
-		'httponly' => true,
-		'samesite' => 'Lax',
+	$tepCookieSecure = is_https_request(); // HTTPS-only Secure; HTTP :80 stays false so local cookies are not dropped
+	ini_set('session.cookie_httponly', '1'); // JS cannot read the session id
+	ini_set('session.cookie_samesite', 'Lax'); // SameSite=Lax for top-level HTTPS navigations (does not require Secure)
+	ini_set('session.cookie_secure', $tepCookieSecure ? '1' : '0'); // Match the request scheme
+	session_set_cookie_params([ // Must run before session_start(); empty domain = host-only (localhost-safe)
+		'lifetime' => 0, // Browser session cookie
+		'path' => '/', // Whole TEP site
+		'domain' => '', // Host-only; do not set domain=localhost (Chrome drops it)
+		'secure' => $tepCookieSecure, // true on https://127.0.0.1 and https://localhost
+		'httponly' => true, // Not readable from AngularJS
+		'samesite' => 'Lax', // Explicit SameSite=Lax
 	]);
 	if (defined('TEP_SESSION_NAME') && TEP_SESSION_NAME !== '' && TEP_SESSION_NAME !== 'PHPSESSID') { // Isolated cookie name from env / tep_config
 		session_name(TEP_SESSION_NAME); // Must run before session_start(); index.php raw session_start() still uses php.ini
