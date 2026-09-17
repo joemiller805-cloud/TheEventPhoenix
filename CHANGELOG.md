@@ -5,7 +5,7 @@ All notable changes to The Event Phoenix (TEP) are documented in this file in pl
 ## [Sprint 22] — Phase 11 Final Lock and full-schema staging seed — 2026-09-17
 
 ### [Added]
-- **`sql/tep_staging_seed.sql`:** Idempotent MariaDB staging seed for tenant 1000 (Phoenix Enterprise Events). Creates the full product schema discovered from PHP/JS DML plus live `tep_local` tables, seeds relational dummy rows, bcrypt-hashes dummy logins with `password_hash()`, and adds B-tree indexes on `accountid`, `eventid`, `attendeeid`, and `email`. No payment-processor secrets.
+- **`sql/tep_staging_seed.sql`:** Idempotent MariaDB staging seed for tenant 1000 (Phoenix Enterprise Events). Creates the full product schema discovered from PHP/JS DML plus live `tep_local` tables, seeds relational dummy rows, bcrypt-hashes dummy logins with `password_hash()`, and adds B-tree indexes on `accountid`, `eventid`, `attendeeid`, and `email`. No payment-processor secrets. `discount_codes` uses production columns `method` + `discount` (SUMMIT10 is flat $10).
 - **`docs/TEP_Executive_Admin_Guide.md`:** Operator paths for account 1000 dashboard (poll, check-in, vendor leads, snapshot) and `/admin.php` menus.
 - **`docs/TEP_Master_QA_Guide.md`:** Auto-discovered feature matrix, discount-code math, and human test cases.
 - **`tests/e2e/`:** Playwright templates for staff login, check-in, live poll, vendor lead, and public registration discount.
