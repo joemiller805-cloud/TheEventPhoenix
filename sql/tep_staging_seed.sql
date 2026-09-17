@@ -1,9 +1,9 @@
 -- The Event Phoenix (TEP) full-schema staging seed
 -- Tenant Account 1000: Phoenix Enterprise Events
--- Generated from codebase + live tep_local information_schema (2026-09-17)
+-- 72 tables from PHP/JS DML + information_schema (no venues/images tables in product).
 -- Dummy logins use password TepStaging!1000 (bcrypt). Do not use in production.
--- Venues are rooms.area (no standalone venues table exists in the product).
--- Media assets are documents.filepath and videos.filepath (no images table).
+-- Venues are rooms.area (Grand Ballroom, West Wing, Expo Hall).
+-- Media assets are documents.filepath and videos.filepath.
 -- Safe to re-run: CREATE IF NOT EXISTS + INSERT ... ON DUPLICATE KEY UPDATE.
 
 SET NAMES utf8mb4;
@@ -505,7 +505,9 @@ CREATE TABLE IF NOT EXISTS `discount_codes` (
 	`accountid` INT NOT NULL DEFAULT 0,
 	`code` VARCHAR(64) NOT NULL DEFAULT '',
 	`type` VARCHAR(32) NOT NULL DEFAULT 'attendee',
-	`amount` DECIMAL(10,2) NOT NULL DEFAULT 0,
+	`method` VARCHAR(32) NOT NULL DEFAULT 'amount', -- queries.php: amount vs percent
+	`discount` DECIMAL(10,2) NOT NULL DEFAULT 0, -- UI field name (not amount)
+	`amount` DECIMAL(10,2) NOT NULL DEFAULT 0, -- kept for stub schemas that already had amount
 	`frequency` VARCHAR(32) NOT NULL DEFAULT 'unlimited',
 	`sunrise` DATE NULL,
 	`sunset` DATE NULL,
@@ -1078,6 +1080,8 @@ ALTER TABLE `registrations` ADD COLUMN IF NOT EXISTS `student_number` VARCHAR(64
 ALTER TABLE `season_passes` ADD COLUMN IF NOT EXISTS `name` VARCHAR(255) NOT NULL DEFAULT '';
 ALTER TABLE `season_passes` ADD COLUMN IF NOT EXISTS `price` DECIMAL(10,2) NOT NULL DEFAULT 0;
 ALTER TABLE `season_passes` ADD COLUMN IF NOT EXISTS `description` TEXT NULL;
+ALTER TABLE `discount_codes` ADD COLUMN IF NOT EXISTS `method` VARCHAR(32) NOT NULL DEFAULT 'amount'; -- amount | percent
+ALTER TABLE `discount_codes` ADD COLUMN IF NOT EXISTS `discount` DECIMAL(10,2) NOT NULL DEFAULT 0; -- matches AngularJS record.discount
 
 -- B-tree indexes on tenant filter columns (skip if the index name already exists)
 DROP PROCEDURE IF EXISTS tep_seed_add_index;
@@ -1262,9 +1266,9 @@ INSERT INTO signups (id, registrationid, sessionid, sectionid)
 VALUES (1940, 1901, 1401, 1601), (1941, 1902, 1402, 1602)
 ON DUPLICATE KEY UPDATE sectionid=VALUES(sectionid);
 
-INSERT INTO discount_codes (id, eventid, accountid, code, type, amount, frequency, sunrise, sunset)
-VALUES (1950, 1100, 1000, 'SUMMIT10', 'attendee', 10.00, 'unlimited', '2026-01-01', '2026-10-11')
-ON DUPLICATE KEY UPDATE code=VALUES(code);
+INSERT INTO discount_codes (id, eventid, accountid, code, type, method, discount, amount, frequency, sunrise, sunset)
+VALUES (1950, 1100, 1000, 'SUMMIT10', 'attendee', 'amount', 10.00, 10.00, 'unlimited', '2026-01-01', '2026-10-11')
+ON DUPLICATE KEY UPDATE code=VALUES(code), method=VALUES(method), discount=VALUES(discount); -- flat $10 attendee code
 
 INSERT INTO season_passes (id, accountid, name, price, sunrise, sunset, description)
 VALUES (1960, 1000, '2026 Season Pass', 999.00, '2026-01-01', '2026-12-31', 'All Phoenix Enterprise Events in 2026.')

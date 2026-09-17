@@ -60,7 +60,13 @@ Human test plan for Phase 11 (`v1.0.0-R1-certified`). Feature list is taken from
 | A14 | Account Settings → Inventory | `inventory_management` |
 | A15 | Account Settings → Season Passes | `season_passes` |
 | A16 | Account Settings → Survey Management | `survey_management` |
-| A17 | Reports → (all rpt_* routes) | see Admin Guide |
+| A17 | Account Settings → Attendee Menu | `attendee_menu` |
+| A18 | Account Settings → Event Categories | `event_categories` |
+| A19 | Account Settings → Inventory Settings | `inventory_settings` |
+| A20 | Account Settings → QR Configuration | `qr_config` |
+| A21 | Account Settings → Registration Fields | `reg_fields` |
+| A22 | Account Settings → Account Registration Types | `acct_reg_types` |
+| A23 | Reports → (all rpt_* routes) | see Admin Guide |
 
 ### D. Event admin (open an event, then tabs)
 
@@ -115,7 +121,7 @@ Then:
   Example: VIP $799, flat $10 → discount **$10.00**, due **$789.00**. Extra $45 lunch → price $844, flat $10 → due **$834.00**.
 - If **frequency = oneTime** (UI label one-time) and the cart has two people, the code applies only to the **first** registration row (`indexOf(reg) > 0` returns the raw price with no discount on later rows).
 - Codes must match **BINARY** `discount_codes.code`, `type = attendee`, and today’s date between **sunrise** and **sunset**.
-- Staging seed row **SUMMIT10** is a $10 attendee code for event 1100 (`2026-01-01`–`2026-10-11`). Treat it as **flat $10** unless an operator changes **method** to percent in **Discount Codes**.
+- Staging seed row **SUMMIT10** is `method = amount`, `discount = 10` for event 1100 (`2026-01-01`–`2026-10-11`). Due for VIP + lunch is **$834.00**. Change **method** to `percent` only if you are testing the 10% path (**$759.60**).
 
 Round display to two decimals. Learning Center video carts use a separate percent formula in `learningCenter.php` (`Math.round(discount * 100) / 100`).
 

@@ -19,4 +19,4 @@ Staging env (after `sql/tep_staging_seed.sql`):
 2. `02-staff-checkin.spec.ts` — name/ticket search and check-in toggle
 3. `03-live-poll-vote.spec.ts` — Live poll tap + Event Pulse
 4. `04-vendor-lead-capture.spec.ts` — Vendor Operations save lead
-5. `05-public-registration-discount.spec.ts` — public register + SUMMIT10 math
+5. `05-public-registration-discount.spec.ts` — public register + SUMMIT10 math (seed `method=amount`, due **$834.00** for VIP + lunch)

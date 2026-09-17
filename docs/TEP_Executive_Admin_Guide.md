@@ -105,8 +105,13 @@ Sign in as master admin, then open `/admin.php`. Left menu groups:
 | --- | --- | --- |
 | Account Configuration → Account Details | `/admin.php` (default) | Confirm name **Phoenix Enterprise Events**, slug `phoenix-enterprise`. |
 | Attendee Messages | `#attendeeMsgs` | Home-page banner text (`home_pg_msg`). |
+| Attendee Menu | `attendee_menu` | Public attendee nav items stored in preferences. |
+| Event Categories | `event_categories` | Category tags stored in preferences. |
 | Features | `acct_features` | Toggles: surveys, docs, inventory, season pass, course proposals, event requests, staff expense, sponsors, videos. |
-| Image Management | `#imgMgmt` | Account logos/photos under `img/account1000/`. |
+| Image Management | `#imgMgmt` | Account logos/photos under `img/account1000/` (no `images` table; file paths only). |
+| QR Configuration | `qr_config` | Badge/QR preference JSON. |
+| Registration Fields | `reg_fields` | Account-level extra fields (seeded T-shirt size). |
+| Account Registration Types | `acct_reg_types` | **Member** $199, **Non-Member** $299. |
 | Security Groups | `security_groups` | Group **Event Operations** (id 1001) with account and event page lists. |
 | Staff | `users` | Users **Alex Rivera**, **Sam Chen**, **Jordan Blake**. |
 | Tracks | `tracks` | **Leadership**, **Operations**. |
