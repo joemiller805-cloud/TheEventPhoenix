@@ -19,7 +19,10 @@ function tep_backup_ident($name) { // Allow only unquoted MySQL identifiers afte
 }
 
 function tep_backup_pdo() { // Same host/schema rules as tep_poll_pdo(); constants only
-	$host = defined('DB_HOST') ? DB_HOST : 'localhost'; // XAMPP / tep_config
+	$host = defined('DB_HOST') ? (string)DB_HOST : '127.0.0.1'; // XAMPP / tep_config
+	if ($host === 'localhost' || $host === '::1') { // Windows IPv6 localhost lookup ~2s
+		$host = '127.0.0.1'; // mysql:host=127.0.0.1
+	}
 	$port = defined('DB_PORT') ? (int)DB_PORT : 3306; // Default MySQL port
 	$httpHost = str_replace('www.', '', (string)($_SERVER['HTTP_HOST'] ?? '')); // Match database_connect prod vs dev
 	if (substr($httpHost, 0, 4) == 'easy') { // Production hostname
@@ -31,7 +34,7 @@ function tep_backup_pdo() { // Same host/schema rules as tep_poll_pdo(); constan
 		$user = defined('DB_USER_LOCAL') ? DB_USER_LOCAL : 'root'; // XAMPP user
 		$pass = defined('DB_PASS_LOCAL') ? DB_PASS_LOCAL : ''; // XAMPP empty root password
 	}
-	$dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $dbname . ';charset=utf8mb4'; // No request data
+	$dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $dbname . ';charset=utf8mb4'; // mysql:host=127.0.0.1 locally
 	$pdo = new PDO($dsn, $user, $pass, array( // Exceptions → 500 without dumping credentials
 		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Fail closed
 		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // Named columns for INSERT lists

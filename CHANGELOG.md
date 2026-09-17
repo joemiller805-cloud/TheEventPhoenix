@@ -2,6 +2,47 @@
 
 All notable changes to The Event Phoenix (TEP) are documented in this file in plain English.
 
+## [Sprint 14] — Cap DB waits at 2s and bypass SW for query APIs — 2026-09-16
+
+### [Added]
+- **`data_access/db.php`:** Shared `tep_pdo_options()` includes `PDO::ATTR_TIMEOUT => 2` (and `PDO::MYSQL_ATTR_READ_TIMEOUT => 2` when mysqlnd defines it) so hung MySQL cannot stall AngularJS `dataSvc`.
+
+### [Refactored]
+- **Staff check-in (`index.php`):** The **Name or ticket** box no longer runs `ng-change` debounce search. Search runs only on **Search** / form submit (Enter). The input stays enabled while `checkIn.busy` so focus is not lost mid-string.
+- **`data_access/queries.php` `tep_poll_pdo()`:** Uses `db.php` options and sets `PDO::ATTR_TIMEOUT => 2` on the poll/check-in/vendor/Pulse PDO handle.
+- **`common_functions.php` `database_connect()`:** Default mysqli connect/read timeout is **2 seconds** (was 5) so `getQueryResults.php` fails fast when MySQL is down; HTTP 200 empty rows still apply.
+- **`sw.js` `CACHE_VERSION` `v1.5.0`:** `getQueryResults.php`, `sessionCheck.php`, and all `/data_access/` GETs return without `respondWith` so the browser talks to Apache once. Activate drops `tep-api-v1.4.0`. Static Cache-First and `/offline.html` navigation fallback are unchanged.
+- **MySQL host `127.0.0.1`:** XAMPP / missing-config defaults and PDO DSNs use IPv4 loopback instead of `localhost` so Windows does not spend ~2s on IPv6 DNS. `tep_mysql_host()` in `data_access/db.php` also remaps `localhost` / `::1`. `HTTP_HOST` localhost checks are unchanged.
+
+### [Security Fix]
+- Query JSON is no longer written to Cache Storage (session cookies / tenant rows must not persist in the PWA API cache).
+
+## [Sprint 13] — Phase 9 environment isolation and deploy handoff — 2026-09-16
+
+Phase 9 isolates database host, credentials, and session keys from source control and documents remaining raw SQL for the next hardening sprint (no Workbox, no Node, no Angular 2+).
+
+### [Added]
+- **`config/env.example.php`:** Template for `DB_HOST` / `DB_PORT` / schema / user / password, `TEP_ENC_KEY_RAW`, `LEGACY_SALT`, `TEP_SESSION_NAME`, VAPID, `BASE_URL`, and production flags. Copy to gitignored `config/env.php` or set the same `TEP_*` names as Apache `SetEnv`.
+- **`config/.htaccess`:** Denies HTTP to `config/` so a copied `env.php` is not downloadable.
+- **`DEPLOYMENT.md`:** Server handoff for `master` (PHP 8.2 / MySQL / AngularJS 1.x), secret load order, Apache/MySQL checklist, production session lock, and the remaining `mysqli_query` interpolation inventory.
+
+### [Refactored]
+- **`common_functions.php`:** After `private/tep_config.php`, optionally loads `config/env.php`, then fills any still-undefined constants from `TEP_*` process environment. Empty env values are skipped so XAMPP localhost fallbacks still run. `start_secure_session()` can set `session_name()` from `TEP_SESSION_NAME`. `database_connect()` casts `DB_PORT` to int.
+
+### [Security Fix]
+- Live passwords and `LEGACY_SALT` belong in `private/tep_config.php`, Apache `SetEnv`, or gitignored `config/env.php` — not in git. `.gitignore` now lists `/config/env.php`.
+- SQL audit (not rewritten this sprint): high-risk interpolation remains in login/payment/registration PHP that concatenates `$inputs` into `mysqli_query`, plus `data_access/select_all_table_recs.php`. Poll / check-in / vendor / Pulse / snapshot / **insert_or_update + delete_record** stay on PDO bound parameters. Full file list is in `DEPLOYMENT.md` §6.
+
+## [Sprint 13b] — Bound PDO for generic create/update/delete — 2026-09-16
+
+### [Refactored]
+- **`data_access/insert_or_update.php`:** Parses the existing AngularJS `insertColumns` / `insertValues` / `updateData` / `whereClause` / `table` payload into identifiers + bound PDO parameters. `now()` is emitted as SQL `NOW()`. `WHERE` is `id = :id` only. Sponsor/master/`tableAccess` gates are unchanged.
+- **`data_access/delete_record.php`:** `DELETE FROM \`table\` WHERE \`id\` = :id` with regex table names and digit-only ids. Same authorization lists as before.
+- **`data_access/tep_dml_pdo.php`:** Shared PDO factory, identifier regex, `information_schema` column whitelist, and value/SET parsers.
+
+### [Security Fix]
+- Generic DML no longer concatenates request fragments into `mysqli_query`. Failed statements return `Query Execution Error` without echoing SQL. Unknown table/column names are rejected.
+
 ## [Sprint 12] — Query error boundary HTTP 200 empty rows — 2026-09-16
 
 ### [Refactored]

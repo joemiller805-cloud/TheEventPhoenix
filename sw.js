@@ -1,7 +1,7 @@
 /* TEP Sprint 1: root service worker — bump CACHE_VERSION to kill stale caches */
-const CACHE_VERSION = 'v1.4.0'; // TEP kill-switch: bump so activate drops v1.3.0 and picks up 404 navigation → offline.html
+const CACHE_VERSION = 'v1.5.0'; // Drop tep-api-v1.4.0 so getQueryResults is no longer Network-First cached
 const STATIC_CACHE = 'tep-static-' + CACHE_VERSION; // Versioned bucket for CSS/JS/fonts/images (Cache-First)
-const API_CACHE = 'tep-api-' + CACHE_VERSION; // Versioned bucket for /data_access/ GET JSON (Network-First)
+const API_CACHE = 'tep-api-' + CACHE_VERSION; // Legacy bucket name; /data_access/ is no longer stored (activate still deletes old tep-api-*)
 const OFFLINE_URL = '/offline.html'; // Static shell for document navigations when Apache is unreachable
 
 const PRECACHE_URLS = [ // Small static set; never list PHP HTML or POST endpoints here
@@ -22,8 +22,18 @@ function isStaticAsset(url) { // Cache-First allow-list: CSS, JS, fonts, images 
   return /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|json)$/i.test(url.pathname); // Extension allow-list; PHP HTML stays out
 }
 
-function isDataAccessRequest(url) { // Network-First target: AngularJS dataSvc GET /data_access/*.php
-  return url.pathname.indexOf('/data_access/') === 0; // Prefix match so subpaths stay in the API strategy
+function isBypassServiceWorkerRequest(url) { // Live Apache only — do not fetch() twice or put JSON in Cache Storage
+  var path = url.pathname || ''; // Same-origin path
+  if (path.indexOf('/data_access/') === 0) { // All dataSvc GET/POST PHP under data_access/
+    return true; // Bypass SW; getQueryResults.php included
+  }
+  if (path.indexOf('getQueryResults.php') !== -1) { // Belt-and-suspenders if the script is moved
+    return true; // Never cache query JSON
+  }
+  if (path === '/sessionCheck.php' || path.indexOf('/sessionCheck.php') !== -1) { // Idle-session XHR from erSvc
+    return true; // Bypass SW so a hung MySQL path cannot duplicate this GET
+  }
+  return false; // Other same-origin GETs keep Cache-First / offline.html
 }
 
 function isSuccessfulGetResponse(response) { // Never cache 404/500 or opaques — only same-origin HTTP 200
@@ -120,7 +130,7 @@ self.addEventListener('activate', function (event) { // Drop cache buckets that 
   );
 });
 
-self.addEventListener('fetch', function (event) { // Route GET traffic: API Network-First, static Cache-First
+self.addEventListener('fetch', function (event) { // Static Cache-First; API PHP bypasses SW; documents use offline.html
   const request = event.request; // Local alias for readability
   if (request.method !== 'GET') { // Never intercept POST/PUT (CSRF, payments, logins)
     return; // Mutating requests always hit Apache uncached
@@ -132,9 +142,8 @@ self.addEventListener('fetch', function (event) { // Route GET traffic: API Netw
   if (url.pathname === '/sw.js') { // Never cache-first the worker file itself
     return; // Browser update checks must see a live sw.js after CACHE_VERSION bumps
   }
-  if (isDataAccessRequest(url)) { // AngularJS dataSvc GET /data_access/getQueryResults.php
-    event.respondWith(networkFirst(request)); // Network-First; cache only HTTP 200 JSON
-    return; // Do not also run Cache-First on API URLs
+  if (isBypassServiceWorkerRequest(url)) { // getQueryResults.php, sessionCheck.php, /data_access/
+    return; // No event.respondWith — the page talks to Apache once; nothing enters tep-api-*
   }
   if (url.pathname === OFFLINE_URL) { // Direct GET of the static shell (not PHP)
     event.respondWith(cacheFirst(request)); // Precached; available when Apache is unreachable

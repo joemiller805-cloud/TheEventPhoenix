@@ -438,20 +438,20 @@
 				}, { passive: true }); // Cancel is always passive
 			})();
 			$scope.searchCheckIns = function () { // getAttendeeCheckInStatus by name or ticket; HTTP 200 rows
-				if ($scope.checkIn.searchTimer) { // Cancel a pending debounce
+				if ($scope.checkIn.searchTimer) { // Cancel a leftover debounce from older builds
 					$timeout.cancel($scope.checkIn.searchTimer); // Do not double-fetch
 					$scope.checkIn.searchTimer = null; // Clear handle
 				}
-				var q = ($scope.checkIn.q || '').trim(); // Search box
+				var q = ($scope.checkIn.q || '').trim(); // Search box — only read on Search / submit
 				if (q.length < 2) { // Server also rejects short q
 					$scope.checkIn.rows = []; // Hide stale hits
 					$scope.checkIn.message = q.length ? 'Type at least two characters.' : ''; // Hint vs idle
-					$scope.checkIn.busy = false; // Unlock
-					$scope.$applyAsync(); // Digest
+					$scope.checkIn.busy = false; // Unlock Search button only
+					$scope.$applyAsync(); // Digest message; input stays enabled and focused
 					hideLoading(); // No GET fired; still drop a stuck initial spinner
 					return; // Do not call the API
 				}
-				$scope.checkIn.busy = true; // Disable search while in flight
+				$scope.checkIn.busy = true; // Disable Search button while in flight — not the text box
 				$scope.checkIn.message = ''; // Clear prior status
 				dataSvc.getArray({ // Existing GET query path (PDO select server-side)
 					'query': 'getAttendeeCheckInStatus', // Staff search
@@ -464,27 +464,13 @@
 						$scope.checkIn.rows = rows; // ng-repeat source
 						$scope.checkIn.message = rows.length ? '' : 'No matching attendees.'; // Empty state
 					}
-					$scope.checkIn.busy = false; // Unlock
-					$scope.$applyAsync(); // Digest the list
+					$scope.checkIn.busy = false; // Unlock Search
+					$scope.$applyAsync(); // Digest the list; ng-model input is outside ng-repeat
 				}).catch(function () { // getAttendeeCheckInStatus rejection
 					$scope.checkIn.busy = false; // Unlock Search
 					$scope.checkIn.message = 'Search could not be completed. Try again.'; // Fail-soft
 					$scope.$applyAsync(); // Digest
 				}).finally(hideLoading); // Success or error: never leave "Loading Event Data" up
-			};
-			$scope.onCheckInQueryChange = function () { // Debounced search as the staff types
-				if ($scope.checkIn.searchTimer) { // Replace the previous timer
-					$timeout.cancel($scope.checkIn.searchTimer); // One in-flight debounce
-				}
-				$scope.checkIn.searchTimer = $timeout(function () { // 350ms after last key
-					$scope.searchCheckIns(); // Same path as the Search button
-				}, 350); // Fast enough for a door line, slow enough to skip per-key GETs
-			};
-			$scope.onCheckInKey = function ($event) { // Enter submits immediately
-				if ($event && $event.which === 13) { // Return key
-					$event.preventDefault(); // Do not submit a phantom form
-					$scope.searchCheckIns(); // Skip the debounce
-				}
 			};
 			$scope.toggleCheckIn = function (row) { // Instant check-in / undo; HTTP 200 ok/reason
 				if (!row || row.busy || $scope.checkIn.busy) { // Ignore double-taps
@@ -737,19 +723,18 @@
 						<div>Search by name or ticket, then tap to check in.</div>
 					</div>
 					<div class="card-body">
-						<input type="search" class="form-control"
-							style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
-							placeholder="Name or ticket"
-							ng-model="checkIn.q"
-							ng-change="onCheckInQueryChange()"
-							ng-keyup="onCheckInKey($event)"
-							ng-disabled="checkIn.busy">
-						<button type="button" class="btn btn-primary"
-							style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
-							ng-click="searchCheckIns()"
-							ng-disabled="checkIn.busy">
-							Search
-						</button>
+						<form ng-submit="searchCheckIns()">
+							<input type="text" class="form-control"
+								style="min-height:48px;margin-bottom:8px;font-size:1.1em;"
+								placeholder="Name or ticket"
+								ng-model="checkIn.q"
+								autocomplete="off">
+							<button type="submit" class="btn btn-primary"
+								style="min-height:48px;width:100%;margin-bottom:8px;font-size:1.1em;"
+								ng-disabled="checkIn.busy">
+								Search
+							</button>
+						</form>
 						<div ng-repeat="row in checkIn.rows" style="margin-bottom:8px;">
 							<div class="bold">{{row.first_name}} {{row.last_name}}</div>
 							<div>Ticket {{row.confirmation}} · {{row.event_name}}</div>

@@ -2901,7 +2901,8 @@
 
 	/** --------------------------  Live poll queries  -------------------------------**/
 	function tep_poll_pdo() { // PDO for new poll SQL only; existing queries stay on mysqli
-		$host = defined('DB_HOST') ? DB_HOST : 'localhost'; // Same host as database_connect()
+		require_once __DIR__ . '/db.php'; // tep_mysql_host() + PDO::ATTR_TIMEOUT => 2
+		$host = tep_mysql_host(); // 127.0.0.1 on XAMPP — skip Windows IPv6 localhost lookup
 		$port = defined('DB_PORT') ? (int)DB_PORT : 3306; // XAMPP default
 		$httpHost = str_replace('www.', '', (string)($_SERVER['HTTP_HOST'] ?? '')); // Match database_connect prod vs dev
 		if (substr($httpHost, 0, 4) == 'easy') { // Production hostname
@@ -2913,13 +2914,11 @@
 			$user = defined('DB_USER_LOCAL') ? DB_USER_LOCAL : 'root'; // XAMPP user
 			$pass = defined('DB_PASS_LOCAL') ? DB_PASS_LOCAL : ''; // XAMPP empty root password
 		}
-		$dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $dbname . ';charset=utf8mb4'; // Constants only — never request data
+		$dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $dbname . ';charset=utf8mb4'; // mysql:host=127.0.0.1;dbname=... locally
 		try { // PHP 8.2 PDO throws PDOException when MySQL is down or the schema is missing
-			return new PDO($dsn, $user, $pass, array( // Exceptions so callers can still emit HTTP 200 rows
-				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Catch and convert to {"rows":[]}
-				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // dataSvc-friendly associative rows
-				PDO::ATTR_EMULATE_PREPARES => false, // Real server-side prepares
-			));
+			$tepPdoOpts = tep_pdo_options(); // ERRMODE / FETCH_ASSOC / native prepares / 2s timeout
+			$tepPdoOpts[PDO::ATTR_TIMEOUT] = 2; // Cap poll/check-in/Pulse waits at 2 seconds
+			return new PDO($dsn, $user, $pass, $tepPdoOpts); // Exceptions so callers can still emit HTTP 200 rows
 		} catch (Throwable $pdoConnectEx) { // Connection refused / unknown database
 			error_log('TEP poll PDO connect failed: ' . $pdoConnectEx->getMessage()); // Log only
 			throw $pdoConnectEx; // Re-throw so the outer query try/catch can emit empty rows

@@ -10,6 +10,68 @@ foreach ($paths as $p) {
         break;
     }
 }
+
+function tep_env_value($name, $default = '') { // Read Apache SetEnv / OS env; never echo secrets
+	$raw = getenv($name); // Process environment (SetEnv, systemd, Windows)
+	if ($raw !== false && $raw !== '') { // Non-empty env wins
+		return (string)$raw; // Caller define()s; no request data
+	}
+	if (isset($_ENV[$name]) && (string)$_ENV[$name] !== '') { // php.ini variables_order includes E
+		return (string)$_ENV[$name]; // Same isolation
+	}
+	if (isset($_SERVER[$name]) && (string)$_SERVER[$name] !== '' && strpos((string)$name, 'TEP_') === 0) { // VirtualHost SetEnv
+		return (string)$_SERVER[$name]; // TEP_* prefix avoids clobbering HTTP_HOST
+	}
+	return $default; // Empty so later localhost fallbacks can still run
+}
+
+function tep_define_from_env($constant, $envName, $default = '') { // Fill a constant only when tep_config / env.php did not
+	if (defined($constant)) { // private/tep_config.php always wins
+		return; // Do not redefine
+	}
+	$tepEnvVal = tep_env_value($envName, $default); // Isolated name; no $_GET/$_POST
+	if ($tepEnvVal === '') { // Missing env: leave undefined so localhost fallbacks below can run
+		return; // Do not lock DB_HOST to empty string
+	}
+	define($constant, $tepEnvVal); // Non-empty process environment
+}
+
+$tepEnvFile = __DIR__ . '/config/env.php'; // Copy of config/env.example.php; gitignored
+if (is_file($tepEnvFile)) { // Server handoff file present
+	require_once $tepEnvFile; // May define DB_* / TEP_* when tep_config left them unset
+}
+
+tep_define_from_env('DB_HOST', 'TEP_DB_HOST', ''); // MySQL host
+tep_define_from_env('DB_PORT', 'TEP_DB_PORT', ''); // MySQL port as string; database_connect casts later
+tep_define_from_env('DB_NAME_DEV', 'TEP_DB_NAME_DEV', ''); // Non-easyreg schema
+tep_define_from_env('DB_NAME_PROD', 'TEP_DB_NAME_PROD', ''); // easyreg* schema
+tep_define_from_env('DB_USER_LOCAL', 'TEP_DB_USER_LOCAL', ''); // localhost user
+tep_define_from_env('DB_PASS_LOCAL', 'TEP_DB_PASS_LOCAL', ''); // localhost password
+tep_define_from_env('DB_USER_PROD', 'TEP_DB_USER_PROD', ''); // live user
+tep_define_from_env('DB_PASS', 'TEP_DB_PASS', ''); // live password
+tep_define_from_env('DB_CONNECT_TIMEOUT', 'TEP_DB_CONNECT_TIMEOUT', ''); // mysqli timeout seconds
+tep_define_from_env('TEP_ENC_KEY_RAW', 'TEP_ENC_KEY_RAW', ''); // AES key material
+tep_define_from_env('LEGACY_SALT', 'TEP_LEGACY_SALT', ''); // crypt() salt for existing hashes
+tep_define_from_env('TEP_SESSION_NAME', 'TEP_SESSION_NAME', ''); // Session cookie name for start_secure_session
+tep_define_from_env('TEP_VAPID_PUBLIC_KEY', 'TEP_VAPID_PUBLIC_KEY', ''); // Web Push public key
+tep_define_from_env('BASE_URL', 'TEP_BASE_URL', ''); // index.php <base href>
+if (!defined('TEP_IS_PRODUCTION')) { // Boolean live lock for account-1000 autologin
+	$tepProdEnv = strtolower(tep_env_value('TEP_IS_PRODUCTION', '')); // true/1 or false/0
+	if ($tepProdEnv === '1' || $tepProdEnv === 'true') { // Operator set live
+		define('TEP_IS_PRODUCTION', true); // tep_apply_local_dev_session returns immediately
+	} elseif ($tepProdEnv === '0' || $tepProdEnv === 'false') { // Operator set not-live
+		define('TEP_IS_PRODUCTION', false); // Host-header gate still applies
+	}
+}
+if (!defined('TEP_LOCAL_DEV_AUTOLOGIN')) { // Extra XAMPP toggle
+	$tepAutoEnv = strtolower(tep_env_value('TEP_LOCAL_DEV_AUTOLOGIN', '')); // true/1 or false/0
+	if ($tepAutoEnv === '1' || $tepAutoEnv === 'true') { // Explicit on
+		define('TEP_LOCAL_DEV_AUTOLOGIN', true); // Seed account 1000 on localhost only
+	} elseif ($tepAutoEnv === '0' || $tepAutoEnv === 'false') { // Explicit off
+		define('TEP_LOCAL_DEV_AUTOLOGIN', false); // Use real login locally
+	}
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
@@ -109,6 +171,9 @@ function start_secure_session() {
 		'httponly' => true,
 		'samesite' => 'Lax',
 	]);
+	if (defined('TEP_SESSION_NAME') && TEP_SESSION_NAME !== '' && TEP_SESSION_NAME !== 'PHPSESSID') { // Isolated cookie name from env / tep_config
+		session_name(TEP_SESSION_NAME); // Must run before session_start(); index.php raw session_start() still uses php.ini
+	}
 	session_start();
 	ensure_session_csrf_token();
 	tep_apply_local_dev_session(); // Seed after a fresh local session so /index.php has accountid
@@ -168,9 +233,9 @@ function database_connect() {
 		$password = DB_PASS;
 	}
 
-	$connectTimeout = defined('DB_CONNECT_TIMEOUT') ? (int)DB_CONNECT_TIMEOUT : 5;
+	$connectTimeout = defined('DB_CONNECT_TIMEOUT') ? (int)DB_CONNECT_TIMEOUT : 2; // Match PDO::ATTR_TIMEOUT so getQueryResults cannot stall 5s
 	if ($connectTimeout < 1) {
-		$connectTimeout = 5;
+		$connectTimeout = 2; // Floor: same 2-second cap as data_access/db.php
 	}
 
 	$linkID = mysqli_init();
@@ -179,7 +244,15 @@ function database_connect() {
 		if (defined('MYSQLI_OPT_READ_TIMEOUT')) {
 			mysqli_options($linkID, MYSQLI_OPT_READ_TIMEOUT, $connectTimeout);
 		}
-		$linkID = mysqli_real_connect($linkID, DB_HOST, $username, $password, $database, DB_PORT) ? $linkID : false;
+		$tepDbPort = defined('DB_PORT') ? (int)DB_PORT : 3306; // Env may supply a string; mysqli wants int
+		if ($tepDbPort < 1) { // Invalid TEP_DB_PORT
+			$tepDbPort = 3306; // Default MySQL
+		}
+		$tepMysqlHost = defined('DB_HOST') ? (string)DB_HOST : '127.0.0.1'; // Prefer IPv4 loopback on XAMPP
+		if ($tepMysqlHost === 'localhost' || $tepMysqlHost === '::1') { // Windows IPv6 localhost lookup ~2s
+			$tepMysqlHost = '127.0.0.1'; // Same as PDO mysql:host=127.0.0.1
+		}
+		$linkID = mysqli_real_connect($linkID, $tepMysqlHost, $username, $password, $database, $tepDbPort) ? $linkID : false;
 	}
 	if (!$linkID) {
 		// [SEC-3] Log error, never print it — DB errors expose server info
@@ -238,6 +311,9 @@ function alerts(){
 if (!defined('TEP_ENC_KEY_RAW')) { // PHP 8.2 fatals on undefined constants; local XAMPP has no private/tep_config.php
 	define('TEP_ENC_KEY_RAW', ''); // Empty local placeholder so index.php can load; production tep_config still wins when present
 }
+if (!defined('LEGACY_SALT')) { // login_process.php crypt() on XAMPP without tep_config
+	define('LEGACY_SALT', ''); // Empty local placeholder; production must set TEP_LEGACY_SALT / tep_config
+}
 $encKey = TEP_ENC_KEY_RAW; // Decode path unchanged once the constant exists
 $encryption_key = base64_decode($encKey); // Empty string is safe when config is missing on localhost
 
@@ -245,7 +321,7 @@ if (tep_is_local_host() && !(defined('TEP_IS_PRODUCTION') && TEP_IS_PRODUCTION =
 	$is_production = false; // Flip the live flag so account 1000 autologin can run on this machine only
 }
 if (tep_is_local_host()) { // Local XAMPP: private tep_config.php is absent, so queries.php cannot read DB_NAME_DEV
-	if (!defined('DB_HOST')) define('DB_HOST', 'localhost'); // XAMPP MySQL listen address
+	if (!defined('DB_HOST')) define('DB_HOST', '127.0.0.1'); // XAMPP MySQL IPv4 loopback — skip Windows localhost DNS
 	if (!defined('DB_PORT')) define('DB_PORT', 3306); // XAMPP default MySQL port
 	if (!defined('DB_NAME_DEV')) define('DB_NAME_DEV', 'tep_local'); // Local schema so getQueryResults.php can bind information_schema
 	if (!defined('DB_NAME_PROD')) define('DB_NAME_PROD', 'tep_local'); // Same local schema; easyreg hostnames are not used on XAMPP
